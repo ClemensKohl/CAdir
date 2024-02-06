@@ -1,4 +1,3 @@
-# TODO: Inherit from caclust class.
 # TODO: Find out if you can have the class without cabinet package.
 
 
@@ -10,21 +9,35 @@
 #' If object is a valid cadir object returns TRUE, otherwise the errors.
 #'
 check_cadir <- function(object) {
-
     stopifnot(is(object, "cadir"))
 
     errors <- character()
 
     ndir <- nrow(object@directions)
-    n_cell_cl  <- unique(object@cell_clusters)
-    n_gene_cl  <- unique(object@gene_clusters)
+    n_cell_cl <- unique(object@cell_clusters)
+    n_gene_cl <- unique(object@gene_clusters)
 
-    # check if number of clusters == number of directions.
-    if (ndir != n_cell_cl) {
-        msg <- c("Number of cell clusters not equal to number of directions")
+    n_cl <- length(unique(n_cell_cl, n_gene_cl))
+
+    if (ndir != n_cl) {
+        msg <- c(
+            "Number of cell & gene clusters not equal to number of directions."
+        )
         errors <- c(errors, msg)
-    } else if (ndir != n_gene_cl) {
-        msg <- c("Number of gene clusters not equal to number of directions")
+    }
+
+    if (ndir != nrow(object@distances) || ndir != ncol(object@distances)) {
+        msg <- c("Distances dont match directions.")
+        errors <- c(errors, msg)
+    }
+
+    if (is.null(names(object@cell_clusters))) {
+        msg <- c("Cell clusters have no names.")
+        errors <- c(errors, msg)
+    }
+
+    if (is.null(names(object@gene_clusters))) {
+        msg <- c("Gene clusters have no names.")
         errors <- c(errors, msg)
     }
 
@@ -50,18 +63,20 @@ check_cadir <- function(object) {
 setClass("cadir",
     contains = "caclust",
     representation(
-        # cell_clusters = "factor",
-        # gene_clusters = "factor",
+        cell_clusters = "factor",
+        gene_clusters = "factor",
         directions = "matrix",
         distances = "matrix",
-        # parameters = "list"
+        log = "list",
+        parameters = "list"
     ),
     prototype(
-        # cell_clusters = factor(),
-        # gene_clusters = factor(),
+        cell_clusters = factor(),
+        gene_clusters = factor(),
         directions = matrix(0, 0, 0),
         distances = matrix(0, 0, 0),
-        # parameters = list()),
-        validity = check_cadir
+        parameters = list(),
+        log = list()
+    ),
+    validity = check_cadir
 )
-
