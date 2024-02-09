@@ -1,4 +1,4 @@
-# ** Plan: **
+r # ** Plan: **
 # There is one main function that performs clustering by direction.
 # Depending on the choice of a paremter we branch into Salpha clustering or
 # regular splitmerging (e.g. setting cutoff = auto or similar)
@@ -37,7 +37,6 @@ kmeanspp_init <- function(points, k) {
 #' @returns
 #' Matrix of distances of points to the directions.
 dist_to_line <- function(points, lines, pnorm) {
-
     if (is.matrix(lines)) {
         lines <- t(lines)
     }
@@ -57,7 +56,6 @@ dist_to_line <- function(points, lines, pnorm) {
 #' @returns
 #' Matrix of updated directions.
 update_line <- function(points, clusters, lines, k) {
-
     # SVD gives total least squares results
     k <- sort(unique(clusters))
     for (c in seq_len(k)) {
@@ -97,12 +95,11 @@ update_line <- function(points, clusters, lines, k) {
 #'
 #' @export
 dirclust <- function(points,
-                     k,
-                     epochs = 10,
-                     init = "kmeanspp",
-                     lines = NULL,
-                     log = FALSE) {
-
+    k,
+    epochs = 10,
+    init = "kmeanspp",
+    lines = NULL,
+    log = FALSE) {
     pnorm <- row_norm(points)
 
     if (is.null(lines)) {
@@ -133,7 +130,6 @@ dirclust <- function(points,
     }
 
     for (i in seq_len(epochs)) {
-
         # calculate distance to line.
         ldist <- dist_to_line(points, lines, pnorm)
 
@@ -144,7 +140,6 @@ dirclust <- function(points,
         lines <- update_line(points, clusters, lines, k)
 
         if (isTRUE(log)) {
-
             dir_log[[as.character(i)]] <- lines
 
             dist_log[[i]] <- vapply(
@@ -173,10 +168,12 @@ dirclust <- function(points,
         cell_clusters = factor(clusters),
         directions = lines,
         distances = ldist,
-        parameters = list("k" = k,
+        parameters = list(
+            "k" = k,
             "epochs" = epochs,
             "init" = init,
-            "log" = log),
+            "log" = log
+        ),
         log = log_list
     )
 
