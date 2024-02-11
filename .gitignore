@@ -50,5 +50,3 @@ rsconnect/
 .Rproj.user
 .Rdata
 .DS_Store
-
-.lintr
