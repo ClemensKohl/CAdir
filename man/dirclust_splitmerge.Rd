@@ -8,6 +8,7 @@ dirclust_splitmerge(
   caobj,
   k,
   cutoff = 40,
+  qcutoff = 0.8,
   min_cells = 5,
   epochs = 15,
   reps = 5,
@@ -20,6 +21,8 @@ dirclust_splitmerge(
 \item{k}{Number of clusters.}
 
 \item{cutoff}{Degrees. The cutoff angle to split and merge clusters.}
+
+\item{qcutoff}{The quantile cutoff for gene selection.}
 
 \item{min_cells}{Minimum number of cells to form a cluster.}
 
