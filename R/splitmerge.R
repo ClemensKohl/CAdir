@@ -1,9 +1,13 @@
 # TODO: Combine with code for sa_splitmerge
 
-# TODO: Add documentation
-# FIXME: Update to work with caclust class
-sub_cluster <- function(clustering, points, idx) {
-    sel <- which(clustering@cell_clusters == idx)
+#' Split a cluster into 2 sub-clusters.
+#' @inheritParams dirclust
+#' @param idx The cluster index to split.
+#' @param cadir A `cadir` object.
+#' @returns 
+#' A `cadir` object that contains only the two new clusters.
+sub_cluster <- function(cadir, points, idx) {
+    sel <- which(cadir@cell_clusters == idx)
     cl <- points[sel, ]
     res <- dirclust(
         points = cl,
@@ -17,9 +21,14 @@ sub_cluster <- function(clustering, points, idx) {
     return(res)
 }
 
-# TODO: Add documentation
-decide_split <- function(directions, cutoff = 30) {
-    cutoff <- 1 - (deg2rad(cutoff) / pi)
+
+#' Determine if a cluster should be split.
+#' @param directions A row vector matrix of directions.
+#' @param cutoff The cutoff angle in degrees.
+#' @returns
+#' A logical indicating if the cluster should be split.
+decide_split <- function(directions, cutoff = deg2rad(30)) {
+    cutoff <- 1 - (cutoff / pi)
 
     angsim <- max(
         get_ang_sim(directions[1, ], directions[2, ]),
@@ -30,57 +39,30 @@ decide_split <- function(directions, cutoff = 30) {
 
     return(to_split)
 }
-# FIXME: REMOVE OR FINISH.
-add_split_cluster <- function(cadir, new_cl){
 
-    # Update the clustering results and add the new directions.
-    new_cl <- sort(unique(sres@cell_clusters))
-    extra <- max(clustering@cell_clusters) + 1
-
-    sel <- which(clustering@cell_clusters == i)
-    cl1 <- sres@cell_clusters == new_cl[1]
-    cl2 <- sres@cell_clusters == new_cl[2]
-
-    if (!length(cl1) > 1 && length(cl2) > 1) next
-
-    sres@cell_clusters[cl1] <- i
-    sres@cell_clusters[cl2] <- extra
-
-    clustering@cell_clusters[sel] <- sres@cell_clusters
-
-    rownames(sres@directions) <- paste0("line", c(i, extra))
-    clustering@directions[paste0("line", i), ] <- sres@directions[paste0("line", i), ]
-
-    rn <- rownames(clustering@directions)
-    clustering@directions <- rbind(
-        clustering@directions,
-        sres@directions[paste0("line", extra), ]
-    )
-
-    rownames(clustering@directions) <- c(rn, paste0("line", extra))
-
-    return(cadir)
-}
-
-# TODO: Update names of clusters
-# FIXME: Update to work with caclust class
 # TODO: Find better way to deal with plots.
 # TODO: Make function simpler.
-determine_sub_clusters <- function(clustering,
+
+#' Split clusters based on angle.
+#' @inheritParams dirclust_splitmerge
+#' @param cadir A `cadir` object.
+#' @returns A `cadir` object with split clusters.
+split_clusters <- function(
+    cadir,
     caobj,
     cutoff = 30,
     min_cells = 5,
-    apl = FALSE,
-    make_plots = FALSE) {
-    cls <- sort(unique(clustering@cell_clusters))
+    make_plots = FALSE
+) {
+    cls <- sort(unique(cadir@cell_clusters))
 
     if (isTRUE(make_plots)) aplplots <- list()
 
     for (i in cls) {
-        if (sum(clustering@cell_clusters == i) < 2) next
+        if (sum(cadir@cell_clusters == i) < 2) next
 
         sres <- sub_cluster(
-            clustering = clustering,
+            cadir = cadir,
             points = caobj@prin_coords_cols,
             idx = i
         )
@@ -104,8 +86,8 @@ determine_sub_clusters <- function(clustering,
                 p <- cluster_apl(
                     caobj = caobj,
                     cadir = sres,
-                    apl_dir = clustering@directions[i, ],
-                    indx_group = which(clustering@cell_clusters == i),
+                    direction = cadir@directions[i, ],
+                    group = which(cadir@cell_clusters == i),
                     cluster_id = i
                 )
 
@@ -114,9 +96,9 @@ determine_sub_clusters <- function(clustering,
 
             # Update the clustering results and add the new directions.
             new_cl <- sort(unique(sres@cell_clusters))
-            extra <- max(clustering@cell_clusters) + 1
+            extra <- max(cadir@cell_clusters) + 1
 
-            sel <- which(clustering@cell_clusters == i)
+            sel <- which(cadir@cell_clusters == i)
             cl1 <- sres@cell_clusters == new_cl[1]
             cl2 <- sres@cell_clusters == new_cl[2]
 
@@ -125,38 +107,166 @@ determine_sub_clusters <- function(clustering,
             sres@cell_clusters[cl1] <- i
             sres@cell_clusters[cl2] <- extra
 
-            clustering@cell_clusters[sel] <- sres@cell_clusters
+            cadir@cell_clusters[sel] <- sres@cell_clusters
 
             rownames(sres@directions) <- paste0("line", c(i, extra))
-            clustering@directions[paste0("line", i), ] <- sres@directions[paste0("line", i), ]
+            cadir@directions[paste0("line", i), ] <- sres@directions[paste0("line", i), ]
 
-            rn <- rownames(clustering@directions)
-            clustering@directions <- rbind(
-                clustering@directions,
+            rn <- rownames(cadir@directions)
+            cadir@directions <- rbind(
+                cadir@directions,
                 sres@directions[paste0("line", extra), ]
             )
 
-            rownames(clustering@directions) <- c(rn, paste0("line", extra))
+            rownames(cadir@directions) <- c(rn, paste0("line", extra))
         }
     }
 
     if (isTRUE(make_plots)) {
-        clustering$split_plots <- aplplots # FIXME: not a valid slot
+        rep <- paste0("rep_", cadir@log$last_rep)
+        cadir@plots$splits[[rep]] <- aplplots
     }
 
-    clustering <- rename_clusters(clustering)
+    cadir <- rename_clusters(cadir)
 
-    return(clustering)
+    return(cadir)
 }
 
-# FIXME: Update to work with caclust class
-cameans_splitmerge <- function(caobj,
-                               k,
-                               cutoff = 40,
-                               min_cells = 5,
-                               epochs = 15,
-                               reps = 5,
-                               make_plots = FALSE) {
+#' Merge clusters based on angle
+#' @inheritParams dirclust_splitmerge
+#' @param cadir A `cadir` object.
+#' @returns A `cadir` object with merged clusters.
+merge_clusters <- function(caobj,
+                           cadir,
+                           cutoff,
+                           make_plots = FALSE) {
+
+    samples <- caobj@prin_coords_cols
+    clusters <- cadir@cell_clusters
+    directions <- cadir@directions
+
+    if (isTRUE(make_plots)) {
+
+        rep <- paste0("rep_", cadir@log$last_rep)
+
+        if (length(cadir@plots$merges[[rep]]) == 0) {
+            mergeplots <- list()
+        } else {
+            mergeplots <- cadir@plots$merges[[rep]]
+        }
+    }
+
+    asim_cutoff <- 1 - cutoff / pi
+
+    sim <- get_ang_sim(directions, directions)
+
+    # Set the lower diagonal to 0
+    sim[lower.tri(sim, diag = TRUE)] <- 0
+
+    candidates <- apply(sim, 1, function(x) which(x >= asim_cutoff))
+
+    sel <- which(lengths(candidates) > 0)
+
+    for (s in sel){
+        cds <- candidates[[s]]
+        mergers <- c(s, cds)
+        #mergers <- c(d, cds)
+
+        message(paste0("Merging cluster ", s, " with ", cds, "\n"))
+
+        cls <- which(clusters %in% mergers)
+        if (length(cls) == 0) next
+
+        new_dir <- drop(total_least_squares(samples[cls, , drop = FALSE]))
+
+        if (isTRUE(make_plots)) {
+
+            sres <- new("cadir",
+                cell_clusters = clusters[cls],
+                directions = directions[mergers, ],
+            )
+
+            sres@cell_clusters <- match(
+                sres@cell_clusters,
+                sort(unique(sres@cell_clusters))
+            )
+            names(sres@cell_clusters) <- names(clusters[cls])
+
+            p <- cluster_apl(caobj = caobj,
+                             cadir = sres,
+                             direction = new_dir,
+                             group = cls,
+                             cluster_id = s)
+
+            nm <- paste("cluster", mergers, collapse = "_")
+
+            if (nm %in% names(mergeplots)) nm <- paste0(nm, "_v2")
+            mergeplots[[nm]] <- p
+        }
+
+        clusters[cls] <- s
+        directions[s, ] <- new_dir
+        directions <- directions[-cds, ]
+
+        cadir@cell_clusters <- clusters
+        cadir@directions <- directions
+
+        if (length(sel) > 1) {
+
+            cadir <- rename_clusters(cadir = cadir)
+
+            if (isTRUE(make_plots)) {
+                rep <- paste0("rep_", cadir@log$last_rep)
+                cadir@plots$mergers[[rep]] <- append(
+                    cadir@plots$mergers[[rep]],
+                    mergeplots
+                )
+            }
+
+            out <- merge_clusters(caobj = caobj,
+                                  cadir = cadir,
+                                  make_plots = make_plots,
+                                  cutoff = cutoff)
+            return(out)
+        }
+
+    }
+
+    cadir@directions <- directions
+    cadir@cell_clusters <- clusters
+    cadir <- rename_clusters(cadir)
+
+    if (isTRUE(make_plots)) {
+        rep <- paste0("rep_", cadir@log$last_rep)
+        cadir@plots$mergers[[rep]] <- append(
+            cadir@plots$mergers[[rep]],
+            mergeplots
+        )
+    }
+
+    return(cadir)
+}
+
+#' Perform Clustering by CA directions with splitting and merging.
+#' @inheritParams dirclust
+#' @param caobj A `caclust` object.
+#' @param reps Number of repetitions to perform the splitting and merging.
+#' @param min_cells Minimum number of cells to form a cluster.
+#' @param make_plots Logical. If `TRUE` plots are generated for each
+#' split and merge
+#' @param cutoff Degrees. The cutoff angle to split and merge clusters.
+#' @return A `cadir` object with cell clusters.
+dirclust_splitmerge <- function(caobj,
+                                k,
+                                cutoff = 40,
+                                min_cells = 5,
+                                epochs = 15,
+                                reps = 5,
+                                make_plots = FALSE) {
+
+    # Convert cutoff to radians
+    cutoff <- deg2rad(cutoff)
+
     out <- dirclust(
         points = caobj@prin_coords_cols,
         k = k,
@@ -166,50 +276,37 @@ cameans_splitmerge <- function(caobj,
         log = FALSE
     )
 
-    if (isTRUE(make_plots)) {
-        split_plots <- list()
-        merge_plots <- list()
-    }
-
-
     for (i in seq_len(reps)) {
         message("Iteration ", i)
 
-        subout <- determine_sub_clusters(
-            clustering = out,
+        out@log$last_rep <- i
+
+        out <- split_clusters(
+            cadir = out,
             caobj = caobj,
             cutoff = cutoff,
             min_cells = min_cells,
-            apl = FALSE,
             make_plots = make_plots
         )
 
-        mergeout <- merge_clusters(
+        out <- merge_clusters(
             caobj = caobj,
-            cameans = subout,
+            cadir = out,
             cutoff = cutoff,
             make_plots = make_plots
         )
 
         # Final k-means to refine new clusters.
 
-        out <- CAkmeans(caobj@prin_coords_cols,
-            k = ncol(mergeout$direction),
-            lines = mergeout$direction,
+        out <- dirclust(
+            points = caobj@prin_coords_cols,
+            k = ncol(out@directions),
+            lines = out@directions,
             epochs = 5,
             log = FALSE
         )
-
-        if (isTRUE(make_plots)) {
-            split_plots[[paste0("rep_", i)]] <- subout$split_plots
-
-            merge_plots[[paste0("rep_", i)]] <- mergeout$merge_plots
-        }
     }
 
-    if (isTRUE(make_plots)) {
-        out$split_plots <- split_plots
-        out$merge_plots <- merge_plots
-    }
+    out <- rename_clusters(out)
     return(out)
 }

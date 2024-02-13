@@ -1,4 +1,4 @@
-r # ** Plan: **
+# ** Plan: **
 # There is one main function that performs clustering by direction.
 # Depending on the choice of a paremter we branch into Salpha clustering or
 # regular splitmerging (e.g. setting cutoff = auto or similar)
@@ -48,6 +48,21 @@ dist_to_line <- function(points, lines, pnorm) {
     return(dist)
 }
 
+# TODOL: Add documentation
+total_least_squares <- function(points){
+
+    if (nrow(points) == 1){
+        reg_line <- points / row_norm(points)
+    } else{
+        suppressWarnings({
+            reg_line <- irlba::irlba(points, nv = 1, right_only = TRUE)$v
+        })
+    }
+    
+
+    return(reg_line)
+}
+
 #' Update directions through Total Least Squares Regression
 #' @param points Row-wise matrix of points.
 #' @param clusters Vector of cluster assignments for the points.
@@ -58,21 +73,13 @@ dist_to_line <- function(points, lines, pnorm) {
 update_line <- function(points, clusters, lines, k) {
     # SVD gives total least squares results
     k <- sort(unique(clusters))
-    for (c in seq_len(k)) {
+    for (c in seq_len(length(k))) {
         sel <- which(clusters == k[c])
-
-        if (length(sel) == 1) {
-            lines[c, ] <- points[sel, ] / row_norm(points[sel, ])
-        } else if (length(sel) == 0) {
+        
+        if (length(sel) == 0){
             next
         } else {
-            suppressWarnings({
-                lines[c, ] <- irlba::irlba(
-                    points[sel, ],
-                    nv = 1,
-                    right_only = TRUE
-                )$v
-            })
+            lines[c, ] <- total_least_squares(points[sel, ])
         }
     }
     return(lines)
@@ -94,12 +101,15 @@ update_line <- function(points, clusters, lines, k) {
 #' An element of class cadir.
 #'
 #' @export
-dirclust <- function(points,
+dirclust <- function(
+    points,
     k,
     epochs = 10,
     init = "kmeanspp",
     lines = NULL,
-    log = FALSE) {
+    log = FALSE
+) {
+
     pnorm <- row_norm(points)
 
     if (is.null(lines)) {
