@@ -16,24 +16,32 @@ rand_idx <- function(points, k) {
 #' @returns
 #' A cadir object with renamed clusters and directions.
 rename_clusters <- function(cadir) {
-    uni_clust <- sort(unique(cadir@cell_clusters))
-    nms <- names(cadir@cell_clusters)
+
+    uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
+    cell_nms <- names(cadir@cell_clusters)
+    gene_nms <- names(cadir@gene_clusters)
 
     dir_num <- as.numeric(gsub("line", "", rownames(cadir@directions)))
 
     # Remove directions without any points clustered.
     have_smpls <- which(dir_num %in% uni_clust)
+    dir_num <- dir_num[have_smpls]
     cadir@directions <- cadir@directions[have_smpls, ]
 
-    # TODO: What about gene clusters? If there are any
+    # Rename the directions according to the cluster numbers.
+    new_dir_num <- match(dir_num, uni_clust)
+    rownames(cadir@directions) <- paste0("line", new_dir_num)
 
     # Rename the clusters according to the order of their direction.
     cadir@cell_clusters <- as.factor(match(cadir@cell_clusters, uni_clust))
     stopifnot(!any(is.na(cadir@cell_clusters)))
-    names(cadir@cell_clusters) <- nms
+    names(cadir@cell_clusters) <- cell_nms
 
-    # Rename the directions according to the cluster numbers.
-    rownames(cadir@directions) <- paste0("line", sort(unique(cadir@cell_clusters)))
+    if (!is.empty(cadir@gene_clusters)) {
+        cadir@gene_clusters <- as.factor(match(cadir@gene_clusters, uni_clust))
+        stopifnot(!any(is.na(cadir@gene_clusters)))
+        names(cadir@gene_clusters) <- gene_nms
+    }
 
     return(cadir)
 }

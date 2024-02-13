@@ -40,9 +40,6 @@ decide_split <- function(directions, cutoff = deg2rad(30)) {
     return(to_split)
 }
 
-# TODO: Find better way to deal with plots.
-# TODO: Make function simpler.
-
 #' Split clusters based on angle.
 #' @inheritParams dirclust_splitmerge
 #' @param cadir A `cadir` object.
@@ -75,9 +72,7 @@ split_clusters <- function(
 
         if (any(elems < min_cells)) next
 
-        dir <- sres@directions
-
-        to_split <- decide_split(dir, cutoff = cutoff)
+        to_split <- decide_split(sres@directions, cutoff = cutoff)
 
         if (isTRUE(to_split)) {
             message(paste0("Splitting cluster ", i))
@@ -255,10 +250,12 @@ merge_clusters <- function(caobj,
 #' @param make_plots Logical. If `TRUE` plots are generated for each
 #' split and merge
 #' @param cutoff Degrees. The cutoff angle to split and merge clusters.
+#' @param qcutoff The quantile cutoff for gene selection.
 #' @return A `cadir` object with cell clusters.
 dirclust_splitmerge <- function(caobj,
                                 k,
                                 cutoff = 40,
+                                qcutoff = 0.8,
                                 min_cells = 5,
                                 epochs = 15,
                                 reps = 5,
@@ -306,6 +303,13 @@ dirclust_splitmerge <- function(caobj,
             log = FALSE
         )
     }
+    
+    out@gene_clusters <- assign_genes(
+        caobj = caobj,
+        directions = out@directions,
+        qcutoff = qcutoff,
+        coords = "prin"
+    )
 
     out <- rename_clusters(out)
     return(out)
