@@ -39,43 +39,54 @@ cosine <- function(a, b) {
     return(costheta)
 }
 
-# TODO: Add documentation
+#' Calculate angular similarity between two vectors.
+#' @param a Vector or matrix of row-vectors.
+#' @param b Vector or matrix of row-vectors.
+#' @returns scalar. The angular similarity.
 get_ang_sim <- function(a, b) {
     sim <- 1 - acos(cosine(a, b)) / pi
     return(sim)
 }
 
-# TODO: Add documentation
+#' Calculate angle between two vectors.
+#' @param a Vector or matrix of row-vectors.
+#' @param b Vector or matrix of row-vectors.
+#' @returns scalar. The angle between the vectors in radian.
 get_angle <- function(a, b) {
     angle <- acos(cosine(a, b))
     return(angle)
 }
 
-# TODO: Add documentation
-get_ang_sim <- function(a, b) {
-    sim <- 1 - acos(cosine(a, b)) / pi
-    return(sim)
-}
-
-# TODO: Add documentation
+#' Convert the angular similarity to degrees.
+#' Function for manual checking and debugging.
+#' @param ang_sim Angular similarity.
+#' @returns scalar. The angle in degrees.
 ang_sim_to_deg <- function(ang_sim) {
     deg <- rad2deg((pi - ang_sim * pi))
     return(deg)
 }
 
-# TODO: Add documentation
+#' Convert degrees to radians.
+#' @param x Angle in degrees.
+#' @returns Angle in radians.
 deg2rad <- function(x) {
     r <- (x * pi) / 180
     return(r)
 }
 
-# TODO: Add documentation
+#' Convert radians to degrees.
+#' @param x Angle in radians.
+#' @returns Angle in degrees.
 rad2deg <- function(x) {
     d <- (x * 180) / pi
     return(d)
 }
 
-# TODO: Add documentation.
+#' Calculate the slope of lines/vectors.
+#' Only works in 2D!
+#' @param lines Row-wise matrix of lines/vectors.
+#' @param dims The 2 dimensions which should be used to calculate the slope.
+#' @returns Vector of slopes.
 slope <- function(lines, dims = 1:2) {
     if (is.null(nrow(lines)) == 1) {
         d <- lines[dims[2]] / lines[dims[1]]

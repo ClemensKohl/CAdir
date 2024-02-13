@@ -1,8 +1,15 @@
-# TODO: Add documentation.
-lsr_apl_model <- function(
-        caobj,
-        direction,
-        group = NULL) {
+#' Create a model to project points into an Association Plot
+#' @param caobj A cacomp object.
+#' @param direction Normed direction vector of the APL plot.
+#' @param group A vector of indices which indicate the points
+#' that belong to the cluster.
+#' @returns
+#' A model that can be used to project new points onto the APL plot.
+apl_model <- function(
+    caobj,
+    direction,
+    group = NULL
+) {
     stopifnot(is(caobj, "cacomp"))
 
     cols <- caobj@prin_coords_cols
@@ -32,10 +39,6 @@ lsr_apl_model <- function(
         avg_group_coords <- -avg_group_coords
     }
 
-    #' Project vector(s) into a precomputed Association plot.
-    #' @param vec Matrix of row-vectors.
-    #' @returns
-    #' Association plot coordinates for rows or columns.
     model <- function(vec) {
         length_vector <- row_norm(vec)
         cordx <- drop(vec %*% avg_group_coords) / length_vector_group
@@ -50,12 +53,17 @@ lsr_apl_model <- function(
     return(model)
 }
 
-# TODO: Add documentation.
+#' Plot a cluster with the respective direction/line in an APL.
+#' @inheritParams apl_model
+#' @param cadir A cadir object for which to compute the APL
+#' @param cluster_id The cluster for which to plot the APL.
+#' @returns
+#' An APL plot (ggplot2 object).
 cluster_apl <- function(
         caobj,
         cadir,
-        apl_dir,
-        indx_group,
+        direction,
+        group,
         cluster_id = "NA") {
     stopifnot(is(caobj, "cacomp"))
     stopifnot(is(cadir, "cadir"))
@@ -68,10 +76,10 @@ cluster_apl <- function(
         rad2deg(get_angle(-cadir@directions[1, ], cadir@directions[2, ]))
     )
 
-    model <- lsr_apl_model(
+    model <- apl_model(
         caobj = caobj,
-        direction = apl_dir,
-        group = indx_group
+        direction = direction,
+        group = group
     )
 
     capl <- model(caobj@prin_coords_cols)

@@ -26,7 +26,7 @@ check_cadir <- function(object) {
         errors <- c(errors, msg)
     }
 
-    if (ndir != nrow(object@distances) || ndir != ncol(object@distances)) {
+    if (ndir != ncol(object@distances) || ndir != ncol(object@distances)) {
         msg <- c("Distances dont match directions.")
         errors <- c(errors, msg)
     }
@@ -36,7 +36,7 @@ check_cadir <- function(object) {
         errors <- c(errors, msg)
     }
 
-    if (is.null(names(object@gene_clusters))) {
+    if (!is.empty(object@gene_clusters) && is.null(names(object@gene_clusters))) {
         msg <- c("Gene clusters have no names.")
         errors <- c(errors, msg)
     }
@@ -50,7 +50,6 @@ check_cadir <- function(object) {
 #' @rdname cadir-class
 #' @description
 #' Class to store biclustering by directions results.
-#'
 #' @slot cell_clusters factors. The assigned cell clusters with cell names in
 #' the names attribute.
 #' @slot gene_clusters factors. The assigned gene clusters with gene names in
@@ -68,7 +67,8 @@ setClass("cadir",
         directions = "matrix",
         distances = "matrix",
         log = "list",
-        parameters = "list"
+        parameters = "list",
+        plots = "list"
     ),
     prototype(
         cell_clusters = factor(),
@@ -76,7 +76,12 @@ setClass("cadir",
         directions = matrix(0, 0, 0),
         distances = matrix(0, 0, 0),
         parameters = list(),
-        log = list()
+        log = list(),
+        plots = list("splits" = list(),
+                     "merges" = list(),
+                     "clusters" = list())
     ),
     validity = check_cadir
 )
+
+

@@ -16,8 +16,8 @@ rand_idx <- function(points, k) {
 #' @returns
 #' A cadir object with renamed clusters and directions.
 rename_clusters <- function(cadir) {
-    uni_clust <- sort(unique(cadir@clusters))
-    nms <- names(cadir@clusters)
+    uni_clust <- sort(unique(cadir@cell_clusters))
+    nms <- names(cadir@cell_clusters)
 
     dir_num <- as.numeric(gsub("line", "", rownames(cadir@directions)))
 
@@ -25,13 +25,65 @@ rename_clusters <- function(cadir) {
     have_smpls <- which(dir_num %in% uni_clust)
     cadir@directions <- cadir@directions[have_smpls, ]
 
+    # TODO: What about gene clusters? If there are any
+
     # Rename the clusters according to the order of their direction.
-    cadir@clusters <- match(cadir@clusters, uni_clust)
-    stopifnot(!any(is.na(cadir@clusters)))
-    names(cadir@clusters) <- nms
+    cadir@cell_clusters <- as.factor(match(cadir@cell_clusters, uni_clust))
+    stopifnot(!any(is.na(cadir@cell_clusters)))
+    names(cadir@cell_clusters) <- nms
 
     # Rename the directions according to the cluster numbers.
-    rownames(cadir@directions) <- paste0("line", sort(unique(cadir@clusters)))
+    rownames(cadir@directions) <- paste0("line", sort(unique(cadir@cell_clusters)))
 
     return(cadir)
 }
+
+#' Check if a variable is empty (length = 0 but not NULL)
+#' @param x variable to check
+#' @return TRUE if variable is empty, FALSE otherwise.
+is.empty <- function(x) {
+    return(isTRUE(length(x) == 0 & !is.null(x)))
+}
+
+
+#' Print cadir object in console.
+#' @param object A cadir object
+show_cadir <- function(object) {
+    stopifnot(is(object, "cadir"))
+
+    ncells <- length(object@cell_clusters)
+    ngenes <- length(object@gene_clusters)
+    cat("caclust object with", ncells, "cells and", ngenes, "genes.")
+
+    if (!is.empty(CAbiNet::cell_clusters(object)) &&
+        !is.empty(CAbiNet::gene_clusters(object))) {
+
+        stopifnot(identical(
+            levels(CAbiNet::cell_clusters(object)),
+            levels(CAbiNet::gene_clusters(object))
+        ))
+        cat("\n")
+        cat(length(levels(CAbiNet::gene_clusters(object))), "clusters found.")
+        cat("\nClustering results:\n\n")
+        df <- data.frame(
+            "cluster" = levels(CAbiNet::cell_clusters(object)),
+            "ncells" = summary(CAbiNet::cell_clusters(object), maxsum = Inf),
+            "ngenes" = summary(CAbiNet::gene_clusters(object), maxsum = Inf)
+        )
+
+        print(df, row.names = FALSE, right = FALSE)
+    } else {
+        cat("\nNo biclustering run yet.\n\n")
+    }
+
+}
+
+#' @rdname show_cadir
+#' @export
+setMethod(
+    f = "show",
+    signature(object = "cadir"),
+    function(object) {
+        show_cadir(object)
+    }
+)
