@@ -4,11 +4,15 @@
 #' @inheritParams dirclust
 #' @param idx The cluster index to split.
 #' @param cadir A `cadir` object.
-#' @returns 
+#' @returns
 #' A `cadir` object that contains only the two new clusters.
 sub_cluster <- function(cadir, points, idx) {
+
     sel <- which(cadir@cell_clusters == idx)
     cl <- points[sel, ]
+    if (length(cl) == 0) {
+        stop("No points in cluster")
+    }
     res <- dirclust(
         points = cl,
         k = 2,
@@ -40,6 +44,8 @@ decide_split <- function(directions, cutoff = deg2rad(30)) {
     return(to_split)
 }
 
+# TODO: Make recursive?
+
 #' Split clusters based on angle.
 #' @inheritParams dirclust_splitmerge
 #' @param cadir A `cadir` object.
@@ -49,13 +55,13 @@ split_clusters <- function(
     caobj,
     cutoff = 30,
     min_cells = 5,
-    make_plots = FALSE
-) {
+    make_plots = FALSE) {
     cls <- sort(unique(cadir@cell_clusters))
 
     if (isTRUE(make_plots)) aplplots <- list()
 
     for (i in cls) {
+        
         if (sum(cadir@cell_clusters == i) < 2) next
 
         sres <- sub_cluster(
@@ -91,21 +97,28 @@ split_clusters <- function(
 
             # Update the clustering results and add the new directions.
             new_cl <- sort(unique(sres@cell_clusters))
-            extra <- max(cadir@cell_clusters) + 1
+            lvls <- as.numeric(as.character(levels(cadir@cell_clusters)))
+            extra <- max(lvls) + 1
 
-            sel <- which(cadir@cell_clusters == i)
+            sel <- which(cadir@cell_clusters == factor(i, levels = lvls))
             cl1 <- sres@cell_clusters == new_cl[1]
             cl2 <- sres@cell_clusters == new_cl[2]
 
             if (!length(cl1) > 1 && length(cl2) > 1) next
 
+            new_lvls <- c(lvls, extra)
+
+            # update the factor levels
+            levels(sres@cell_clusters) <- new_lvls
             sres@cell_clusters[cl1] <- i
             sres@cell_clusters[cl2] <- extra
 
+            levels(cadir@cell_clusters) <- new_lvls
             cadir@cell_clusters[sel] <- sres@cell_clusters
 
             rownames(sres@directions) <- paste0("line", c(i, extra))
-            cadir@directions[paste0("line", i), ] <- sres@directions[paste0("line", i), ]
+            cadir@directions[paste0("line", i), ] <-
+                sres@directions[paste0("line", i), ]
 
             rn <- rownames(cadir@directions)
             cadir@directions <- rbind(
@@ -114,6 +127,11 @@ split_clusters <- function(
             )
 
             rownames(cadir@directions) <- c(rn, paste0("line", extra))
+
+
+            
+            # TODO: Wise to rename in the middle of a for loop?
+            # cadir <- rename_clusters(cadir) 
         }
     }
 
@@ -135,13 +153,11 @@ merge_clusters <- function(caobj,
                            cadir,
                            cutoff,
                            make_plots = FALSE) {
-
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
 
     if (isTRUE(make_plots)) {
-
         rep <- paste0("rep_", cadir@log$last_rep)
 
         if (length(cadir@plots$merges[[rep]]) == 0) {
@@ -162,10 +178,10 @@ merge_clusters <- function(caobj,
 
     sel <- which(lengths(candidates) > 0)
 
-    for (s in sel){
+    for (s in sel) {
         cds <- candidates[[s]]
         mergers <- c(s, cds)
-        #mergers <- c(d, cds)
+        # mergers <- c(d, cds)
 
         message(paste0("Merging cluster ", s, " with ", cds, "\n"))
 
@@ -175,7 +191,6 @@ merge_clusters <- function(caobj,
         new_dir <- drop(total_least_squares(samples[cls, , drop = FALSE]))
 
         if (isTRUE(make_plots)) {
-
             sres <- new("cadir",
                 cell_clusters = clusters[cls],
                 directions = directions[mergers, ],
@@ -187,11 +202,13 @@ merge_clusters <- function(caobj,
             )
             names(sres@cell_clusters) <- names(clusters[cls])
 
-            p <- cluster_apl(caobj = caobj,
-                             cadir = sres,
-                             direction = new_dir,
-                             group = cls,
-                             cluster_id = s)
+            p <- cluster_apl(
+                caobj = caobj,
+                cadir = sres,
+                direction = new_dir,
+                group = cls,
+                cluster_id = s
+            )
 
             nm <- paste("cluster", mergers, collapse = "_")
 
@@ -207,7 +224,6 @@ merge_clusters <- function(caobj,
         cadir@directions <- directions
 
         if (length(sel) > 1) {
-
             cadir <- rename_clusters(cadir = cadir)
 
             if (isTRUE(make_plots)) {
@@ -218,13 +234,14 @@ merge_clusters <- function(caobj,
                 )
             }
 
-            out <- merge_clusters(caobj = caobj,
-                                  cadir = cadir,
-                                  make_plots = make_plots,
-                                  cutoff = cutoff)
+            out <- merge_clusters(
+                caobj = caobj,
+                cadir = cadir,
+                make_plots = make_plots,
+                cutoff = cutoff
+            )
             return(out)
         }
-
     }
 
     cadir@directions <- directions
@@ -260,7 +277,6 @@ dirclust_splitmerge <- function(caobj,
                                 epochs = 15,
                                 reps = 5,
                                 make_plots = FALSE) {
-
     # Convert cutoff to radians
     cutoff <- deg2rad(cutoff)
 
@@ -303,7 +319,7 @@ dirclust_splitmerge <- function(caobj,
             log = FALSE
         )
     }
-    
+
     out@gene_clusters <- assign_genes(
         caobj = caobj,
         directions = out@directions,

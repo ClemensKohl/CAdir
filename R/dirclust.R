@@ -48,17 +48,16 @@ dist_to_line <- function(points, lines, pnorm) {
     return(dist)
 }
 
-# TODOL: Add documentation
-total_least_squares <- function(points){
+# TODO: Add documentation
+total_least_squares <- function(points) {
 
-    if (nrow(points) == 1){
+    if (nrow(points) == 1) {
         reg_line <- points / row_norm(points)
-    } else{
+    } else {
         suppressWarnings({
             reg_line <- irlba::irlba(points, nv = 1, right_only = TRUE)$v
         })
     }
-    
 
     return(reg_line)
 }
@@ -75,11 +74,11 @@ update_line <- function(points, clusters, lines, k) {
     k <- sort(unique(clusters))
     for (c in seq_len(length(k))) {
         sel <- which(clusters == k[c])
-        
+
         if (length(sel) == 0){
             next
         } else {
-            lines[c, ] <- total_least_squares(points[sel, ])
+            lines[c, ] <- total_least_squares(points[sel, , drop = FALSE])
         }
     }
     return(lines)
@@ -172,6 +171,13 @@ dirclust <- function(
         log_list <- list("dist_log" = dist_log, "dir_log" = dir_log)
     } else {
         log_list <- list()
+    }
+
+    # Remove lines without clusters
+    uni_clust <- sort(unique(clusters))
+    if (length(uni_clust) != nrow(lines)) {
+        lines <- lines[uni_clust, , drop = FALSE]
+        ldist <- ldist[, uni_clust, drop = FALSE]
     }
 
     out <- new("cadir",

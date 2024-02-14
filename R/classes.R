@@ -20,8 +20,10 @@ check_cadir <- function(object) {
     n_cl <- length(unique(n_cell_cl, n_gene_cl))
 
     if (ndir != n_cl) {
+        cat("ndir: ", ndir, "\n")
+        cat("n_cl: ", n_cl, "\n")
         msg <- c(
-            "Number of cell & gene clusters not equal to number of directions."
+            "Number of cell clusters not equal to number of directions."
         )
         errors <- c(errors, msg)
     }
