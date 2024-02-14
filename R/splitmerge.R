@@ -44,7 +44,8 @@ decide_split <- function(directions, cutoff = deg2rad(30)) {
     return(to_split)
 }
 
-# TODO: Make recursive?
+# TODO: Make function smarter.
+# Only check clusters you haven't checked yet.
 
 #' Split clusters based on angle.
 #' @inheritParams dirclust_splitmerge
@@ -56,12 +57,11 @@ split_clusters <- function(
     cutoff = 30,
     min_cells = 5,
     make_plots = FALSE) {
+
     cls <- sort(unique(cadir@cell_clusters))
 
-    if (isTRUE(make_plots)) aplplots <- list()
-
     for (i in cls) {
-        
+
         if (sum(cadir@cell_clusters == i) < 2) next
 
         sres <- sub_cluster(
@@ -84,6 +84,7 @@ split_clusters <- function(
             message(paste0("Splitting cluster ", i))
 
             if (isTRUE(make_plots)) {
+                
                 p <- cluster_apl(
                     caobj = caobj,
                     cadir = sres,
@@ -91,8 +92,16 @@ split_clusters <- function(
                     group = which(cadir@cell_clusters == i),
                     cluster_id = i
                 )
+                rep <- paste0("rep_", cadir@log$last_rep)
+                nms_rep <- names(cadir@plots$splits[[rep]])
+                nm <- paste("cluster", i, collapse = "_")
 
-                aplplots[[paste0("cluster_", i)]] <- p
+                if (nm %in% names(nms_rep)) {
+                    cnt <- sum(grepl(nm, nms_rep))
+                    nm <- paste0(nm, cnt + 1)
+                } 
+
+                cadir@plots$splits[[rep]][[nm]] <- p
             }
 
             # Update the clustering results and add the new directions.
@@ -127,20 +136,20 @@ split_clusters <- function(
             )
 
             rownames(cadir@directions) <- c(rn, paste0("line", extra))
-
-
             
-            # TODO: Wise to rename in the middle of a for loop?
-            # cadir <- rename_clusters(cadir) 
+            cadir <- rename_clusters(cadir)
+
+            cadir <- split_clusters(
+                cadir = cadir,
+                caobj = caobj,
+                cutoff = cutoff,
+                min_cells = min_cells,
+                make_plots = make_plots
+            )
+            return(cadir)
+
         }
     }
-
-    if (isTRUE(make_plots)) {
-        rep <- paste0("rep_", cadir@log$last_rep)
-        cadir@plots$splits[[rep]] <- aplplots
-    }
-
-    cadir <- rename_clusters(cadir)
 
     return(cadir)
 }
@@ -322,7 +331,7 @@ dirclust_splitmerge <- function(caobj,
 
     out@gene_clusters <- assign_genes(
         caobj = caobj,
-        directions = out@directions,
+        cadir = out,
         qcutoff = qcutoff,
         coords = "prin"
     )

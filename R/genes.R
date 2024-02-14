@@ -10,7 +10,7 @@ ca_sphere_idx <- function(x, qcutoff = 0.8) {
 
 # TODO: Add documentation
 assign_genes <- function(caobj,
-                         directions,
+                         cadir,
                          qcutoff = NULL,
                          coords = "prin") {
 
@@ -23,10 +23,17 @@ assign_genes <- function(caobj,
     }
 
     X <- caobj@std_coords_rows[idx, ]
+    gene_nms <- rownames(X)
 
-    ldist <- dist_to_line(X, directions, row_norm(X))
+    ldist <- dist_to_line(X, cadir@directions, row_norm(X))
     # find closest line
     clusters <- apply(ldist, 1, which.min)
+
+    cell_lvls <- as.numeric(as.character(levels(cadir@cell_clusters)))
+    lvls <- sort(unique(c(unique(clusters), cell_lvls)))
+
+    clusters <- factor(clusters, levels = lvls)
+    names(clusters) <- gene_nms
 
     return(clusters)
 }
