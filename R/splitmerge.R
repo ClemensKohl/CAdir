@@ -154,6 +154,8 @@ split_clusters <- function(
     return(cadir)
 }
 
+# TODO: handle plots better and make recursive smoother.
+
 #' Merge clusters based on angle
 #' @inheritParams dirclust_splitmerge
 #' @param cadir A `cadir` object.

@@ -17,6 +17,10 @@ rand_idx <- function(points, k) {
 #' A cadir object with renamed clusters and directions.
 rename_clusters <- function(cadir) {
 
+    cell_lvls <- as.numeric(as.character(levels(cadir@cell_clusters)))
+    gene_lvls <- as.numeric(as.character(levels(cadir@gene_clusters)))
+    lvls <- sort(unique(c(cell_lvls, gene_lvls)))
+
     uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
     cell_nms <- names(cadir@cell_clusters)
     gene_nms <- names(cadir@gene_clusters)
@@ -33,15 +37,29 @@ rename_clusters <- function(cadir) {
     rownames(cadir@directions) <- paste0("line", new_dir_num)
 
     # Rename the clusters according to the order of their direction.
-    cadir@cell_clusters <- as.factor(match(cadir@cell_clusters, uni_clust))
-    stopifnot(!any(is.na(cadir@cell_clusters)))
-    names(cadir@cell_clusters) <- cell_nms
+    tmp_cells <- match(cadir@cell_clusters, uni_clust)
+    new_lvls <- sort(unique(tmp_cells))
 
     if (!is.empty(cadir@gene_clusters)) {
-        cadir@gene_clusters <- as.factor(match(cadir@gene_clusters, uni_clust))
+        tmp_genes <- match(cadir@gene_clusters, uni_clust)
+
+        new_lvls <- sort(unique(c(tmp_cells, tmp_genes)))
+
+        cadir@gene_clusters <- factor(
+            tmp_genes,
+            levels = new_lvls
+        )
         stopifnot(!any(is.na(cadir@gene_clusters)))
         names(cadir@gene_clusters) <- gene_nms
     }
+
+    cadir@cell_clusters <- factor(
+        tmp_cells,
+        levels = new_lvls
+    )
+
+    stopifnot(!any(is.na(cadir@cell_clusters)))
+    names(cadir@cell_clusters) <- cell_nms
 
     return(cadir)
 }
