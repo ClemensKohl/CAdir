@@ -48,7 +48,10 @@ dist_to_line <- function(points, lines, pnorm) {
     return(dist)
 }
 
-# TODO: Add documentation
+#' Perform total least squares regression on points.
+#' @param points Row-wise matrix of points.
+#' @returns
+#' Vector of the regression line (the first PC).
 total_least_squares <- function(points) {
 
     if (nrow(points) == 1) {
