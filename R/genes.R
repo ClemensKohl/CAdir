@@ -1,4 +1,11 @@
-# TODO: Add documentation
+#' Returns the indices of all points with a norm outside of a sphere
+#'  with radius of the defined quantile of the vector norm.
+#'
+#' @param x matrix of row vectors
+#' @param qcutoff quantile.
+#'
+#' @returns
+#' Indices of points lying outside of sphere
 ca_sphere_idx <- function(x, qcutoff = 0.8) {
 
     xn <- row_norm(x)
@@ -8,7 +15,19 @@ ca_sphere_idx <- function(x, qcutoff = 0.8) {
     return(idx)
 }
 
-# TODO: Add documentation
+#' Assigns genes to cell clusters based on distance to closest line.
+#' @description
+#' `assign_genes` removes all genes inside of a sphere which's radius
+#' is defined by the quantile cutoff on the norm of the genes (using
+#'  the principal coordinates by default).
+#' The remaining genes are then assigned to the closest line using the
+#' standard coordinates.
+#' @param caobj A cacomp object.
+#' @param cadir A cadir object.
+#' @param qcutoff The quantile cutoff for gene selection.
+#' @param coords The coordinates to use for gene selection ("std" or "prin").
+#' @returns
+#' Gene clusters.
 assign_genes <- function(caobj,
                          cadir,
                          qcutoff = NULL,

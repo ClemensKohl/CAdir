@@ -17,10 +17,6 @@ rand_idx <- function(points, k) {
 #' A cadir object with renamed clusters and directions.
 rename_clusters <- function(cadir) {
 
-    cell_lvls <- as.numeric(as.character(levels(cadir@cell_clusters)))
-    gene_lvls <- as.numeric(as.character(levels(cadir@gene_clusters)))
-    lvls <- sort(unique(c(cell_lvls, gene_lvls)))
-
     uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
     cell_nms <- names(cadir@cell_clusters)
     gene_nms <- names(cadir@gene_clusters)
