@@ -1,3 +1,5 @@
+#TODO: saving cutoff results.
+
 #' Random direction association plot coordinates
 #'
 #' @description
@@ -11,18 +13,18 @@
 #'  For random_direction_cutoff this saved_ca is empty.
 random_direction_cutoff <- function(
     caobj,
-    col_apl,
+    apl_cols,
     dims = caobj@dims,
     reps = 300
 ) {
-    row_num <- nrow(col_apl)
+    row_num <- nrow(apl_cols)
 
     if (caobj@dims == 1 && !is.empty(caobj@dims)) {
         row_num <- 1
     }
 
     if (dims < caobj@dims) {
-        caobj <- subset_dims(caobj = caobj, dims = dims)
+        caobj <- APL::subset_dims(caobj = caobj, dims = dims)
     }
 
     cols <- caobj@prin_coords_cols
@@ -35,7 +37,6 @@ random_direction_cutoff <- function(
 
     for (k in seq(reps)) {
 
-        # avg_group_coords <- rowMeans(subgroup) # centroid vector.
         avg_group_coords <- runif(n = dims, min = 0, max = quantile(cols, 0.99))
         length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
         length_vector_cols <- sqrt(rowSums(cols^2))
@@ -50,12 +51,8 @@ random_direction_cutoff <- function(
         idx <- ((1:row_num) + ((k - 1) * row_num))
         apl_perm[idx, ] <- cbind("x" = colx, "y" = coly)
 
-        #    setTxtProgressBar(pb, k)
     }
-
-    #  close(pb)
-
-    return(list("apl_perm" = apl_perm, "saved_ca" = list()))
+    return(apl_perm)
 }
 
 
@@ -71,13 +68,13 @@ random_direction_cutoff <- function(
 #'
 permutation_cutoff <- function(caobj,
                                mat,
-                               col_apl,
+                               apl_cols,
                                group = caobj@group,
                                dims = caobj@dims,
                                reps = 10,
                                store_perm = FALSE,
                                python = TRUE) {
-    row_num <- nrow(col_apl)
+    row_num <- nrow(apl_cols)
 
     apl_perm <- data.frame(
         "x" = rep(0, row_num * reps),
@@ -89,14 +86,10 @@ permutation_cutoff <- function(caobj,
         row_num <- 1
     }
 
-    names <- colnames(mat)
     margin <- 1
     pc <- 1
     cc <- TRUE
     cr <- FALSE
-
-    saved_ca <- list()
-
 
     for (k in seq(reps)) {
         # permute rows and rerun cacomp
@@ -104,75 +97,124 @@ permutation_cutoff <- function(caobj,
         mat_perm <- t(apply(mat, margin, FUN = sample))
         colnames(mat_perm) <- colnames(mat)
 
+        suppressWarnings({
+            caobjp <- APL::cacomp(
+                obj = mat_perm,
+                python = python,
+                coords = TRUE,
+                princ_coords = pc,
+                dims = dims,
+                top = caobj@top_rows,
+                residuals = caobj@params$residuals,
+                clip = caobj@params$clip,
+                cutoff = caobj@params$cutoff,
+                rm_zeros = caobj@params$rm_zeros,
+                inertia = FALSE
+            )
+        })
 
-        suppressWarnings(caobjp <- cacomp(
-            obj = mat_perm,
-            python = python,
-            coords = TRUE,
-            princ_coords = pc,
-            dims = dims,
-            top = caobj@top_rows,
-            residuals = caobj@params$residuals,
-            clip = caobj@params$clip,
-            cutoff = caobj@params$cutoff,
-            rm_zeros = caobj@params$rm_zeros,
-            inertia = FALSE
-        ))
-
-
-        caobjp <- apl_coords(
+        caobjp <- APL::apl_coords(
             caobj = caobjp,
             group = group,
             calc_cols = cc,
             calc_rows = cr
         )
+
         idx <- ((seq_len(row_num) + ((k - 1) * row_num)))
 
         apl_perm[idx, ] <- caobjp@apl_cols
     }
 
-    return(list("apl_perm" = apl_perm, "saved_ca" = saved_ca))
+    return(apl_perm)
 }
 
-# TODO: APL for random samples!
 get_apl_cutoff <- function(caobj,
-                           col_apl,
-                           method = "permutation",
+                           apl_cols,
+                           method = "random",
                            dims,
                            group = caobj@group,
                            counts = NULL,
                            quant = 0.99,
                            reps = NULL) {
+
     if (method == "random") {
-        if (is.null(reps)) reps <- 100
-        res <- random_direction_cutoff(
+
+        if (is.null(reps)) {
+            reps <- 100
+        } else if (reps < 100) {
+            warning("Number of repetitions should be set >=100.")
+            reps <- 100
+        }
+
+        apl_perm <- random_direction_cutoff(
             caobj = caobj,
             dims = dims,
-            col_apl = col_apl,
-            reps = 100
+            apl_cols = apl_cols,
+            reps = reps
         )
+
     } else if (method == "permutation") {
-        if (is.null(reps)) reps <- 5
-        res <- permutation_cutoff(
+        if (is.null(reps)) {
+            reps <- 5
+        } else if (reps > 10) {
+            message("Large number of repetitions might take a long time.")
+        }
+
+        apl_perm <- permutation_cutoff(
             caobj = caobj,
             mat = counts,
-            col_apl,
+            apl_cols = apl_cols,
             group = group,
             dims = caobj@dims,
-            reps = 5,
+            reps = reps,
             store_perm = FALSE,
             python = TRUE
         )
     }
 
     # cotan between row and x axis
-    res$apl_perm[, 3] <- res$apl_perm[, 1] / res$apl_perm[, 2]
-    res$apl_perm[, 3][is.na(res$apl_perm[, 3])] <- 0
+    apl_perm[, 3] <- apl_perm[, 1] / apl_perm[, 2]
+    apl_perm[, 3][is.na(apl_perm[, 3])] <- 0
 
-    cutoff_cotan <- quantile(res$apl_perm[, 3], quant)
+    cutoff_cotan <- quantile(apl_perm[, 3], quant)
 
+    # angle alpha is in radian.
     alpha <- atan(1 / cutoff_cotan)
 
     return(alpha)
-    #    score <- caobj@apl_rows[,1] - (caobj@apl_rows[,2] * cutoff_cotan)
+}
+
+# TODO: Add documentation
+apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
+
+    model <- apl_model(
+        caobj = caobj,
+        direction = apl_dir,
+        group = group
+    )
+
+    apl_cols <- model(caobj@prin_coords_cols, axis = 2)
+    apl_dirs <- model(cadir@directions, axis = 2)
+
+    for (r in seq_len(nrow(apl_dirs))) {
+
+        sel <- match(
+            names(cadir@cell_clusters)[cadir@cell_clusters == r],
+            rownames(caobj@prin_coords_cols)
+        )
+
+        if (length(sel) > 1) {
+            grp_mean <- colMeans(apl_cols[sel, ])
+        } else {
+            grp_mean <- apl_cols[sel, ]
+        }
+
+        if (sign(grp_mean[1]) != sign(apl_dirs[r, 1])) {
+            apl_dirs[r, ] <- c(-1, 1) * apl_dirs[r, ]
+        }
+
+    }
+
+    return(list("apl_cols" = apl_cols, "apl_dirs" = apl_dirs))
+
 }
