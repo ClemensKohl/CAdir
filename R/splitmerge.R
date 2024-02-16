@@ -56,7 +56,10 @@ split_clusters <- function(
     caobj,
     cutoff = 30,
     min_cells = 5,
-    make_plots = FALSE) {
+    make_plots = FALSE,
+    counts = NULL,
+    apl_quant = 0.99
+) {
 
     cls <- sort(unique(cadir@cell_clusters))
 
@@ -73,10 +76,40 @@ split_clusters <- function(
         if (length(unique(sres@cell_clusters)) < 2) next
         stopifnot(length(unique(sres@cell_clusters)) == 2)
 
-
         elems <- as.numeric(table(sres@cell_clusters))
-
         if (any(elems < min_cells)) next
+
+        # If the cutoff is set to NULL we computer the S-alpha cutoff.
+        if (is.null(cutoff)) {
+
+            grp_idx <- which(caobj@cell_clusters == i)
+
+            aplc <- apl_dir_coords(
+                cadir = sres,
+                caobj = caobj,
+                apl_dir = cadir@directions[i, ],
+                group = grp_idx
+            )
+
+            if (method == "permutation" && is.null(counts)) {
+                warning(
+                    "No count matrix for permutation supplied.",
+                    "Switching to random directions method."
+                )
+                counts <- NULL
+                method <- "random"
+            }
+
+            cutoff <- get_apl_cutoff(
+                caobj = caobj,
+                counts = counts,
+                method = method,
+                apl_cols = aplc,
+                group = grp_idx,
+                dims = caobj@dims,
+                quant = apl_quant
+            )
+        }
 
         to_split <- decide_split(sres@directions, cutoff = cutoff)
 
@@ -84,7 +117,7 @@ split_clusters <- function(
             message(paste0("Splitting cluster ", i))
 
             if (isTRUE(make_plots)) {
-                
+
                 p <- cluster_apl(
                     caobj = caobj,
                     cadir = sres,
@@ -99,7 +132,7 @@ split_clusters <- function(
                 if (nm %in% names(nms_rep)) {
                     cnt <- sum(grepl(nm, nms_rep))
                     nm <- paste0(nm, cnt + 1)
-                } 
+                }
 
                 cadir@plots$splits[[rep]][[nm]] <- p
             }
@@ -136,7 +169,7 @@ split_clusters <- function(
             )
 
             rownames(cadir@directions) <- c(rn, paste0("line", extra))
-            
+
             cadir <- rename_clusters(cadir)
 
             cadir <- split_clusters(
@@ -178,6 +211,9 @@ merge_clusters <- function(caobj,
         }
     }
 
+    # FIXME: WIP
+    if (is.null(cutoff)) {
+    }
     asim_cutoff <- 1 - cutoff / pi
 
     sim <- get_ang_sim(directions, directions)

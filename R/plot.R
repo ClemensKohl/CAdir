@@ -12,8 +12,7 @@ apl_model <- function(
 ) {
     stopifnot(is(caobj, "cacomp"))
 
-    cols <- caobj@prin_coords_cols
-    cent <- cols
+    cent <- caobj@prin_coords_cols
 
     avg_group_coords <- direction
     length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
