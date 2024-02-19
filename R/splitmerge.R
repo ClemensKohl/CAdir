@@ -196,6 +196,9 @@ split_clusters <- function(
 merge_clusters <- function(caobj,
                            cadir,
                            cutoff,
+                           method = "rand",
+                           counts = NULL,
+                           apl_quant = 0.99,
                            make_plots = FALSE) {
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
@@ -213,15 +216,19 @@ merge_clusters <- function(caobj,
 
     # FIXME: WIP
     if (is.null(cutoff)) {
+        candidates <- get_apl_sim(cadir = cadir,
+                                  caobj = caobj,
+                                  cutoff = cutoff,
+                                  method = method,
+                                  counts = counts,
+                                  apl_quant = apl_quant)
+
+    } else {
+        sim <- get_ang_sim(directions, directions)
+        # Set the lower diagonal to 0
+        sim[lower.tri(sim, diag = TRUE)] <- 0
+        candidates <- apply(sim, 1, function(x) which(x >= asim_cutoff))
     }
-    asim_cutoff <- 1 - cutoff / pi
-
-    sim <- get_ang_sim(directions, directions)
-
-    # Set the lower diagonal to 0
-    sim[lower.tri(sim, diag = TRUE)] <- 0
-
-    candidates <- apply(sim, 1, function(x) which(x >= asim_cutoff))
 
     sel <- which(lengths(candidates) > 0)
 
