@@ -28,7 +28,6 @@ random_direction_cutoff <- function(
     }
 
     cols <- caobj@prin_coords_cols
-
     apl_perm <- data.frame(
         "x" = rep(0, row_num * reps),
         "y" = rep(0, row_num * reps)
@@ -128,6 +127,7 @@ permutation_cutoff <- function(caobj,
     return(apl_perm)
 }
 
+# TODO: Add documentation.
 get_apl_cutoff <- function(caobj,
                            apl_cols,
                            method = "random",
@@ -193,8 +193,8 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
         group = group
     )
 
-    apl_cols <- model(caobj@prin_coords_cols, axis = 2)
-    apl_dirs <- model(cadir@directions, axis = 2)
+    apl_cols <- model(caobj@prin_coords_cols)
+    apl_dirs <- model(cadir@directions)
 
     for (r in seq_len(nrow(apl_dirs))) {
 
@@ -221,50 +221,51 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
 
 # FIXME: WIP
 # TODO: Add documentation.
-# HACK: This unneccesarily increases runtime.
-# In principle it would be enough to return the first which we have to merge.
-# As the function is called again if we merge a cluster
-# we only need to compute this.
 get_apl_mergers <- function(cadir,
                             caobj,
-                            cutoff,
-                            method = "rand",
+                            reps = 100,
+                            method = "random",
                             counts = NULL,
                             apl_quant = 0.99) {
 
-    sim <- matrix(0,
-                  nrow = nrow(cadir@directions),
-                  ncol = nrow(cadir@directions))
+    candidates <- matrix(FALSE,
+                         nrow = nrow(cadir@directions),
+                         ncol = nrow(cadir@directions))
 
     for (d in seq_len(nrow(cadir@directions))) {
 
-        grp_idx <- which(cadir@cell_clusters == d)
+        grp_idx <- which(f2n(cadir@cell_clusters) == d)
 
-        aplc <- apl_dir_coords(cadir = cadir@directions,
-                               caobj = caobj,
-                               apl_dir = cadir@directions[d, ],
-                               group = grp_idx)
+        if (length(grp_idx) == 0) next
+
+        aplcds <- apl_dir_coords(cadir = cadir,
+                                 caobj = caobj,
+                                 apl_dir = cadir@directions[d, ],
+                                 group = grp_idx)
 
 
         cutoff <- get_apl_cutoff(caobj = caobj,
                                  counts = counts,
                                  method = method,
-                                 apl_cols = aplc,
+                                 apl_cols = aplcds$apl_cols,
                                  group = grp_idx,
                                  dims = caobj@dims,
+                                 reps = reps,
                                  quant = apl_quant)
 
         cutoff <- rad_to_ang_sim(cutoff)
 
-		sim[d, ] <- get_ang_sim(cadir@directions[d,], cadir@directions)
+        sim <- get_ang_sim(aplcds$apl_dirs[d, ], aplcds$apl_dirs)
+        sim[1, d] <- 0
 
-        sim[d,d] <- 0
-        if ( any(sim > cutoff) )  {
-            return(which(sim > cutoff))
+        candidates[d, ] <- sim > cutoff
+
+        if (any(candidates[d, ])) {
+            return(candidates)
         }
     }
 
-    return(NULL)
+    return(candidates)
 }
 
 

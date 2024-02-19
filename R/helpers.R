@@ -109,3 +109,12 @@ setMethod(
         show_cadir(object)
     }
 )
+
+# TODO: add documentation
+f2n <- function(f) {
+    f <- as.numeric(as.character(f))
+    stopifnot(is.numeric(f))
+
+    return(f)
+
+}

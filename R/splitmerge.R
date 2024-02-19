@@ -47,6 +47,8 @@ decide_split <- function(directions, cutoff = deg2rad(30)) {
 # TODO: Make function smarter.
 # Only check clusters you haven't checked yet.
 
+# TODO: Fix documentation
+
 #' Split clusters based on angle.
 #' @inheritParams dirclust_splitmerge
 #' @param cadir A `cadir` object.
@@ -55,9 +57,11 @@ split_clusters <- function(
     cadir,
     caobj,
     cutoff = 30,
+    method = "random",
     min_cells = 5,
     make_plots = FALSE,
     counts = NULL,
+    reps = 100,
     apl_quant = 0.99
 ) {
 
@@ -82,12 +86,12 @@ split_clusters <- function(
         # If the cutoff is set to NULL we computer the S-alpha cutoff.
         if (is.null(cutoff)) {
 
-            grp_idx <- which(caobj@cell_clusters == i)
+            grp_idx <- which(cadir@cell_clusters == i)
 
-            aplc <- apl_dir_coords(
+            aplcds <- apl_dir_coords(
                 cadir = sres,
                 caobj = caobj,
-                apl_dir = cadir@directions[i, ],
+                apl_dir = cadir@directions[f2n(i), ],
                 group = grp_idx
             )
 
@@ -104,14 +108,18 @@ split_clusters <- function(
                 caobj = caobj,
                 counts = counts,
                 method = method,
-                apl_cols = aplc,
+                apl_cols = aplcds$apl_cols,
                 group = grp_idx,
                 dims = caobj@dims,
                 quant = apl_quant
             )
+
+            to_split <- decide_split(aplcds$apl_dirs, cutoff = cutoff)
+
+        } else {
+            to_split <- decide_split(sres@directions, cutoff = cutoff)
         }
 
-        to_split <- decide_split(sres@directions, cutoff = cutoff)
 
         if (isTRUE(to_split)) {
             message(paste0("Splitting cluster ", i))
@@ -183,11 +191,12 @@ split_clusters <- function(
 
         }
     }
-
     return(cadir)
 }
 
 # TODO: handle plots better and make recursive smoother.
+# TODO: replace tmp variables with class slots if possible.
+# TODO: Fix documentation
 
 #' Merge clusters based on angle
 #' @inheritParams dirclust_splitmerge
@@ -196,10 +205,11 @@ split_clusters <- function(
 merge_clusters <- function(caobj,
                            cadir,
                            cutoff,
-                           method = "rand",
+                           method = "random",
                            counts = NULL,
                            apl_quant = 0.99,
                            make_plots = FALSE) {
+
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
@@ -214,16 +224,18 @@ merge_clusters <- function(caobj,
         }
     }
 
-    # FIXME: WIP
     if (is.null(cutoff)) {
-        candidates <- get_apl_sim(cadir = cadir,
-                                  caobj = caobj,
-                                  cutoff = cutoff,
-                                  method = method,
-                                  counts = counts,
-                                  apl_quant = apl_quant)
+        candidates <- get_apl_mergers(cadir = cadir,
+                                      caobj = caobj,
+                                      method = method,
+                                      counts = counts,
+                                      apl_quant = apl_quant)
+
+
+        candidates <- apply(candidates, 1, function(x) which(x))
 
     } else {
+        asim_cutoff <- 1 - cutoff / pi
         sim <- get_ang_sim(directions, directions)
         # Set the lower diagonal to 0
         sim[lower.tri(sim, diag = TRUE)] <- 0
@@ -235,7 +247,6 @@ merge_clusters <- function(caobj,
     for (s in sel) {
         cds <- candidates[[s]]
         mergers <- c(s, cds)
-        # mergers <- c(d, cds)
 
         message(paste0("Merging cluster ", s, " with ", cds, "\n"))
 
@@ -291,8 +302,11 @@ merge_clusters <- function(caobj,
             out <- merge_clusters(
                 caobj = caobj,
                 cadir = cadir,
-                make_plots = make_plots,
-                cutoff = cutoff
+                cutoff = cutoff,
+                method = method,
+                counts = counts,
+                apl_quant = apl_quant,
+                make_plots = make_plots
             )
             return(out)
         }
@@ -313,6 +327,8 @@ merge_clusters <- function(caobj,
     return(cadir)
 }
 
+# TODO: Fix documentation
+
 #' Perform Clustering by CA directions with splitting and merging.
 #' @inheritParams dirclust
 #' @param caobj A `caclust` object.
@@ -327,12 +343,15 @@ dirclust_splitmerge <- function(caobj,
                                 k,
                                 cutoff = 40,
                                 qcutoff = 0.8,
+                                method = "random",
+                                counts = NULL,
+                                apl_quant = 0.99,
                                 min_cells = 5,
                                 epochs = 15,
                                 reps = 5,
                                 make_plots = FALSE) {
     # Convert cutoff to radians
-    cutoff <- deg2rad(cutoff)
+    if (!is.null(cutoff)) cutoff <- deg2rad(cutoff)
 
     out <- dirclust(
         points = caobj@prin_coords_cols,
@@ -352,6 +371,9 @@ dirclust_splitmerge <- function(caobj,
             cadir = out,
             caobj = caobj,
             cutoff = cutoff,
+            method = method,
+            counts = counts,
+            apl_quant = apl_quant,
             min_cells = min_cells,
             make_plots = make_plots
         )
@@ -360,6 +382,9 @@ dirclust_splitmerge <- function(caobj,
             caobj = caobj,
             cadir = out,
             cutoff = cutoff,
+            method = method,
+            counts = counts,
+            apl_quant = apl_quant,
             make_plots = make_plots
         )
 
