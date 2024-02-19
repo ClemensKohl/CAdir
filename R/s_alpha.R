@@ -218,3 +218,53 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
     return(list("apl_cols" = apl_cols, "apl_dirs" = apl_dirs))
 
 }
+
+# FIXME: WIP
+# TODO: Add documentation.
+# HACK: This unneccesarily increases runtime.
+# In principle it would be enough to return the first which we have to merge.
+# As the function is called again if we merge a cluster
+# we only need to compute this.
+get_apl_mergers <- function(cadir,
+                            caobj,
+                            cutoff,
+                            method = "rand",
+                            counts = NULL,
+                            apl_quant = 0.99) {
+
+    sim <- matrix(0,
+                  nrow = nrow(cadir@directions),
+                  ncol = nrow(cadir@directions))
+
+    for (d in seq_len(nrow(cadir@directions))) {
+
+        grp_idx <- which(cadir@cell_clusters == d)
+
+        aplc <- apl_dir_coords(cadir = cadir@directions,
+                               caobj = caobj,
+                               apl_dir = cadir@directions[d, ],
+                               group = grp_idx)
+
+
+        cutoff <- get_apl_cutoff(caobj = caobj,
+                                 counts = counts,
+                                 method = method,
+                                 apl_cols = aplc,
+                                 group = grp_idx,
+                                 dims = caobj@dims,
+                                 quant = apl_quant)
+
+        cutoff <- rad_to_ang_sim(cutoff)
+
+		sim[d, ] <- get_ang_sim(cadir@directions[d,], cadir@directions)
+
+        sim[d,d] <- 0
+        if ( any(sim > cutoff) )  {
+            return(which(sim > cutoff))
+        }
+    }
+
+    return(NULL)
+}
+
+
