@@ -9,6 +9,9 @@ dirclust_splitmerge(
   k,
   cutoff = 40,
   qcutoff = 0.8,
+  method = "random",
+  counts = NULL,
+  apl_quant = 0.99,
   min_cells = 5,
   epochs = 15,
   reps = 5,
@@ -20,7 +23,9 @@ dirclust_splitmerge(
 
 \item{k}{Number of clusters.}
 
-\item{cutoff}{Degrees. The cutoff angle to split and merge clusters.}
+\item{cutoff}{Degrees. The cutoff angle to split and merge clusters.
+If \code{NULL} the cutoff angle is calculated based on the cutoff angle based
+on the quantile defined through \code{apl_quant}.}
 
 \item{qcutoff}{The quantile cutoff for gene selection.}
 
@@ -38,4 +43,7 @@ A \code{cadir} object with cell clusters.
 }
 \description{
 Perform Clustering by CA directions with splitting and merging.
+}
+\seealso{
+\code{\link[=get_apl_cutoff]{get_apl_cutoff()}}
 }

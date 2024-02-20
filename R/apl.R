@@ -5,7 +5,8 @@
 #' @description
 #' Calculates matrix of apl coordinates for random directions
 #'
-#' @inheritParams apl_score
+#' @inheritParams get_apl_cutoff
+#' @param dims Number of dimensions to use for the analysis.
 #'
 #' @returns
 #' List with permuted apl coordinates ("apl_perm") and, a list of saved ca
@@ -55,23 +56,24 @@ random_direction_cutoff <- function(
 }
 
 
+# TODO: Add way to store permutation results.
 
 #' Calculates permuted association plot coordinates
 #'
 #' @description
 #' Calculates matrix of apl coordinates when permuting the original data.
 #'
-#' @inheritParams apl_score
+#' @inheritParams get_apl_cutoff
+#' @param python If TRUE, use python for CA SVD.
 #'
 #' @inherit random_direction_cutoff return
 #'
 permutation_cutoff <- function(caobj,
-                               mat,
+                               counts,
                                apl_cols,
                                group = caobj@group,
                                dims = caobj@dims,
                                reps = 10,
-                               store_perm = FALSE,
                                python = TRUE) {
     row_num <- nrow(apl_cols)
 
@@ -93,8 +95,8 @@ permutation_cutoff <- function(caobj,
     for (k in seq(reps)) {
         # permute rows and rerun cacomp
 
-        mat_perm <- t(apply(mat, margin, FUN = sample))
-        colnames(mat_perm) <- colnames(mat)
+        mat_perm <- t(apply(counts, margin, FUN = sample))
+        colnames(mat_perm) <- colnames(counts)
 
         suppressWarnings({
             caobjp <- APL::cacomp(
@@ -127,11 +129,26 @@ permutation_cutoff <- function(caobj,
     return(apl_perm)
 }
 
-# TODO: Add documentation.
+# TODO: Replace apl_cols with the number of rows or similar.
+
+#' Calculates the S_alpha cutoff based on random directions or permutations of the data
+#'
+#' @param caobj A cacomp object.
+#' @param apl_cols A matrix of association plot coordinates.
+#' @param method Method to use for computing the cutoff.
+#' Either "random" or "permutation".
+#' @param group A vector of group indices.
+#' @param counts The original count matrix that was used to compute the caobj.
+#' @param quant The quantile to use for the cutoff.
+#' @param reps The number of repetitions to use.
+#' Should be between 3-10 for permutation, and >=100 for random.
+#'
+#' @returns
+#' The cutoff angle alpha in radians.
+#'
 get_apl_cutoff <- function(caobj,
                            apl_cols,
                            method = "random",
-                           dims,
                            group = caobj@group,
                            counts = NULL,
                            quant = 0.99,
@@ -148,7 +165,7 @@ get_apl_cutoff <- function(caobj,
 
         apl_perm <- random_direction_cutoff(
             caobj = caobj,
-            dims = dims,
+            dims = caobj@dims,
             apl_cols = apl_cols,
             reps = reps
         )
@@ -184,7 +201,18 @@ get_apl_cutoff <- function(caobj,
     return(alpha)
 }
 
-# TODO: Add documentation
+
+#' Calculates APL coordinates for points (columns)
+#'  and directions of a cadir object.
+#'  point into a precomputed APL space.
+#' @param caobj A cacomp object.
+#' @param cadir A cadir object.
+#' @param apl_dir The direction in the original space for which to
+#'  compute the APL coordinates.
+#' @param group A vector of group indices.
+#'  (Usually the cluster belonging to `apl_dir`)
+#' @returns
+#' A list with the columns (points) and directions projected into the APL space.
 apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
 
     model <- apl_model(
@@ -219,8 +247,16 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
 
 }
 
-# FIXME: WIP
-# TODO: Add documentation.
+#' Checks if two clusters should be merged based on their angle in APL space.
+#' @param cadir A cadir object.
+#' @param caobj A cacomp object.
+#' @param apl_quant The quantile to use for the cutoff.
+#' @inheritParams get_apl_cutoff
+#' @inheritParams apl_dir_cutoff
+#' @returns
+#' A matrix with TRUE/FALSE values indicating if two clusters should be merged.
+#' Importantly the function returns as soon as a candidate is found,
+#'  the matrix stays the same size however.
 get_apl_mergers <- function(cadir,
                             caobj,
                             reps = 100,

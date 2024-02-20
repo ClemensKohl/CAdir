@@ -4,19 +4,33 @@
 \alias{split_clusters}
 \title{Split clusters based on angle.}
 \usage{
-split_clusters(cadir, caobj, cutoff = 30, min_cells = 5, make_plots = FALSE)
+split_clusters(
+  cadir,
+  caobj,
+  cutoff = 30,
+  method = "random",
+  min_cells = 5,
+  make_plots = FALSE,
+  counts = NULL,
+  reps = 100,
+  apl_quant = 0.99
+)
 }
 \arguments{
 \item{cadir}{A \code{cadir} object.}
 
 \item{caobj}{A \code{caclust} object.}
 
-\item{cutoff}{Degrees. The cutoff angle to split and merge clusters.}
+\item{cutoff}{Degrees. The cutoff angle to split and merge clusters.
+If \code{NULL} the cutoff angle is calculated based on the cutoff angle based
+on the quantile defined through \code{apl_quant}.}
 
 \item{min_cells}{Minimum number of cells to form a cluster.}
 
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each
 split and merge}
+
+\item{reps}{Number of repetitions to perform the splitting and merging.}
 }
 \value{
 A \code{cadir} object with split clusters.

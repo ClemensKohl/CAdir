@@ -4,14 +4,24 @@
 \alias{merge_clusters}
 \title{Merge clusters based on angle}
 \usage{
-merge_clusters(caobj, cadir, cutoff, make_plots = FALSE)
+merge_clusters(
+  caobj,
+  cadir,
+  cutoff,
+  method = "random",
+  counts = NULL,
+  apl_quant = 0.99,
+  make_plots = FALSE
+)
 }
 \arguments{
 \item{caobj}{A \code{caclust} object.}
 
 \item{cadir}{A \code{cadir} object.}
 
-\item{cutoff}{Degrees. The cutoff angle to split and merge clusters.}
+\item{cutoff}{Degrees. The cutoff angle to split and merge clusters.
+If \code{NULL} the cutoff angle is calculated based on the cutoff angle based
+on the quantile defined through \code{apl_quant}.}
 
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each
 split and merge}

@@ -47,8 +47,6 @@ decide_split <- function(directions, cutoff = deg2rad(30)) {
 # TODO: Make function smarter.
 # Only check clusters you haven't checked yet.
 
-# TODO: Fix documentation
-
 #' Split clusters based on angle.
 #' @inheritParams dirclust_splitmerge
 #' @param cadir A `cadir` object.
@@ -196,7 +194,6 @@ split_clusters <- function(
 
 # TODO: handle plots better and make recursive smoother.
 # TODO: replace tmp variables with class slots if possible.
-# TODO: Fix documentation
 
 #' Merge clusters based on angle
 #' @inheritParams dirclust_splitmerge
@@ -327,7 +324,6 @@ merge_clusters <- function(caobj,
     return(cadir)
 }
 
-# TODO: Fix documentation
 
 #' Perform Clustering by CA directions with splitting and merging.
 #' @inheritParams dirclust
@@ -337,8 +333,11 @@ merge_clusters <- function(caobj,
 #' @param make_plots Logical. If `TRUE` plots are generated for each
 #' split and merge
 #' @param cutoff Degrees. The cutoff angle to split and merge clusters.
+#'  If `NULL` the cutoff angle is calculated based on the cutoff angle based
+#'  on the quantile defined through `apl_quant`.
 #' @param qcutoff The quantile cutoff for gene selection.
 #' @return A `cadir` object with cell clusters.
+#' @seealso [get_apl_cutoff()]
 dirclust_splitmerge <- function(caobj,
                                 k,
                                 cutoff = 40,
