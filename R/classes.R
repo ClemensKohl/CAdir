@@ -3,19 +3,19 @@
 
 #' Checks if cadir-class was constructed correctly
 #'
-#' @param object cadir object
+#' @param obj cadir object
 #'
 #' @return
 #' If object is a valid cadir object returns TRUE, otherwise the errors.
 #'
-check_cadir <- function(object) {
-    stopifnot(is(object, "cadir"))
+check_cadir <- function(obj) {
+    stopifnot(is(obj, "cadir"))
 
     errors <- character()
 
-    ndir <- nrow(object@directions)
-    n_cell_cl <- unique(object@cell_clusters)
-    n_gene_cl <- unique(object@gene_clusters)
+    ndir <- nrow(obj@directions)
+    n_cell_cl <- unique(obj@cell_clusters)
+    n_gene_cl <- unique(obj@gene_clusters)
 
     n_cl <- length(unique(n_cell_cl, n_gene_cl))
 
@@ -28,17 +28,17 @@ check_cadir <- function(object) {
         errors <- c(errors, msg)
     }
 
-    if (ndir != ncol(object@distances) || ndir != ncol(object@distances)) {
+    if (ndir != ncol(obj@distances) && !is.empty(obj@distances)) {
         msg <- c("Distances dont match directions.")
         errors <- c(errors, msg)
     }
 
-    if (is.null(names(object@cell_clusters))) {
+    if (is.null(names(obj@cell_clusters))) {
         msg <- c("Cell clusters have no names.")
         errors <- c(errors, msg)
     }
 
-    if (!is.empty(object@gene_clusters) && is.null(names(object@gene_clusters))) {
+    if (!is.empty(obj@gene_clusters) && is.null(names(obj@gene_clusters))) {
         msg <- c("Gene clusters have no names.")
         errors <- c(errors, msg)
     }

@@ -278,7 +278,6 @@ get_apl_mergers <- function(cadir,
                                  counts = counts,
                                  method = method,
                                  group = grp_idx,
-                                 dims = caobj@dims,
                                  reps = reps,
                                  quant = apl_quant)
 
