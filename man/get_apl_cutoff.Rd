@@ -6,7 +6,6 @@
 \usage{
 get_apl_cutoff(
   caobj,
-  apl_cols,
   method = "random",
   group = caobj@group,
   counts = NULL,
@@ -16,8 +15,6 @@ get_apl_cutoff(
 }
 \arguments{
 \item{caobj}{A cacomp object.}
-
-\item{apl_cols}{A matrix of association plot coordinates.}
 
 \item{method}{Method to use for computing the cutoff.
 Either "random" or "permutation".}
@@ -30,6 +27,8 @@ Either "random" or "permutation".}
 
 \item{reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
+
+\item{apl_cols}{A matrix of association plot coordinates.}
 }
 \value{
 The cutoff angle alpha in radians.

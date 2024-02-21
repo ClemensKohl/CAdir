@@ -4,12 +4,10 @@
 \alias{random_direction_cutoff}
 \title{Random direction association plot coordinates}
 \usage{
-random_direction_cutoff(caobj, apl_cols, dims = caobj@dims, reps = 300)
+random_direction_cutoff(caobj, dims = caobj@dims, reps = 300)
 }
 \arguments{
 \item{caobj}{A cacomp object.}
-
-\item{apl_cols}{A matrix of association plot coordinates.}
 
 \item{dims}{Number of dimensions to use for the analysis.}
 

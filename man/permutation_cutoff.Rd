@@ -7,7 +7,6 @@
 permutation_cutoff(
   caobj,
   counts,
-  apl_cols,
   group = caobj@group,
   dims = caobj@dims,
   reps = 10,
@@ -18,8 +17,6 @@ permutation_cutoff(
 \item{caobj}{A cacomp object.}
 
 \item{counts}{The original count matrix that was used to compute the caobj.}
-
-\item{apl_cols}{A matrix of association plot coordinates.}
 
 \item{group}{A vector of group indices.}
 
