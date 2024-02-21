@@ -8,6 +8,8 @@ rand_idx <- function(points, k) {
     return(idxs)
 }
 
+#TODO: Fix distances if they are there.
+
 #' Rename clusters and directions so that they match.
 #' @param cadir A cadir object.
 #' @details
@@ -32,9 +34,15 @@ rename_clusters <- function(cadir) {
     new_dir_num <- match(dir_num, uni_clust)
     rownames(cadir@directions) <- paste0("line", new_dir_num)
 
+    if (!is.empty(cadir@distances)) {
+        cadir@distances <- cadir@distances[, have_smpls]
+        colnames(cadir@distances) <- paste0("line", new_dir_num)
+    }
+
     # Rename the clusters according to the order of their direction.
     tmp_cells <- match(cadir@cell_clusters, uni_clust)
     new_lvls <- sort(unique(tmp_cells))
+
 
     if (!is.empty(cadir@gene_clusters)) {
         tmp_genes <- match(cadir@gene_clusters, uni_clust)
@@ -53,6 +61,7 @@ rename_clusters <- function(cadir) {
         tmp_cells,
         levels = new_lvls
     )
+
 
     stopifnot(!any(is.na(cadir@cell_clusters)))
     names(cadir@cell_clusters) <- cell_nms
