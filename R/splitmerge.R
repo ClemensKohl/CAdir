@@ -1,4 +1,5 @@
-# TODO: Combine with code for sa_splitmerge
+# TODO: make plots work with apl mode.
+# TODO: make a verbose toggle.
 
 #' Split a cluster into 2 sub-clusters.
 #' @inheritParams dirclust
@@ -44,8 +45,6 @@ decide_split <- function(directions, cutoff = deg2rad(30)) {
     return(to_split)
 }
 
-# TODO: Make function smarter.
-# Only check clusters you haven't checked yet.
 
 #' Split clusters based on angle.
 #' @inheritParams dirclust_splitmerge
@@ -106,9 +105,7 @@ split_clusters <- function(
                 caobj = caobj,
                 counts = counts,
                 method = method,
-                apl_cols = aplcds$apl_cols,
                 group = grp_idx,
-                dims = caobj@dims,
                 quant = apl_quant
             )
 
@@ -192,8 +189,6 @@ split_clusters <- function(
     return(cadir)
 }
 
-# TODO: handle plots better and make recursive smoother.
-# TODO: replace tmp variables with class slots if possible.
 
 #' Merge clusters based on angle
 #' @inheritParams dirclust_splitmerge

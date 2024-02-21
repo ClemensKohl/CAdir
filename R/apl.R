@@ -14,11 +14,10 @@
 #'  For random_direction_cutoff this saved_ca is empty.
 random_direction_cutoff <- function(
     caobj,
-    apl_cols,
     dims = caobj@dims,
     reps = 300
 ) {
-    row_num <- nrow(apl_cols)
+    row_num <- nrow(caobj@prin_coords_cols)
 
     if (caobj@dims == 1 && !is.empty(caobj@dims)) {
         row_num <- 1
@@ -70,12 +69,11 @@ random_direction_cutoff <- function(
 #'
 permutation_cutoff <- function(caobj,
                                counts,
-                               apl_cols,
                                group = caobj@group,
                                dims = caobj@dims,
                                reps = 10,
                                python = TRUE) {
-    row_num <- nrow(apl_cols)
+    row_num <- nrow(counts)
 
     apl_perm <- data.frame(
         "x" = rep(0, row_num * reps),
@@ -147,7 +145,6 @@ permutation_cutoff <- function(caobj,
 #' The cutoff angle alpha in radians.
 #'
 get_apl_cutoff <- function(caobj,
-                           apl_cols,
                            method = "random",
                            group = caobj@group,
                            counts = NULL,
@@ -166,7 +163,6 @@ get_apl_cutoff <- function(caobj,
         apl_perm <- random_direction_cutoff(
             caobj = caobj,
             dims = caobj@dims,
-            apl_cols = apl_cols,
             reps = reps
         )
 
@@ -180,7 +176,6 @@ get_apl_cutoff <- function(caobj,
         apl_perm <- permutation_cutoff(
             caobj = caobj,
             mat = counts,
-            apl_cols = apl_cols,
             group = group,
             dims = caobj@dims,
             reps = reps,
@@ -283,7 +278,6 @@ get_apl_mergers <- function(cadir,
         cutoff <- get_apl_cutoff(caobj = caobj,
                                  counts = counts,
                                  method = method,
-                                 apl_cols = aplcds$apl_cols,
                                  group = grp_idx,
                                  dims = caobj@dims,
                                  reps = reps,
