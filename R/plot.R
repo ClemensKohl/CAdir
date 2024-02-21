@@ -88,7 +88,7 @@ cluster_apl <- function(
     # we flip the line.
     for (d in seq_len(nrow(dapl))) {
         sel <- match(
-            names(cadir@cell_clusters)[cadir@cell_clusters == d],
+            names(cadir@cell_clusters)[f2n(cadir@cell_clusters) == d],
             rownames(caobj@prin_coords_cols)
         )
 
