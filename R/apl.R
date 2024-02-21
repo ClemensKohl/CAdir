@@ -127,7 +127,6 @@ permutation_cutoff <- function(caobj,
     return(apl_perm)
 }
 
-# TODO: Replace apl_cols with the number of rows or similar.
 
 #' Calculates the S_alpha cutoff based on random directions or permutations of the data
 #'
