@@ -290,8 +290,8 @@ merge_clusters <- function(caobj,
 
         if (isTRUE(make_plots)) {
             rep <- paste0("rep_", cadir@log$last_rep)
-            cadir@plots$mergers[[rep]] <- append(
-                cadir@plots$mergers[[rep]],
+            cadir@plots$merges[[rep]] <- append(
+                cadir@plots$merges[[rep]],
                 mergeplots
             )
         }
@@ -314,8 +314,8 @@ merge_clusters <- function(caobj,
 
     if (isTRUE(make_plots)) {
         rep <- paste0("rep_", cadir@log$last_rep)
-        cadir@plots$mergers[[rep]] <- append(
-            cadir@plots$mergers[[rep]],
+        cadir@plots$merges[[rep]] <- append(
+            cadir@plots$merges[[rep]],
             mergeplots
         )
     }
@@ -366,6 +366,7 @@ dirclust_splitmerge <- function(caobj,
         out@log$last_rep <- i
 
         print("run split")
+
         out <- split_clusters(
             cadir = out,
             caobj = caobj,
@@ -388,6 +389,8 @@ dirclust_splitmerge <- function(caobj,
             make_plots = make_plots
         )
 
+        plots <- out@plots
+
         # Final k-means to refine new clusters.
         print("run dirclust")
         out <- dirclust(
@@ -397,6 +400,7 @@ dirclust_splitmerge <- function(caobj,
             epochs = 5,
             log = FALSE
         )
+        out@plots <- plots
     }
 
     out@gene_clusters <- assign_genes(
@@ -407,5 +411,7 @@ dirclust_splitmerge <- function(caobj,
     )
 
     out <- rename_clusters(out)
+    # TODO: Make function that creates a plot for each cluster.
+
     return(out)
 }
