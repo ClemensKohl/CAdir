@@ -139,3 +139,8 @@ cluster_apl <- function(
 
     return(p)
 }
+
+# FIXME: WIP
+plot_clusters <- function() {}
+    stop("Not implemented")
+}
