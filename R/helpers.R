@@ -28,14 +28,14 @@ rename_clusters <- function(cadir) {
     # Remove directions without any points clustered.
     have_smpls <- which(dir_num %in% uni_clust)
     dir_num <- dir_num[have_smpls]
-    cadir@directions <- cadir@directions[have_smpls, ]
+    cadir@directions <- cadir@directions[have_smpls, , drop = FALSE]
 
     # Rename the directions according to the cluster numbers.
     new_dir_num <- match(dir_num, uni_clust)
     rownames(cadir@directions) <- paste0("line", new_dir_num)
 
     if (!is.empty(cadir@distances)) {
-        cadir@distances <- cadir@distances[, have_smpls]
+        cadir@distances <- cadir@distances[, have_smpls, drop = FALSE]
         colnames(cadir@distances) <- paste0("line", new_dir_num)
     }
 

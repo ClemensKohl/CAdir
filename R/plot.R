@@ -69,11 +69,15 @@ cluster_apl <- function(
 
     # ensure that clusters and directions are coherent
     cadir <- rename_clusters(cadir)
+    if (nrow(cadir@directions) > 1) {
 
-    ang <- min(
-        rad2deg(get_angle(cadir@directions[1, ], cadir@directions[2, ])),
-        rad2deg(get_angle(-cadir@directions[1, ], cadir@directions[2, ]))
-    )
+        ang <- min(
+            rad2deg(get_angle(cadir@directions[1, ], cadir@directions[2, ])),
+            rad2deg(get_angle(-cadir@directions[1, ], cadir@directions[2, ]))
+        )
+    } else {
+        ang = 0
+    }
 
     model <- apl_model(
         caobj = caobj,
@@ -141,6 +145,6 @@ cluster_apl <- function(
 }
 
 # FIXME: WIP
-plot_clusters <- function() {}
+plot_clusters <- function() {
     stop("Not implemented")
 }

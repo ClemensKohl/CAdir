@@ -414,3 +414,4 @@ dirclust_splitmerge <- function(caobj,
 
     return(out)
 }
+
