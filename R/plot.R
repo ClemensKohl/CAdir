@@ -63,7 +63,10 @@ cluster_apl <- function(
         cadir,
         direction,
         group,
-        cluster_id = "NA") {
+        cluster_id = "NA",
+        show_points = TRUE,
+        show_lines = TRUE) {
+
     stopifnot(is(caobj, "cacomp"))
     stopifnot(is(cadir, "cadir"))
 
@@ -117,29 +120,38 @@ cluster_apl <- function(
     df$cluster <- as.factor(df$cluster)
 
 
-    p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster)) +
-        ggplot2::geom_point() +
-        ggplot2::geom_point(
-            data = data.frame(x = 0, y = 0),
-            ggplot2::aes(x, y), color = "red"
-        ) +
-        ggplot2::ggtitle(paste0(
+    p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
+
+    if (isTRUE(show_points)) {
+
+        p <- p +
+            ggplot2::geom_point()
+    }
+
+    if (isTRUE(show_lines)) {
+
+        for (d in seq_len(nrow(dapl))) {
+            p <- p + ggplot2::geom_abline(
+                intercept = 0,
+                slope = slope(lines = dapl[d, ], dims = 1:2),
+                color = "red",
+                linetype = "dashed",
+                size = 1
+                ) +
+                ggplot2::geom_point(
+                    data = data.frame(x = 0, y = 0),
+                    ggplot2::aes(x, y), color = "red"
+                )
+        }
+    }
+
+    p <- p + ggplot2::ggtitle(paste0(
             "Cluster: ",
             cluster_id,
             ", CA-angle: ",
             round(ang, 2)
         )) +
         ggplot2::theme_bw()
-
-    for (d in seq_len(nrow(dapl))) {
-        p <- p + ggplot2::geom_abline(
-            intercept = 0,
-            slope = slope(lines = dapl[d, ], dims = 1:2),
-            color = "red",
-            linetype = "dashed",
-            size = 1
-        )
-    }
 
     return(p)
 }
