@@ -2,7 +2,7 @@
 #' @param caobj A cacomp object.
 #' @param direction Normed direction vector of the APL plot.
 #' @param group A vector of indices which indicate the points
-#' that belong to the cluster.
+#' that belong to the cluster. Only needed here to orient the plot.
 #' @returns
 #' A model that can be used to project new points onto the APL plot.
 apl_model <- function(
@@ -32,11 +32,19 @@ apl_model <- function(
         }
 
         cosangle <- cosine(a = group_mean, b = direction)
+
+        # group_norm <- row_norm(group_mean)
+        # gx <- drop(group_mean %*% avg_group_coords) / group_norm
+        #
+        # if (sign(gx) == -1) {
+        #     avg_group_coords <- -avg_group_coords
+        # }
+
+        if (cosangle < 0) {
+            avg_group_coords <- -avg_group_coords
+        }
     }
 
-    if (cosangle < 0) {
-        avg_group_coords <- -avg_group_coords
-    }
 
     model <- function(vec) {
         length_vector <- row_norm(vec)
@@ -65,7 +73,8 @@ cluster_apl <- function(
         group,
         cluster_id = "NA",
         show_points = TRUE,
-        show_lines = TRUE) {
+        show_lines = TRUE,
+        plot_group = FALSE) {
 
     stopifnot(is(caobj, "cacomp"))
     stopifnot(is(cadir, "cadir"))
@@ -114,11 +123,18 @@ cluster_apl <- function(
 
     df <- as.data.frame(capl)
     df$sample <- rownames(df)
-    df$cluster <- 0
-    sel <- match(names(cadir@cell_clusters), df$sample)
-    df$cluster[sel] <- cadir@cell_clusters
-    df$cluster <- as.factor(df$cluster)
 
+    if (isTRUE(plot_group)) {
+        sel <- match(rownames(caobj@prin_coords_cols)[group], df$sample)
+        df$cluster <- "other"
+        df$cluster[sel] <- "cluster"
+    } else {
+        df$cluster <- 0
+        sel <- match(names(cadir@cell_clusters), df$sample)
+        df$cluster[sel] <- cadir@cell_clusters
+    }
+
+    df$cluster <- as.factor(df$cluster)
 
     p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
 
@@ -126,21 +142,39 @@ cluster_apl <- function(
 
         p <- p +
             ggplot2::geom_point()
+
+        if (isTRUE(plot_group)) {
+            p <- p + scale_color_manual(values = c("cluster" = "#c6d325", "other" = "#006c66"))
+        }
     }
 
     if (isTRUE(show_lines)) {
 
         for (d in seq_len(nrow(dapl))) {
+
+            if (isTRUE(all.equal(dapl[d, ], c(1, 0), tolerance = 1e-4, check.attributes = FALSE)) ||
+                isTRUE(all.equal(dapl[d, ], c(-1, 0), tolerance = 1e-4, check.attributes = FALSE))) {
+                lcolor = "black"
+                ltype = "solid"
+            } else {
+                lcolor = "red"
+                ltype = "dashed"
+
+                if(isTRUE(plot_group)) {
+                    lcolor = "#006c66"
+                }
+            }
+
             p <- p + ggplot2::geom_abline(
                 intercept = 0,
                 slope = slope(lines = dapl[d, ], dims = 1:2),
-                color = "red",
-                linetype = "dashed",
+                color = lcolor,
+                linetype = ltype,
                 size = 1
                 ) +
                 ggplot2::geom_point(
                     data = data.frame(x = 0, y = 0),
-                    ggplot2::aes(x, y), color = "red"
+                    ggplot2::aes(x, y), color = lcolor
                 )
         }
     }
@@ -156,7 +190,87 @@ cluster_apl <- function(
     return(p)
 }
 
-# FIXME: WIP
-plot_clusters <- function() {
-    stop("Not implemented")
+# TODO: Add documentation
+plot_results <- function(cadir, caobj) {
+
+  size <- 1
+  pls <- list()
+  cls <- sort(unique(cadir@cell_clusters))
+
+  for (i in seq_along(cls)) {
+
+    for (j in seq_along(cls)) {
+
+      sel <- which(cadir@cell_clusters == cls[i] | cadir@cell_clusters == cls[j])
+      sel_dir <- unique(c(f2n(cls[i]),f2n(cls[j])))
+
+      sub_cak <- new("cadir",
+                     cell_clusters = cadir@cell_clusters[sel],
+                     directions = cadir@directions[sel_dir, , drop = FALSE])
+
+      nm <- paste0("cluster_", as.character(cls[i]))
+
+      p <- cluster_apl(caobj = caobj,
+                       cadir = sub_cak,
+                       direction = cadir@directions[f2n(cls[i]), ],
+                       group = which(cadir@cell_clusters == cls[i]),
+                       cluster_id = "cell_clusters",
+                       show_points = i == j,
+                       show_lines = i != j,
+                       plot_group = TRUE) +
+                           ggplot2::ggtitle("") +
+                           ggplot2::theme(legend.position = "none",
+                                 axis.title.x = element_blank(),
+                                 axis.text.x = element_blank(),
+                                 axis.ticks.x = element_blank(),
+                                 axis.title.y = element_blank(),
+                                 axis.text.y = element_blank(),
+                                 axis.ticks.y = element_blank())
+
+
+                           if (i == j) {
+                             p$layers[[1]]$aes_params$size <- size
+                           } else {
+                             p$layers[[2]]$aes_params$size <- size
+                           }
+                           pls[[paste0(i, "_", j)]] <- p
+    }
+
+  }
+
+  fig <- ggpubr::ggarrange(plotlist = pls, nrow = length(cls), ncol = length(cls))
+  return(fig)
+}
+
+#TODO: add documentation
+plot_clusters <- function(cadir, caobj) {
+    pls <- list()
+    cls <- sort(unique(cadir@cell_clusters))
+
+    for (i in seq_along(cls)) {
+
+        p <- cluster_apl(caobj = caobj,
+                         cadir = cadir,
+                         direction = cadir@directions[f2n(cls[i]), ],
+                         group = which(cadir@cell_clusters == cls[i]),
+                         show_points = TRUE,
+                         show_lines = FALSE,
+                         plot_group = TRUE) +
+                      ggplot2::ggtitle(paste0("cluster_", i)) +
+                      ggplot2::theme(legend.position = "none",
+                                     axis.title.x = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks.x = element_blank(),
+                                     axis.title.y = element_blank(),
+                                     axis.text.y = element_blank(),
+                                     axis.ticks.y = element_blank())
+
+        p$layers[[1]]$aes_params$size <- size
+
+        pls[[i]] <- p
+    }
+
+    fig <- ggpubr::ggarrange(plotlist = pls, nrow = ceiling(sqrt(length(cls))), ncol = ceiling(sqrt(length(cls))))
+    return(fig)
+
 }
