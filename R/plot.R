@@ -60,6 +60,7 @@ apl_model <- function(
     return(model)
 }
 
+# TODO: Fix documentation.
 #' Plot a cluster with the respective direction/line in an APL.
 #' @inheritParams apl_model
 #' @param cadir A cadir object for which to compute the APL
