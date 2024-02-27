@@ -286,12 +286,12 @@ plot_graph <- function() {
 }
 
 # TODO: Add documentation
-plot_flow <- function() {
+plot_flow <- function(cadir) {
 
-    sank <- ggsankey::make_long(cak@log$clusters,
+    sank <- ggsankey::make_long(cadir@log$clusters,
                                 tidyselect::everything())
 
-    p <- ggplot::ggplot(long_sank,
+    p <- ggplot::ggplot(sank,
                    ggplot2::aes(x = x,
                                 next_x = next_x,
                                 node = node,
