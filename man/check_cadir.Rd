@@ -4,10 +4,10 @@
 \alias{check_cadir}
 \title{Checks if cadir-class was constructed correctly}
 \usage{
-check_cadir(object)
+check_cadir(obj)
 }
 \arguments{
-\item{object}{cadir object}
+\item{obj}{cadir object}
 }
 \value{
 If object is a valid cadir object returns TRUE, otherwise the errors.

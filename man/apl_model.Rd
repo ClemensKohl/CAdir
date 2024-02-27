@@ -12,7 +12,7 @@ apl_model(caobj, direction, group = NULL)
 \item{direction}{Normed direction vector of the APL plot.}
 
 \item{group}{A vector of indices which indicate the points
-that belong to the cluster.}
+that belong to the cluster. Only needed here to orient the plot.}
 }
 \value{
 A model that can be used to project new points onto the APL plot.

@@ -275,3 +275,33 @@ plot_clusters <- function(cadir, caobj) {
     return(fig)
 
 }
+
+
+# FIXME: WIP
+# 1. Add some structure that keeps track of the splits and mergers. Graphs?
+# 2. Associate each split/merge with a node in the graph and a plot.
+# 3. Plot the graph.
+plot_graph <- function() {
+    stop("Not implemented yet.")
+}
+
+# TODO: Add documentation
+plot_flow <- function() {
+
+    sank <- ggsankey::make_long(cak@log$clusters,
+                                tidyselect::everything())
+
+    p <- ggplot::ggplot(long_sank,
+                   ggplot2::aes(x = x,
+                                next_x = next_x,
+                                node = node,
+                                next_node = next_node,
+                                fill = factor(node),
+                                label = node)) +
+                      ggsankey::geom_sankey(node_color = 1, flow_alpha = 0.7)  +
+                      ggsankey::geom_sankey_label(size = 3.5, color = 1, fill = "white") +
+                      viridis::scale_fill_viridis_d(option = "A", alpha = 0.95) +
+                      ggsankey::theme_sankey(base_size = 12) +
+                      ggplot2::theme(legend.position = "none")
+    return(p)
+}

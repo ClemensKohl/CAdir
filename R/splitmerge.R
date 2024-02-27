@@ -354,6 +354,12 @@ dirclust_splitmerge <- function(caobj,
     # Convert cutoff to radians
     if (!is.null(cutoff)) cutoff <- deg2rad(cutoff)
 
+    cl_log <- as.data.frame(matrix(0,
+                                   ncol = 1,
+                                   nrow = nrow(caobj@prin_coords_cols)))
+
+    colnames(cl_log) <- "start"
+
     out <- dirclust(
         points = caobj@prin_coords_cols,
         k = k,
@@ -362,6 +368,9 @@ dirclust_splitmerge <- function(caobj,
         lines = NULL,
         log = FALSE
     )
+
+    cl_log <- cbind(cl_log,
+                    setNames(data.frame(out@cell_clusters), "iter_0"))
 
     for (i in seq_len(reps)) {
         message("Iteration ", i)
@@ -389,6 +398,7 @@ dirclust_splitmerge <- function(caobj,
             make_plots = make_plots
         )
 
+
         plots <- out@plots
 
         # Final k-means to refine new clusters.
@@ -400,6 +410,9 @@ dirclust_splitmerge <- function(caobj,
             log = FALSE
         )
         out@plots <- plots
+
+        cl_log <- cbind(cl_log,
+                        setNames(data.frame(out@cell_clusters), paste0("iter_", i)))
     }
 
     out@gene_clusters <- assign_genes(
@@ -410,7 +423,12 @@ dirclust_splitmerge <- function(caobj,
     )
 
     out <- rename_clusters(out)
-    # TODO: Make function that creates a plot for each cluster.
+
+    cl_log <- cbind(cl_log,
+                    setNames(data.frame(out@cell_clusters), "final"))
+
+    out@log$clusters <- cl_log
+
 
     return(out)
 }

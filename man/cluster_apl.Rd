@@ -4,7 +4,16 @@
 \alias{cluster_apl}
 \title{Plot a cluster with the respective direction/line in an APL.}
 \usage{
-cluster_apl(caobj, cadir, direction, group, cluster_id = "NA")
+cluster_apl(
+  caobj,
+  cadir,
+  direction,
+  group,
+  cluster_id = "NA",
+  show_points = TRUE,
+  show_lines = TRUE,
+  plot_group = FALSE
+)
 }
 \arguments{
 \item{caobj}{A cacomp object.}
@@ -14,7 +23,7 @@ cluster_apl(caobj, cadir, direction, group, cluster_id = "NA")
 \item{direction}{Normed direction vector of the APL plot.}
 
 \item{group}{A vector of indices which indicate the points
-that belong to the cluster.}
+that belong to the cluster. Only needed here to orient the plot.}
 
 \item{cluster_id}{The cluster for which to plot the APL.}
 }
