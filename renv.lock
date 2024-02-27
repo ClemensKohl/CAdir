@@ -35,14 +35,22 @@
     "APL": {
       "Package": "APL",
       "Version": "1.2.0",
-      "Source": "Bioconductor",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "APL",
+      "RemoteUsername": "VingronLab",
+      "RemoteRef": "cabinet",
+      "RemoteSha": "c39f04fb025dda9c129a976884d1e04a065addfe",
       "Requirements": [
+        "Matrix",
         "R",
         "Seurat",
         "SingleCellExperiment",
         "SummarizedExperiment",
         "ggplot2",
         "ggrepel",
+        "irlba",
         "magrittr",
         "methods",
         "org.Hs.eg.db",
@@ -55,7 +63,7 @@
         "utils",
         "viridisLite"
       ],
-      "Hash": "4f427ffe9ae9bfadeb1a752acf1c2df5"
+      "Hash": "3a116c69e1c356ca1afcf2aaf36d29b9"
     },
     "AnnotationDbi": {
       "Package": "AnnotationDbi",
@@ -189,8 +197,8 @@
       "RemoteHost": "api.github.com",
       "RemoteUsername": "VingronLab",
       "RemoteRepo": "CAbiNet",
-      "RemoteRef": "cle",
-      "RemoteSha": "cffa93398e64ce96fea7ed079595324f8054ae25",
+      "RemoteRef": "dev",
+      "RemoteSha": "8bb3509b69c5de82ff291d620df5821dd497a6f4",
       "Requirements": [
         "APL",
         "BiocNeighbors",
@@ -198,11 +206,9 @@
         "ClusterR",
         "Matrix",
         "Polychrome",
-        "R",
         "RColorBrewer",
         "Rcpp",
         "RcppEigen",
-        "RcppHungarian",
         "S4Vectors",
         "SingleCellExperiment",
         "SummarizedExperiment",
@@ -222,7 +228,7 @@
         "umap",
         "viridis"
       ],
-      "Hash": "a88dee95230c80ba2116f27a4ede9196"
+      "Hash": "80b565190f4b234c22bb716a226481f8"
     },
     "ClusterR": {
       "Package": "ClusterR",
@@ -245,14 +251,14 @@
     },
     "DBI": {
       "Package": "DBI",
-      "Version": "1.2.2",
+      "Version": "1.2.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "methods"
       ],
-      "Hash": "164809cd72e1d5160b4cb3aa57f510fe"
+      "Hash": "9b4993e98e0e19da84c168460c032fef"
     },
     "DelayedArray": {
       "Package": "DelayedArray",
@@ -581,16 +587,6 @@
         "methods"
       ],
       "Hash": "1f2dc32c27746a35196aaf95adb357be"
-    },
-    "RcppHungarian": {
-      "Package": "RcppHungarian",
-      "Version": "0.3",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "Rcpp"
-      ],
-      "Hash": "d59b3523354d430f10c0e40d4673fdf1"
     },
     "RcppProgress": {
       "Package": "RcppProgress",
@@ -1359,7 +1355,7 @@
     },
     "ggplot2": {
       "Package": "ggplot2",
-      "Version": "3.4.4",
+      "Version": "3.5.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1380,7 +1376,7 @@
         "vctrs",
         "withr"
       ],
-      "Hash": "313d31eff2274ecf4c1d3581db7241f9"
+      "Hash": "52ef83f93f74833007f193b2d4c159a2"
     },
     "ggrepel": {
       "Package": "ggrepel",
@@ -1964,7 +1960,7 @@
     },
     "parallelly": {
       "Package": "parallelly",
-      "Version": "1.37.0",
+      "Version": "1.36.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1972,7 +1968,7 @@
         "tools",
         "utils"
       ],
-      "Hash": "8da17de8b15c89b574269fc414ff4e20"
+      "Hash": "bca377e1c87ec89ebed77bba00635b2e"
     },
     "patchwork": {
       "Package": "patchwork",
