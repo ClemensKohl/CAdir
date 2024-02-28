@@ -132,3 +132,38 @@ f2n <- function(f) {
     return(f)
 
 }
+
+# TODO: Add documentation
+build_sm_graph <- function(before,
+                           after,
+                           before_nm = "start",
+                           after_nm = "end") {
+
+    graph <- data.frame()
+    node <- unique(before)
+
+    for (n in node) {
+        n_nm <- paste0(before_nm, "_", n)
+        cluster <- which(before == n)
+        new_clusters <- unique(after[cluster])
+
+        for (nn in new_clusters) {
+            nn_nm <- paste0(after_nm, "_", nn)
+            graph <- rbind(graph, data.frame(from = n_nm, to = nn_nm))
+        }
+    }
+    return(graph)
+}
+
+#TODO: add documentation
+plot_sm_graph <- function(cadir) {
+
+    graph <- do.call(rbind, cadir@log$graph)
+    rownames(graph) <- NULL
+    graph <- igraph::graph_from_data_frame(graph, directed = TRUE)
+
+    plot(graph,
+         layout = igraph::layout_as_tree(graph, circular = FALSE),
+         vertex.label = NA,
+         vertex.size = 4)
+}
