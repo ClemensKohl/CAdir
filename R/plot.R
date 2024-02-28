@@ -292,16 +292,16 @@ plot_flow <- function(cadir) {
                                 tidyselect::everything())
 
     p <- ggplot::ggplot(sank,
-                   ggplot2::aes(x = x,
-                                next_x = next_x,
-                                node = node,
-                                next_node = next_node,
-                                fill = factor(node),
-                                label = node)) +
+                        ggplot2::aes(x = x,
+                                     next_x = next_x,
+                                     node = node,
+                                     next_node = next_node,
+                                     fill = factor(node),
+                                     label = node)) +
                       ggsankey::geom_sankey(node_color = 1, flow_alpha = 0.7)  +
                       ggsankey::geom_sankey_label(size = 3.5, color = 1, fill = "white") +
                       viridis::scale_fill_viridis_d(option = "A", alpha = 0.95) +
                       ggsankey::theme_sankey(base_size = 12) +
                       ggplot2::theme(legend.position = "none")
-    return(p)
+                  return(p)
 }

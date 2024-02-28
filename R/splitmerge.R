@@ -357,6 +357,7 @@ dirclust_splitmerge <- function(caobj,
     cl_log <- as.data.frame(matrix(0,
                                    ncol = 1,
                                    nrow = nrow(caobj@prin_coords_cols)))
+    graph_log <- list()
 
     colnames(cl_log) <- "start"
 
@@ -368,14 +369,22 @@ dirclust_splitmerge <- function(caobj,
         lines = NULL,
         log = FALSE
     )
-
+    graph_log[["start"]] <-
+        build_sm_graph(before = factor(rep(0, length(out@cell_clusters))),
+                       after = out@cell_clusters,
+                       before_nm = "root",
+                       after_nm = "iter_0")
     cl_log <- cbind(cl_log,
                     setNames(data.frame(out@cell_clusters), "iter_0"))
 
     for (i in seq_len(reps)) {
         message("Iteration ", i)
 
+        iter_nm <- paste0("iter_", i)
+
         out@log$last_rep <- i
+
+        before_out <- out@cell_clusters
 
         out <- split_clusters(
             cadir = out,
@@ -388,6 +397,26 @@ dirclust_splitmerge <- function(caobj,
             make_plots = make_plots
         )
 
+        bnm <- ifelse(i == 1, "iter_0", paste0("iter_", i - 1, "_merge"))
+
+        graph_log[[paste0(iter_nm, "_split")]] <-
+            build_sm_graph(before = before_out,
+                           after = out@cell_clusters,
+                           before_nm = bnm,
+                           after_nm = paste0(iter_nm, "_split"))
+
+        plots <- out@plots
+        out <- dirclust(
+            points = caobj@prin_coords_cols,
+            k = ncol(out@directions),
+            lines = out@directions,
+            epochs = 5,
+            log = FALSE
+        )
+        out@plots <- plots
+
+        before_out <- out@cell_clusters
+
         out <- merge_clusters(
             caobj = caobj,
             cadir = out,
@@ -398,6 +427,11 @@ dirclust_splitmerge <- function(caobj,
             make_plots = make_plots
         )
 
+        graph_log[[paste0(iter_nm, "_merge")]] <-
+            build_sm_graph(before = before_out,
+                           after = out@cell_clusters,
+                           before_nm = paste0(iter_nm, "_split"),
+                           after_nm = paste0(iter_nm, "_merge"))
 
         plots <- out@plots
 
@@ -412,7 +446,7 @@ dirclust_splitmerge <- function(caobj,
         out@plots <- plots
 
         cl_log <- cbind(cl_log,
-                        setNames(data.frame(out@cell_clusters), paste0("iter_", i)))
+                        setNames(data.frame(out@cell_clusters), iter_nm))
     }
 
     out@gene_clusters <- assign_genes(
@@ -428,7 +462,7 @@ dirclust_splitmerge <- function(caobj,
                     setNames(data.frame(out@cell_clusters), "final"))
 
     out@log$clusters <- cl_log
-
+    out@log$graph <- graph_log
 
     return(out)
 }
