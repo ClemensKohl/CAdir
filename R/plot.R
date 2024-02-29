@@ -75,7 +75,8 @@ cluster_apl <- function(
         cluster_id = "NA",
         show_points = TRUE,
         show_lines = TRUE,
-        plot_group = FALSE) {
+        plot_group = FALSE,
+        point_size = 1.5) {
 
     stopifnot(is(caobj, "cacomp"))
     stopifnot(is(cadir, "cadir"))
@@ -142,7 +143,7 @@ cluster_apl <- function(
     if (isTRUE(show_points)) {
 
         p <- p +
-            ggplot2::geom_point()
+            ggplot2::geom_point(size = point_size)
 
         if (isTRUE(plot_group)) {
             p <- p + scale_color_manual(values = c("cluster" = "#c6d325", "other" = "#006c66"))
