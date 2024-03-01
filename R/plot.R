@@ -277,6 +277,17 @@ plot_clusters <- function(cadir, caobj) {
 
 }
 
+# FIXME: adapt to new graph structure.
+#TODO: add documentation
+plot_sm_graph <- function(cadir) {
+
+    graph <- build_graph(cadir)
+
+    plot(graph,
+         layout = igraph::layout_as_tree(graph, circular = FALSE),
+         vertex.label = NA,
+         vertex.size = 4)
+}
 
 # FIXME: WIP
 # 1. Add some structure that keeps track of the splits and mergers. Graphs?
@@ -289,10 +300,14 @@ plot_graph <- function() {
 # TODO: Add documentation
 plot_flow <- function(cadir) {
 
-    sank <- ggsankey::make_long(cadir@log$clusters,
-                                tidyselect::everything())
 
-    p <- ggplot::ggplot(sank,
+    node_pattern <- c("root|iter_0|split|merge|end")
+    sel <- which(grepl(node_pattern, colnames(cak@log$clusters)))
+    sub_cls <- cak@log$clusters[, sel]
+
+    sank <- ggsankey::make_long(sub_cls,
+                                colnames(sub_cls))
+    p <- ggplot2::ggplot(sank,
                         ggplot2::aes(x = x,
                                      next_x = next_x,
                                      node = node,
@@ -301,8 +316,8 @@ plot_flow <- function(cadir) {
                                      label = node)) +
                       ggsankey::geom_sankey(node_color = 1, flow_alpha = 0.7)  +
                       ggsankey::geom_sankey_label(size = 3.5, color = 1, fill = "white") +
-                      viridis::scale_fill_viridis_d(option = "A", alpha = 0.95) +
+                      ggplot2::scale_fill_viridis_d(option = "A", alpha = 0.95) +
                       ggsankey::theme_sankey(base_size = 12) +
                       ggplot2::theme(legend.position = "none")
-                  return(p)
+    return(p)
 }

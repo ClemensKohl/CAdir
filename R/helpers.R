@@ -155,15 +155,35 @@ build_sm_graph <- function(before,
     return(graph)
 }
 
-#TODO: add documentation
-plot_sm_graph <- function(cadir) {
+# TODO: Add documentation
+build_graph <- function(cadir) {
 
-    graph <- do.call(rbind, cadir@log$graph)
+    graph_list <- list()
+    cls <- cadir@log$clusters
+
+    cls_nodes <- colnames(cls)
+    node_pattern <- c("iter_0|split|merge|end")
+    sel <- which(grepl(node_pattern, cls_nodes))
+
+    # We loop through all the nodes that contain the pattern in their name and
+    # compare the new clusters to the ones from the intermediate dirclust calls.
+    # This way we only record in the graph what actually changes during the
+    # split/merge,
+    # not the arbitrary shifting during the cluster refinement. However,
+    # we need to change the name of the previous graph node to that of the
+    # last split/merge in order to make
+    # a coherent graph.
+    for (i in seq_len(length(sel))) {
+
+        graph_list[[i]] <- build_sm_graph(before = cls[, sel[i] - 1],
+                                          after = cls[, sel[i]],
+                                          before_nm = cls_nodes[sel[i - 1]],
+                                          after_nm = cls_nodes[sel[i]])
+    }
+
+    graph <- do.call(rbind, graph_list)
     rownames(graph) <- NULL
     graph <- igraph::graph_from_data_frame(graph, directed = TRUE)
 
-    plot(graph,
-         layout = igraph::layout_as_tree(graph, circular = FALSE),
-         vertex.label = NA,
-         vertex.size = 4)
+    return(graph)
 }
