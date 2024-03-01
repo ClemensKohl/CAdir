@@ -349,69 +349,77 @@ get_x_y_values <- function(gg_plot) {
 
 sm_plot <- function(cadir, caobj) {
 
-  graph <- build_graph(cadir)
+    graph <- build_graph(cadir)
 
-  lgraph <- igraph::layout_as_tree(graph)
-  lgraph <- as.data.frame(lgraph)
-  colnames(lgraph) <- c("x", "y")
+    # TODO: Move code to ggraph package in order to draw some lines
+    lgraph <- ggraph::create_layout(graph, layout="tree")
+    # lgraph <- igraph::layout_as_tree(graph)
+    # lgraph <- as.data.frame(lgraph)
+    # colnames(lgraph) <- c("x", "y")
 
-  bg <- ggplot(lgraph, aes(x, y)) +
-      geom_point()
+    # bg <- ggplot(lgraph, aes(x, y)) + geom_point()
+    ggraph::set_graph_style(plot_margin = margin(1,1,1,1))
+    bg <- ggraph(lgraph) +
+        ggraph::geom_edge_link() +
+        ggraph::geom_node_point()
+    # ggraph::theme_graph()
 
-  # TODO: I have a suspicion that the panel size changes when adding insets.
-  bg_coords <- get_x_y_values(bg)
+    # TODO: I have a suspicion that the panel size changes when adding insets.
+    bg_coords <- get_x_y_values(bg)
 
-  cls <- cadir@log$clusters
-  cls_nodes <- colnames(cls)
+    cls <- cadir@log$clusters
+    cls_nodes <- colnames(cls)
 
-  node_pattern <- c("iter_0|split|merge|end")
-  sel <- which(grepl(node_pattern, cls_nodes))
+    node_pattern <- c("iter_0|split|merge|end")
+    sel <- which(grepl(node_pattern, cls_nodes))
 
-  nodes <- names(V(graph))
+    nodes <- names(V(graph))
 
-  for (i in seq_len(nrow(lgraph))) {
+    for (i in seq_len(nrow(lgraph))) {
 
-    node_nm <- nodes[i]
-    name_elems <- stringr::str_split_1(node_nm, "-")
+        node_nm <- nodes[i]
+        name_elems <- stringr::str_split_1(node_nm, "-")
 
-    if (name_elems[1] == "root") next
+        if (name_elems[1] == "root") next
 
-    iter_nm  <- name_elems[1]
-    cluster <- as.numeric(name_elems[2])
+        iter_nm  <- name_elems[1]
+        cluster <- as.numeric(name_elems[2])
 
-    grp_idx <- which(cls[, iter_nm] == cluster)
+        grp_idx <- which(cls[, iter_nm] == cluster)
 
-    dir <- total_least_squares(caobj@prin_coords_cols[grp_idx,])
+        dir <- total_least_squares(caobj@prin_coords_cols[grp_idx,])
 
-    p <- cluster_apl(caobj = caobj,
-                      cadir = cadir,
-                      direction = as.numeric(dir),
-                      group = grp_idx,
-                      cluster_id = as.character("cluster"),
-                      show_lines = FALSE,
-                      point_size = 0.3) +
-      ggplot2::ggtitle("") +
-      theme_minimal() +
-      ggplot2::theme(aspect.ratio = 1,
-                    legend.position = "none",
-                    axis.title.x = element_blank(),
-                    axis.text.x = element_blank(),
-                    axis.ticks.x = element_blank(),
-                    axis.title.y = element_blank(),
-                    axis.text.y = element_blank(),
-                    axis.ticks.y = element_blank())
+        p <- cluster_apl(caobj = caobj,
+                         cadir = cadir,
+                         direction = as.numeric(dir),
+                         group = grp_idx,
+                         cluster_id = as.character("cluster"),
+                         show_lines = FALSE,
+                         point_size = 0.3) +
+                      ggplot2::ggtitle("") +
+                      theme_void() +
+                      ggplot2::theme(aspect.ratio = 1,
+                                     legend.position = "none",
+                                     axis.title.x = element_blank(),
+                                     axis.text.x = element_blank(),
+                                     axis.ticks.x = element_blank(),
+                                     axis.title.y = element_blank(),
+                                     axis.text.y = element_blank(),
+                                     axis.ticks.y = element_blank())
 
 
-      bg <-  bg +
-      patchwork::inset_element(p,
-                    left = bg_coords[i, 1] - 0.05,
-                    right = bg_coords[i, 1] + 0.05,
-                    top = bg_coords[i, 2] + 0.05,
-                    bottom = bg_coords[i, 2] - 0.05)
+                      bg <-  bg +
+                          patchwork::inset_element(p,
+                                                   left = bg_coords[i, 1] - 0.05,
+                                                   right = bg_coords[i, 1] + 0.05,
+                                                   top = bg_coords[i, 2] + 0.05,
+                                                   bottom = bg_coords[i, 2] - 0.05,
+                                                   align_to = "panel")
 
-  }
+    }
 
     return(bg)
 
 }
+
 
