@@ -143,12 +143,12 @@ build_sm_graph <- function(before,
     node <- unique(before)
 
     for (n in node) {
-        n_nm <- paste0(before_nm, "_", n)
+        n_nm <- paste0(before_nm, "-", n)
         cluster <- which(before == n)
         new_clusters <- unique(after[cluster])
 
         for (nn in new_clusters) {
-            nn_nm <- paste0(after_nm, "_", nn)
+            nn_nm <- paste0(after_nm, "-", nn)
             graph <- rbind(graph, data.frame(from = n_nm, to = nn_nm))
         }
     }
@@ -177,7 +177,7 @@ build_graph <- function(cadir) {
 
         graph_list[[i]] <- build_sm_graph(before = cls[, sel[i] - 1],
                                           after = cls[, sel[i]],
-                                          before_nm = cls_nodes[sel[i - 1]],
+                                          before_nm = ifelse(i == 1, "root", cls_nodes[sel[i - 1]]),
                                           after_nm = cls_nodes[sel[i]])
     }
 
