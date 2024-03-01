@@ -321,3 +321,97 @@ plot_flow <- function(cadir) {
                       ggplot2::theme(legend.position = "none")
     return(p)
 }
+
+# FIXME: Mention where you got this from!
+# TODO: Add documentation!
+# TODO: Better adapt to your plotting with a changing panel size.
+get_x_y_values <- function(gg_plot) {
+  img_dim      <- grDevices::dev.size("cm") * 10
+  gt           <- ggplot2::ggplotGrob(gg_plot)
+  to_mm        <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
+  n_panel      <- which(gt$layout$name == "panel")
+  panel_pos    <- gt$layout[n_panel, ]
+  panel_kids   <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
+  point_grobs  <- panel_kids[[grep("point", names(panel_kids))]]
+  from_top     <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
+  from_left    <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
+  from_right   <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
+  from_bottom  <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
+  panel_height <- img_dim[2] - from_top - from_bottom
+  panel_width  <- img_dim[1] - from_left - from_right
+  xvals        <- as.numeric(point_grobs$x)
+  yvals        <- as.numeric(point_grobs$y)
+  yvals        <- yvals * panel_height + from_bottom
+  xvals        <- xvals * panel_width + from_left
+  data.frame(x = xvals/img_dim[1], y = yvals/img_dim[2])
+}
+
+
+sm_plot <- function(cadir, caobj) {
+
+  graph <- build_graph(cadir)
+
+  lgraph <- igraph::layout_as_tree(graph)
+  lgraph <- as.data.frame(lgraph)
+  colnames(lgraph) <- c("x", "y")
+
+  bg <- ggplot(lgraph, aes(x, y)) +
+      geom_point()
+
+  # TODO: I have a suspicion that the panel size changes when adding insets.
+  bg_coords <- get_x_y_values(bg)
+
+  cls <- cadir@log$clusters
+  cls_nodes <- colnames(cls)
+
+  node_pattern <- c("iter_0|split|merge|end")
+  sel <- which(grepl(node_pattern, cls_nodes))
+
+  nodes <- names(V(graph))
+
+  for (i in seq_len(nrow(lgraph))) {
+
+    node_nm <- nodes[i]
+    name_elems <- stringr::str_split_1(node_nm, "-")
+
+    if (name_elems[1] == "root") next
+
+    iter_nm  <- name_elems[1]
+    cluster <- as.numeric(name_elems[2])
+
+    grp_idx <- which(cls[, iter_nm] == cluster)
+
+    dir <- total_least_squares(caobj@prin_coords_cols[grp_idx,])
+
+    p <- cluster_apl(caobj = caobj,
+                      cadir = cadir,
+                      direction = as.numeric(dir),
+                      group = grp_idx,
+                      cluster_id = as.character("cluster"),
+                      show_lines = FALSE,
+                      point_size = 0.3) +
+      ggplot2::ggtitle("") +
+      theme_minimal() +
+      ggplot2::theme(aspect.ratio = 1,
+                    legend.position = "none",
+                    axis.title.x = element_blank(),
+                    axis.text.x = element_blank(),
+                    axis.ticks.x = element_blank(),
+                    axis.title.y = element_blank(),
+                    axis.text.y = element_blank(),
+                    axis.ticks.y = element_blank())
+
+
+      bg <-  bg +
+      patchwork::inset_element(p,
+                    left = bg_coords[i, 1] - 0.05,
+                    right = bg_coords[i, 1] + 0.05,
+                    top = bg_coords[i, 2] + 0.05,
+                    bottom = bg_coords[i, 2] - 0.05)
+
+  }
+
+    return(bg)
+
+}
+
