@@ -23,4 +23,6 @@ Imports:
     dplyr,
     tidyselect,
     ggsankey,
-    igraph
+    igraph,
+    ggraph,
+    patchwork
