@@ -381,12 +381,6 @@ dirclust_splitmerge <- function(caobj,
         iter_nm <- paste0("iter_", i)
         out@log$last_rep <- i
 
-        # TODO: Record all splits and merges in the log$clusters matrix.
-        # Then, when building the flow-chart, you can filter all with merge/split
-        # names out.
-        # For the graph plot, you can build the graph on the fly in the plotting function
-        # instead of here.
-
         out <- split_clusters(
             cadir = out,
             caobj = caobj,
