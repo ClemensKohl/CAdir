@@ -298,12 +298,22 @@ plot_graph <- function() {
 }
 
 # TODO: Add documentation
-plot_flow <- function(cadir) {
-
+plot_flow <- function(cadir, rm_redund = TRUE) {
 
     node_pattern <- c("root|iter_0|split|merge|end")
     sel <- which(grepl(node_pattern, colnames(cak@log$clusters)))
     sub_cls <- cak@log$clusters[, sel]
+
+    #FIXME: WIP
+    #Make distinct
+    if (isTRUE(rm_redund)) {
+        for (c in seq_len(ncol(sub_cls))) {
+            if (c == 1) next
+            if (all(sub_cls[, c] == sub_cls[, c - 1])) {
+                sub_cls <- sub_cls[, -c]
+            }
+        }
+    }
 
     sank <- ggsankey::make_long(sub_cls,
                                 colnames(sub_cls))
@@ -322,58 +332,30 @@ plot_flow <- function(cadir) {
     return(p)
 }
 
-# FIXME: Mention where you got this from!
-# TODO: Add documentation!
-# TODO: Better adapt to your plotting with a changing panel size.
-get_x_y_values <- function(gg_plot) {
-  img_dim      <- grDevices::dev.size("cm") * 10
-  gt           <- ggplot2::ggplotGrob(gg_plot)
-  to_mm        <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
-  n_panel      <- which(gt$layout$name == "panel")
-  panel_pos    <- gt$layout[n_panel, ]
-  panel_kids   <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
-  point_grobs  <- panel_kids[[grep("point", names(panel_kids))]]
-  from_top     <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
-  from_left    <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
-  from_right   <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
-  from_bottom  <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
-  panel_height <- img_dim[2] - from_top - from_bottom
-  panel_width  <- img_dim[1] - from_left - from_right
-  xvals        <- as.numeric(point_grobs$x)
-  yvals        <- as.numeric(point_grobs$y)
-  yvals        <- yvals * panel_height + from_bottom
-  xvals        <- xvals * panel_width + from_left
-  data.frame(x = xvals/img_dim[1], y = yvals/img_dim[2])
-}
 
+ # FIXME: root is sometimes not there?
+# TODO: Check if there is any change in an iteration and only plot last one or if there is a change.
+sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
 
-sm_plot <- function(cadir, caobj) {
+    graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
 
-    graph <- build_graph(cadir)
-
-    # TODO: Move code to ggraph package in order to draw some lines
     lgraph <- ggraph::create_layout(graph, layout="tree")
     # lgraph <- igraph::layout_as_tree(graph)
     # lgraph <- as.data.frame(lgraph)
     # colnames(lgraph) <- c("x", "y")
 
     # bg <- ggplot(lgraph, aes(x, y)) + geom_point()
-    ggraph::set_graph_style(plot_margin = margin(1,1,1,1))
-    bg <- ggraph(lgraph) +
+    ggraph::set_graph_style(plot_margin = margin(0,0,0,0))
+    bg <- ggraph::ggraph(lgraph) +
         ggraph::geom_edge_link() +
-        ggraph::geom_node_point()
+        ggraph::geom_node_point(alpha = 1)
     # ggraph::theme_graph()
 
-    # TODO: I have a suspicion that the panel size changes when adding insets.
     bg_coords <- get_x_y_values(bg)
 
     cls <- cadir@log$clusters
-    cls_nodes <- colnames(cls)
 
-    node_pattern <- c("iter_0|split|merge|end")
-    sel <- which(grepl(node_pattern, cls_nodes))
-
-    nodes <- names(V(graph))
+    nodes <- names(igraph::V(graph))
 
     for (i in seq_len(nrow(lgraph))) {
 
@@ -387,6 +369,7 @@ sm_plot <- function(cadir, caobj) {
 
         grp_idx <- which(cls[, iter_nm] == cluster)
 
+        # TODO: We calculate the directions new. Shouldn't we save them somehow?
         dir <- total_least_squares(caobj@prin_coords_cols[grp_idx,])
 
         p <- cluster_apl(caobj = caobj,
@@ -396,24 +379,14 @@ sm_plot <- function(cadir, caobj) {
                          cluster_id = as.character("cluster"),
                          show_lines = FALSE,
                          point_size = 0.3) +
-                      ggplot2::ggtitle("") +
-                      theme_void() +
-                      ggplot2::theme(aspect.ratio = 1,
-                                     legend.position = "none",
-                                     axis.title.x = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks.x = element_blank(),
-                                     axis.title.y = element_blank(),
-                                     axis.text.y = element_blank(),
-                                     axis.ticks.y = element_blank())
-
+                      theme_blank()
 
                       bg <-  bg +
                           patchwork::inset_element(p,
-                                                   left = bg_coords[i, 1] - 0.05,
-                                                   right = bg_coords[i, 1] + 0.05,
-                                                   top = bg_coords[i, 2] + 0.05,
-                                                   bottom = bg_coords[i, 2] - 0.05,
+                                                   left = bg_coords[i, 1] - 0.04,
+                                                   right = bg_coords[i, 1] + 0.038,
+                                                   top = bg_coords[i, 2] + 0.04,
+                                                   bottom = bg_coords[i, 2] - 0.04,
                                                    align_to = "panel")
 
     }
@@ -423,3 +396,83 @@ sm_plot <- function(cadir, caobj) {
 }
 
 
+# Adapted from cowplot::theme_nothing
+# TODO: Add documentation
+theme_blank <- function() {
+    ggplot2::theme_void() %+replace%
+        theme(
+              # Elements in this first block aren't used directly, but are inherited
+              line = ggplot2::element_blank(),
+              rect = ggplot2::element_rect(),
+              text = ggplot2::element_blank(),
+              aspect.ratio = 1,
+              axis.line =          ggplot2::element_blank(),
+              axis.line.x =        NULL,
+              axis.line.y =        NULL,
+              axis.text =          ggplot2::element_blank(),
+              axis.text.x =        NULL,
+              axis.text.x.top =    NULL,
+              axis.text.y =        NULL,
+              axis.text.y.right =  NULL,
+              axis.ticks =         ggplot2::element_blank(),
+              axis.ticks.length =  unit(0, "pt"),
+              axis.title =         ggplot2::element_blank(),
+              axis.title.x =       NULL,
+              axis.title.x.top =   NULL,
+              axis.title.y =       NULL,
+              axis.title.y.right = NULL,
+
+              legend.background =  ggplot2::element_blank(),
+              legend.spacing =     NULL,
+              legend.spacing.x =   NULL,
+              legend.spacing.y =   NULL,
+              legend.margin =      margin(0, 0, 0, 0),
+              legend.key =         ggplot2::element_blank(),
+              legend.key.size =   NULL,
+              legend.key.height =  NULL,
+              legend.key.width =   NULL,
+              legend.text =        ggplot2::element_blank(),
+              legend.text.align =  NULL,
+              legend.title =       ggplot2::element_text(hjust = 0),
+              legend.title.align = NULL,
+              legend.position =    "none",
+              legend.direction =   NULL,
+              legend.justification = "center",
+              legend.box =         NULL,
+              legend.box.margin =  margin(0, 0, 0, 0),
+              legend.box.background = ggplot2::element_blank(),
+              legend.box.spacing = unit(0, "pt"),
+
+              panel.grid =         ggplot2::element_blank(),
+              panel.grid.major =   NULL,
+              panel.grid.minor =   NULL,
+              panel.spacing =      unit(0, "pt"),
+              panel.spacing.x =    NULL,
+              panel.spacing.y =    NULL,
+              panel.ontop    =     FALSE,
+
+              strip.background =   ggplot2::element_blank(),
+              strip.text =         ggplot2::element_blank(),
+              strip.text.x =       NULL,
+              strip.text.y =       NULL,
+              strip.placement =    "inside",
+              strip.placement.x =  NULL,
+              strip.placement.y =  NULL,
+              strip.switch.pad.grid = unit(0., "cm"),
+              strip.switch.pad.wrap = unit(0., "cm"),
+
+              plot.background =    ggplot2::element_blank(),
+              plot.title =         ggplot2::element_blank(),
+              plot.subtitle =      ggplot2::element_blank(),
+              plot.caption =       ggplot2::element_blank(),
+              plot.tag           = ggplot2::element_blank(),
+              plot.margin =        margin(0, 0, 0, 0),
+
+              panel.background = ggplot2::element_rect(fill = "#ffffffcc",
+                                                       colour = "#ffffffcc"),
+              panel.border = ggplot2::element_rect(colour = "black",
+                                                   fill = NA),
+              complete = TRUE
+        )
+
+}
