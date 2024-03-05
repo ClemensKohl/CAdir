@@ -194,27 +194,33 @@ build_graph <- function(cadir, rm_redund = FALSE) {
     return(graph)
 }
 
-
-# FIXME: Mention where you got this from!
+# FIXME: Prevent opening plot when calling it! ggplotGrob
+#
+# Solution adapted from Anwer by Allan Cameron at:
+# https://stackoverflow.com/a/60857307/1376616
 # TODO: Add documentation!
 # TODO: Better adapt to your plotting with a changing panel size.
 get_x_y_values <- function(gg_plot) {
-  img_dim      <- grDevices::dev.size("cm") * 10
-  gt           <- ggplot2::ggplotGrob(gg_plot)
-  to_mm        <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
-  n_panel      <- which(gt$layout$name == "panel")
-  panel_pos    <- gt$layout[n_panel, ]
-  panel_kids   <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
-  point_grobs  <- panel_kids[[grep("point", names(panel_kids))]]
-  from_top     <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
-  from_left    <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
-  from_right   <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
-  from_bottom  <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
-  panel_height <- img_dim[2] - from_top - from_bottom
-  panel_width  <- img_dim[1] - from_left - from_right
-  xvals        <- as.numeric(point_grobs$x)
-  yvals        <- as.numeric(point_grobs$y)
-  yvals        <- yvals * panel_height + from_bottom
-  xvals        <- xvals * panel_width + from_left
-  data.frame(x = xvals/img_dim[1], y = yvals/img_dim[2])
+    img_dim      <- grDevices::dev.size("cm") * 10
+    # Attempt to silence the empty plot window.
+    png("NUL")
+    gt <- ggplot2::ggplotGrob(gg_plot)
+    dev.off()
+    to_mm        <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
+    n_panel      <- which(gt$layout$name == "panel")
+    panel_pos    <- gt$layout[n_panel, ]
+    panel_kids   <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
+    point_grobs  <- panel_kids[[grep("point", names(panel_kids))]]
+    from_top     <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
+    from_left    <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
+    from_right   <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
+    from_bottom  <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
+    panel_height <- img_dim[2] - from_top - from_bottom
+    panel_width  <- img_dim[1] - from_left - from_right
+    xvals        <- as.numeric(point_grobs$x)
+    yvals        <- as.numeric(point_grobs$y)
+    yvals        <- yvals * panel_height + from_bottom
+    xvals        <- xvals * panel_width + from_left
+    data.frame(x = xvals/img_dim[1], y = yvals/img_dim[2])
 }
+
