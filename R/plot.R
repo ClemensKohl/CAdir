@@ -332,8 +332,7 @@ plot_flow <- function(cadir, rm_redund = TRUE) {
     return(p)
 }
 
-
- # FIXME: root is sometimes not there?
+# FIXME: Make sure that colors are the same for the same clusters? Even possible?
 # TODO: Check if there is any change in an iteration and only plot last one or if there is a change.
 sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
 
@@ -379,6 +378,7 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
                          cluster_id = as.character("cluster"),
                          show_lines = FALSE,
                          point_size = 0.3) +
+                      scale_color_mpimg(name = "mpimg") +
                       theme_blank()
 
                       bg <-  bg +
@@ -476,3 +476,53 @@ theme_blank <- function() {
         )
 
 }
+
+
+# FIXME: Improve color palette
+# TODO: Add documentation
+scale_color_mpimg <- function(name = "mpimg", ...) {
+
+  mpi_colors <- c(
+    "#006c66", # MPG-CD-Grün
+    "#777777", # MPG-Dunkelgrau
+    "#a7a7a8", # MPG-Grau
+    "#c6d325", # MPG Hellgrün
+    "#29485d", # MPG Dunkelblau
+    "#00b1ea", # MPG Hellblau
+    "#ef7c00" # MPG Orange
+  )
+  # mpi colors extended.
+  mpimg_colors <- c(
+    "#006C66",
+    "#29485D",
+    "#009ACD",
+    "#777777",
+    "#C6D325",
+    "#21AE2D",
+    "#EF7C00",
+    "#F5B742",
+    "#57219D",
+    "#950980"
+  )
+
+  if (name == "mpimg") {
+
+    ggplot2::discrete_scale(
+      scale_name = "mpimg",
+      aesthetics = "color",
+      palette = scales::manual_pal(values = mpimg_colors),
+      ...
+    )
+
+  } else if (name == "mpi") {
+
+    ggplot2::discrete_scale(
+      scale_name = "mpi",
+      aesthetics = "color",
+      palette = scales::manual_pal(values = mpi_colors),
+      ...
+    )
+
+  }
+}
+
