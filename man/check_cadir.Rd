@@ -7,7 +7,7 @@
 check_cadir(obj)
 }
 \arguments{
-\item{obj}{cadir object}
+\item{obj}{A \code{cadir} object}
 }
 \value{
 If object is a valid cadir object returns TRUE, otherwise the errors.
