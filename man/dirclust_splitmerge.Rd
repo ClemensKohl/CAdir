@@ -29,14 +29,22 @@ on the quantile defined through \code{apl_quant}.}
 
 \item{qcutoff}{The quantile cutoff for gene selection.}
 
+\item{method}{Method to use for computing the cutoff.
+Either "random" or "permutation".}
+
+\item{counts}{The original count matrix that was used to compute the caobj.}
+
+\item{apl_quant}{The quantile to use for the APL cutoff. Only used
+if cutoff is \code{NULL}.
+split and merge}
+
 \item{min_cells}{Minimum number of cells to form a cluster.}
 
 \item{epochs}{Number of iterations.}
 
 \item{reps}{Number of repetitions to perform the splitting and merging.}
 
-\item{make_plots}{Logical. If \code{TRUE} plots are generated for each
-split and merge}
+\item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
 }
 \value{
 A \code{cadir} object with cell clusters.

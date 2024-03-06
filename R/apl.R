@@ -36,7 +36,7 @@ random_direction_cutoff <- function(
 
     for (k in seq(reps)) {
 
-        avg_group_coords <- runif(n = dims, min = 0, max = quantile(cols, 0.99))
+        avg_group_coords <- stats::runif(n = dims, min = 0, max = stats::quantile(cols, 0.99))
         length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
         length_vector_cols <- sqrt(rowSums(cols^2))
 
@@ -64,7 +64,8 @@ random_direction_cutoff <- function(
 #'
 #' @inheritParams get_apl_cutoff
 #' @param python If TRUE, use python for CA SVD.
-#'
+#' @param dims The number of dimensions to when performing SVD.
+#' Usually can be kept as `caobj@dims`.
 #' @inherit random_direction_cutoff return
 #'
 permutation_cutoff <- function(caobj,
@@ -131,7 +132,6 @@ permutation_cutoff <- function(caobj,
 #' Calculates the S_alpha cutoff based on random directions or permutations of the data
 #'
 #' @param caobj A cacomp object.
-#' @param apl_cols A matrix of association plot coordinates.
 #' @param method Method to use for computing the cutoff.
 #' Either "random" or "permutation".
 #' @param group A vector of group indices.
@@ -174,11 +174,10 @@ get_apl_cutoff <- function(caobj,
 
         apl_perm <- permutation_cutoff(
             caobj = caobj,
-            mat = counts,
+            counts = counts,
             group = group,
             dims = caobj@dims,
             reps = reps,
-            store_perm = FALSE,
             python = TRUE
         )
     }
@@ -187,7 +186,7 @@ get_apl_cutoff <- function(caobj,
     apl_perm[, 3] <- apl_perm[, 1] / apl_perm[, 2]
     apl_perm[, 3][is.na(apl_perm[, 3])] <- 0
 
-    cutoff_cotan <- quantile(apl_perm[, 3], quant)
+    cutoff_cotan <- stats::quantile(apl_perm[, 3], quant)
 
     # angle alpha is in radian.
     alpha <- atan(1 / cutoff_cotan)

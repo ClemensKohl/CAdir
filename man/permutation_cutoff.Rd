@@ -20,6 +20,9 @@ permutation_cutoff(
 
 \item{group}{A vector of group indices.}
 
+\item{dims}{The number of dimensions to when performing SVD.
+Usually can be kept as \code{caobj@dims}.}
+
 \item{reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
 

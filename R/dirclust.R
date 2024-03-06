@@ -183,7 +183,7 @@ dirclust <- function(
         ldist <- ldist[, uni_clust, drop = FALSE]
     }
 
-    out <- new("cadir",
+    out <- methods::new("cadir",
         cell_clusters = factor(clusters),
         directions = lines,
         distances = ldist,

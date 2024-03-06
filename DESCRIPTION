@@ -16,13 +16,17 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Depends:
-    CAbiNet
 Imports:
+    CAbiNet,
+    APL,
     irlba,
     ggplot2,
-    dplyr,
-    tidyselect,
     ggsankey,
     igraph,
     ggraph,
-    patchwork
+    patchwork,
+    scales,
+    methods,
+    stringr,
+    ggpubr,
+    gtable,

@@ -9,7 +9,7 @@
 ca_sphere_idx <- function(x, qcutoff = 0.8) {
 
     xn <- row_norm(x)
-    q <- quantile(xn, qcutoff)
+    q <- stats::quantile(xn, qcutoff)
     idx <- which(xn > q)
 
     return(idx)

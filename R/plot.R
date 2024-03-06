@@ -10,7 +10,7 @@ apl_model <- function(
     direction,
     group = NULL
 ) {
-    stopifnot(is(caobj, "cacomp"))
+    stopifnot(methods::is(caobj, "cacomp"))
 
     cent <- caobj@prin_coords_cols
 
@@ -60,11 +60,15 @@ apl_model <- function(
     return(model)
 }
 
-# TODO: Fix documentation.
 #' Plot a cluster with the respective direction/line in an APL.
 #' @inheritParams apl_model
 #' @param cadir A cadir object for which to compute the APL
 #' @param cluster_id The cluster for which to plot the APL.
+#' @param cluster_id The name of the cluster for the plot title.
+#' @param show_points If TRUE, points (cells) are plotted.
+#' @param show_lines If TRUE, the directions in cadir are plotted.
+#' @param plot_group If TRUE, highlights the points in `group`.
+#' @param point_size Size of the points (cells).
 #' @returns
 #' An APL plot (ggplot2 object).
 cluster_apl <- function(
@@ -78,8 +82,8 @@ cluster_apl <- function(
         plot_group = FALSE,
         point_size = 1.5) {
 
-    stopifnot(is(caobj, "cacomp"))
-    stopifnot(is(cadir, "cadir"))
+    stopifnot(methods::is(caobj, "cacomp"))
+    stopifnot(methods::is(cadir, "cadir"))
 
     # ensure that clusters and directions are coherent
     cadir <- rename_clusters(cadir)
@@ -146,7 +150,8 @@ cluster_apl <- function(
             ggplot2::geom_point(size = point_size)
 
         if (isTRUE(plot_group)) {
-            p <- p + scale_color_manual(values = c("cluster" = "#c6d325", "other" = "#006c66"))
+            p <- p + ggplot2::scale_color_manual(values = c("cluster" = "#c6d325",
+                                                            "other" = "#006c66"))
         }
     }
 
@@ -192,7 +197,13 @@ cluster_apl <- function(
     return(p)
 }
 
-# TODO: Add documentation
+#' Plot for the clustering results wich shows the
+#' relationship between the clusters. In the diagonal
+#' an APL plot for the respective cluster is shown.
+#' @param cadir A cadir object with valid cell clustering results.
+#' @param caobj A cacomp object.
+#' @returns A plot that summarizes the cell clustering results and
+#' how the clusters relate to each other.
 plot_results <- function(cadir, caobj) {
 
   size <- 1
@@ -206,7 +217,7 @@ plot_results <- function(cadir, caobj) {
       sel <- which(cadir@cell_clusters == cls[i] | cadir@cell_clusters == cls[j])
       sel_dir <- unique(c(f2n(cls[i]),f2n(cls[j])))
 
-      sub_cak <- new("cadir",
+      sub_cak <- methods::new("cadir",
                      cell_clusters = cadir@cell_clusters[sel],
                      directions = cadir@directions[sel_dir, , drop = FALSE])
 
@@ -222,12 +233,12 @@ plot_results <- function(cadir, caobj) {
                        plot_group = TRUE) +
                            ggplot2::ggtitle("") +
                            ggplot2::theme(legend.position = "none",
-                                 axis.title.x = element_blank(),
-                                 axis.text.x = element_blank(),
-                                 axis.ticks.x = element_blank(),
-                                 axis.title.y = element_blank(),
-                                 axis.text.y = element_blank(),
-                                 axis.ticks.y = element_blank())
+                                 axis.title.x = ggplot2::element_blank(),
+                                 axis.text.x = ggplot2::element_blank(),
+                                 axis.ticks.x = ggplot2::element_blank(),
+                                 axis.title.y = ggplot2::element_blank(),
+                                 axis.text.y = ggplot2::element_blank(),
+                                 axis.ticks.y = ggplot2::element_blank())
 
 
                            if (i == j) {
@@ -244,8 +255,12 @@ plot_results <- function(cadir, caobj) {
   return(fig)
 }
 
-#TODO: add documentation
-plot_clusters <- function(cadir, caobj) {
+#' Summarizes the cell clustering results in a single plot.
+#' @param cadir A cadir object with valid cell clustering results.
+#' @param caobj A cacomp object.
+#' @param point_size Size of the points (cells).
+#' @returns A plot that summarizes the cell clustering results.
+plot_clusters <- function(cadir, caobj, point_size = 1) {
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
 
@@ -260,14 +275,14 @@ plot_clusters <- function(cadir, caobj) {
                          plot_group = TRUE) +
                       ggplot2::ggtitle(paste0("cluster_", i)) +
                       ggplot2::theme(legend.position = "none",
-                                     axis.title.x = element_blank(),
-                                     axis.text.x = element_blank(),
-                                     axis.ticks.x = element_blank(),
-                                     axis.title.y = element_blank(),
-                                     axis.text.y = element_blank(),
-                                     axis.ticks.y = element_blank())
+                                     axis.title.x = ggplot2::element_blank(),
+                                     axis.text.x = ggplot2::element_blank(),
+                                     axis.ticks.x = ggplot2::element_blank(),
+                                     axis.title.y = ggplot2::element_blank(),
+                                     axis.text.y = ggplot2::element_blank(),
+                                     axis.ticks.y = ggplot2::element_blank())
 
-        p$layers[[1]]$aes_params$size <- size
+        p$layers[[1]]$aes_params$size <- point_size
 
         pls[[i]] <- p
     }
@@ -277,35 +292,45 @@ plot_clusters <- function(cadir, caobj) {
 
 }
 
-# FIXME: adapt to new graph structure.
-#TODO: add documentation
-plot_sm_graph <- function(cadir) {
 
-    graph <- build_graph(cadir)
+#' Makes a simple plot of the splits and merges.
+#' @param cadir A cadir object with valid clustering results.
+#' @param rm_redund If TRUE, only shows an iteration if something changes.
+#' @param alpha Between 0 and 1. Sets opacity of the nodes.
+#' @param size Size of the nodes.
+#' @returns A plot that that shows the
+#' splits and merges as decisions in a graph.
+plot_sm_graph <- function(cadir,
+                          rm_redund = TRUE,
+                          size = 3,
+                          alpha = 1) {
 
-    plot(graph,
-         layout = igraph::layout_as_tree(graph, circular = FALSE),
-         vertex.label = NA,
-         vertex.size = 4)
+    graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
+
+    lgraph <- ggraph::create_layout(graph, layout = "tree")
+
+    ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
+    p <- ggraph::ggraph(lgraph) +
+        ggraph::geom_edge_link(color = mpi_pal()(2)[2]) +
+        ggraph::geom_node_point(size = size, alpha = alpha, color = mpi_pal()(1)) +
+        ggraph::theme_graph()
+
+    return(p)
 }
 
-# FIXME: WIP
-# 1. Add some structure that keeps track of the splits and mergers. Graphs?
-# 2. Associate each split/merge with a node in the graph and a plot.
-# 3. Plot the graph.
-plot_graph <- function() {
-    stop("Not implemented yet.")
-}
 
-# TODO: Add documentation
+# TODO: Move to a package that is on CRAN (so not ggsankey)
+
+#' Creates a sankey plot of the clustering results with all splits and merges.
+#' @param cadir A cadir object with valid clustering results.
+#' @param rm_redund If TRUE, only shows an iteration if something changes.
+#' @returns A sankey plot of the clustering results.
 plot_flow <- function(cadir, rm_redund = TRUE) {
 
     node_pattern <- c("root|iter_0|split|merge|end")
     sel <- which(grepl(node_pattern, colnames(cak@log$clusters)))
     sub_cls <- cak@log$clusters[, sel]
 
-    #FIXME: WIP
-    #Make distinct
     if (isTRUE(rm_redund)) {
         for (c in seq_len(ncol(sub_cls))) {
             if (c == 1) next
@@ -332,23 +357,22 @@ plot_flow <- function(cadir, rm_redund = TRUE) {
     return(p)
 }
 
-# FIXME: Make sure that colors are the same for the same clusters? Even possible?
-# TODO: Check if there is any change in an iteration and only plot last one or if there is a change.
+#' Plots the graph of the clustering splits and merges
+#' and overlays APL plots over the nodes.
+#' @inheritParams plot_sm_graph
+#' @param caobj A cacomp object.
+#' @returns
+#' A ggplot object showing the split-merge graph and APL plots for each cluster.
 sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
 
     graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
 
     lgraph <- ggraph::create_layout(graph, layout="tree")
-    # lgraph <- igraph::layout_as_tree(graph)
-    # lgraph <- as.data.frame(lgraph)
-    # colnames(lgraph) <- c("x", "y")
 
-    # bg <- ggplot(lgraph, aes(x, y)) + geom_point()
-    ggraph::set_graph_style(plot_margin = margin(0,0,0,0))
+    ggraph::set_graph_style(plot_margin = ggplot2::margin(0,0,0,0))
     bg <- ggraph::ggraph(lgraph) +
         ggraph::geom_edge_link() +
         ggraph::geom_node_point(alpha = 1)
-    # ggraph::theme_graph()
 
     bg_coords <- get_x_y_values(bg)
 
@@ -359,6 +383,7 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
     for (i in seq_len(nrow(lgraph))) {
 
         node_nm <- nodes[i]
+        # TODO: replace with base R code and remove dependency.
         name_elems <- stringr::str_split_1(node_nm, "-")
 
         if (name_elems[1] == "root") next
@@ -397,10 +422,11 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
 
 
 # Adapted from cowplot::theme_nothing
-# TODO: Add documentation
+#' @importFrom ggplot2 '%+replace%'
+# ggplot2 theme that strips all elements from a plot.
 theme_blank <- function() {
     ggplot2::theme_void() %+replace%
-        theme(
+        ggplot2::theme(
               # Elements in this first block aren't used directly, but are inherited
               line = ggplot2::element_blank(),
               rect = ggplot2::element_rect(),
@@ -415,7 +441,7 @@ theme_blank <- function() {
               axis.text.y =        NULL,
               axis.text.y.right =  NULL,
               axis.ticks =         ggplot2::element_blank(),
-              axis.ticks.length =  unit(0, "pt"),
+              axis.ticks.length =  ggplot2::unit(0, "pt"),
               axis.title =         ggplot2::element_blank(),
               axis.title.x =       NULL,
               axis.title.x.top =   NULL,
@@ -426,7 +452,7 @@ theme_blank <- function() {
               legend.spacing =     NULL,
               legend.spacing.x =   NULL,
               legend.spacing.y =   NULL,
-              legend.margin =      margin(0, 0, 0, 0),
+              legend.margin =      ggplot2::margin(0, 0, 0, 0),
               legend.key =         ggplot2::element_blank(),
               legend.key.size =   NULL,
               legend.key.height =  NULL,
@@ -439,14 +465,14 @@ theme_blank <- function() {
               legend.direction =   NULL,
               legend.justification = "center",
               legend.box =         NULL,
-              legend.box.margin =  margin(0, 0, 0, 0),
+              legend.box.margin =  ggplot2::margin(0, 0, 0, 0),
               legend.box.background = ggplot2::element_blank(),
-              legend.box.spacing = unit(0, "pt"),
+              legend.box.spacing = ggplot2::unit(0, "pt"),
 
               panel.grid =         ggplot2::element_blank(),
               panel.grid.major =   NULL,
               panel.grid.minor =   NULL,
-              panel.spacing =      unit(0, "pt"),
+              panel.spacing =      ggplot2::unit(0, "pt"),
               panel.spacing.x =    NULL,
               panel.spacing.y =    NULL,
               panel.ontop    =     FALSE,
@@ -458,15 +484,15 @@ theme_blank <- function() {
               strip.placement =    "inside",
               strip.placement.x =  NULL,
               strip.placement.y =  NULL,
-              strip.switch.pad.grid = unit(0., "cm"),
-              strip.switch.pad.wrap = unit(0., "cm"),
+              strip.switch.pad.grid = ggplot2::unit(0., "cm"),
+              strip.switch.pad.wrap = ggplot2::unit(0., "cm"),
 
               plot.background =    ggplot2::element_blank(),
               plot.title =         ggplot2::element_blank(),
               plot.subtitle =      ggplot2::element_blank(),
               plot.caption =       ggplot2::element_blank(),
               plot.tag           = ggplot2::element_blank(),
-              plot.margin =        margin(0, 0, 0, 0),
+              plot.margin =        ggplot2::margin(0, 0, 0, 0),
 
               panel.background = ggplot2::element_rect(fill = "#ffffffcc",
                                                        colour = "#ffffffcc"),
@@ -478,39 +504,19 @@ theme_blank <- function() {
 }
 
 
-# FIXME: Improve color palette
-# TODO: Add documentation
+# TODO: Improve color palette
+
+#' ggplot2 scale for the MPI colors and extended swatches.
+#' @param name The name of the scale. Either "mpi" or "mpimg".
+#' @param ... Further arguments to ggplot2::discrete_scale.
 scale_color_mpimg <- function(name = "mpimg", ...) {
 
-  mpi_colors <- c(
-    "#006c66", # MPG-CD-Grün
-    "#777777", # MPG-Dunkelgrau
-    "#a7a7a8", # MPG-Grau
-    "#c6d325", # MPG Hellgrün
-    "#29485d", # MPG Dunkelblau
-    "#00b1ea", # MPG Hellblau
-    "#ef7c00" # MPG Orange
-  )
-  # mpi colors extended.
-  mpimg_colors <- c(
-    "#006C66",
-    "#29485D",
-    "#009ACD",
-    "#777777",
-    "#C6D325",
-    "#21AE2D",
-    "#EF7C00",
-    "#F5B742",
-    "#57219D",
-    "#950980"
-  )
-
-  if (name == "mpimg") {
+if (name == "mpimg") {
 
     ggplot2::discrete_scale(
       scale_name = "mpimg",
       aesthetics = "color",
-      palette = scales::manual_pal(values = mpimg_colors),
+      palette = mpimg_pal(),
       ...
     )
 
@@ -519,10 +525,45 @@ scale_color_mpimg <- function(name = "mpimg", ...) {
     ggplot2::discrete_scale(
       scale_name = "mpi",
       aesthetics = "color",
-      palette = scales::manual_pal(values = mpi_colors),
+      palette = mpi_pal(),
       ...
     )
 
   }
 }
 
+# TODO: add documentation
+mpimg_pal <- function() {
+
+    mpi_colors <- c(
+        "#006c66", # MPG-CD-Grün
+        "#777777", # MPG-Dunkelgrau
+        "#a7a7a8", # MPG-Grau
+        "#c6d325", # MPG Hellgrün
+        "#29485d", # MPG Dunkelblau
+        "#00b1ea", # MPG Hellblau
+        "#ef7c00" # MPG Orange
+    )
+
+    scales::manual_pal(values = mpi_colors)
+}
+
+# TODO: add documentation
+mpi_pal <- function() {
+
+    # mpi colors extended.
+    mpimg_colors <- c(
+        "#006C66",
+        "#29485D",
+        "#009ACD",
+        "#777777",
+        "#C6D325",
+        "#21AE2D",
+        "#EF7C00",
+        "#F5B742",
+        "#57219D",
+        "#950980"
+    )
+
+    scales::manual_pal(values = mpimg_colors)
+}

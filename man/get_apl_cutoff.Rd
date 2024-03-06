@@ -27,8 +27,6 @@ Either "random" or "permutation".}
 
 \item{reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
-
-\item{apl_cols}{A matrix of association plot coordinates.}
 }
 \value{
 The cutoff angle alpha in radians.
