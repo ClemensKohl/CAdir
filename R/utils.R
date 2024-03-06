@@ -8,7 +8,6 @@ rand_idx <- function(points, k) {
     return(idxs)
 }
 
-#TODO: Fix distances if they are there.
 
 #' Rename clusters and directions so that they match.
 #' @param cadir A cadir object.
@@ -18,7 +17,6 @@ rand_idx <- function(points, k) {
 #' @returns
 #' A cadir object with renamed clusters and directions.
 rename_clusters <- function(cadir) {
-
     uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
     cell_nms <- names(cadir@cell_clusters)
     gene_nms <- names(cadir@gene_clusters)
@@ -80,7 +78,7 @@ is.empty <- function(x) {
 #' Print cadir object in console.
 #' @param object A cadir object
 show_cadir <- function(object) {
-    stopifnot(is(object, "cadir"))
+    stopifnot(methods::is(object, "cadir"))
 
     ncells <- length(object@cell_clusters)
     ngenes <- length(object@gene_clusters)
@@ -88,7 +86,6 @@ show_cadir <- function(object) {
 
     if (!is.empty(CAbiNet::cell_clusters(object)) &&
         !is.empty(CAbiNet::gene_clusters(object))) {
-
         stopifnot(identical(
             levels(CAbiNet::cell_clusters(object)),
             levels(CAbiNet::gene_clusters(object))
@@ -106,7 +103,6 @@ show_cadir <- function(object) {
     } else {
         cat("\nNo biclustering run yet.\n\n")
     }
-
 }
 
 #' @rdname show_cadir
@@ -130,15 +126,23 @@ f2n <- function(f) {
     stopifnot(is.numeric(f))
 
     return(f)
-
 }
 
-# TODO: Add documentation
-build_sm_graph <- function(before,
+
+#' Build a sub-graph that can be joined to a larger graph.
+#' By itself it is a valid graph too.
+#' @param before A vector (optimally of factors) with all cluster/node assignments.
+#' @param after A vector of same length and order as `before`,
+#' with cluster/node assignments after some change.
+#' @param before_nm The name of the node before the change.
+#' @param after_nm The name of the node after the change.
+#' @returns
+#' A data.frame with two columns ("from", "to") representing the edges in the graph.
+#' The data frame can be used to generate a graph.
+build_sub_graph <- function(before,
                            after,
                            before_nm = "start",
                            after_nm = "end") {
-
     graph <- data.frame()
     node <- unique(before)
 
@@ -155,10 +159,12 @@ build_sm_graph <- function(before,
     return(graph)
 }
 
-# TODO: Add documentation
-# TODO: Check if any changes in graph. if not, add option to avoid it.
+#' Build igraph from a cadir results.
+#' @param cadir A cadir object with valid clustering results.
+#' @param rm_redund If TRUE, removes all clustering iterations where nothing changed (no splits/merges).
+#' @returns
+#' A directed igraph object with all splits and merges.
 build_graph <- function(cadir, rm_redund = FALSE) {
-
     graph_list <- list()
     cls <- cadir@log$clusters
 
@@ -180,10 +186,12 @@ build_graph <- function(cadir, rm_redund = FALSE) {
 
         if (all(bef_cls == aft_cls) & (isTRUE(rm_redund))) next
 
-        graph_list[[i]] <- build_sm_graph(before = bef_cls,
-                                          after = aft_cls,
-                                          before_nm = ifelse(i == 1, "root", cls_nodes[sel[last_i]]),
-                                          after_nm = cls_nodes[sel[i]])
+        graph_list[[i]] <- build_sub_graph(
+            before = bef_cls,
+            after = aft_cls,
+            before_nm = ifelse(i == 1, "root", cls_nodes[sel[last_i]]),
+            after_nm = cls_nodes[sel[i]]
+        )
         last_i <- i
     }
 
@@ -195,32 +203,30 @@ build_graph <- function(cadir, rm_redund = FALSE) {
 }
 
 # FIXME: Prevent opening plot when calling it! ggplotGrob
-#
-# Solution adapted from Anwer by Allan Cameron at:
-# https://stackoverflow.com/a/60857307/1376616
-# TODO: Add documentation!
-# TODO: Better adapt to your plotting with a changing panel size.
-get_x_y_values <- function(gg_plot) {
-    img_dim      <- grDevices::dev.size("cm") * 10
-    # Attempt to silence the empty plot window.
-    png("NUL")
-    gt <- ggplot2::ggplotGrob(gg_plot)
-    dev.off()
-    to_mm        <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
-    n_panel      <- which(gt$layout$name == "panel")
-    panel_pos    <- gt$layout[n_panel, ]
-    panel_kids   <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
-    point_grobs  <- panel_kids[[grep("point", names(panel_kids))]]
-    from_top     <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
-    from_left    <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
-    from_right   <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
-    from_bottom  <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
-    panel_height <- img_dim[2] - from_top - from_bottom
-    panel_width  <- img_dim[1] - from_left - from_right
-    xvals        <- as.numeric(point_grobs$x)
-    yvals        <- as.numeric(point_grobs$y)
-    yvals        <- yvals * panel_height + from_bottom
-    xvals        <- xvals * panel_width + from_left
-    data.frame(x = xvals/img_dim[1], y = yvals/img_dim[2])
-}
 
+#' Get relative x and y values in relation to the plotting panel from a ggplot.
+#' Solution adapted from Anwer by Allan Cameron at:
+#' https://stackoverflow.com/a/60857307/1376616
+#' @param gg_plot A ggplot object.
+#' @returns
+#' dataframe with x and y values relative to the plotting panel.
+get_x_y_values <- function(gg_plot) {
+    img_dim <- grDevices::dev.size("cm") * 10
+    gt <- ggplot2::ggplotGrob(gg_plot)
+    to_mm <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
+    n_panel <- which(gt$layout$name == "panel")
+    panel_pos <- gt$layout[n_panel, ]
+    panel_kids <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
+    point_grobs <- panel_kids[[grep("point", names(panel_kids))]]
+    from_top <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
+    from_left <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
+    from_right <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
+    from_bottom <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
+    panel_height <- img_dim[2] - from_top - from_bottom
+    panel_width <- img_dim[1] - from_left - from_right
+    xvals <- as.numeric(point_grobs$x)
+    yvals <- as.numeric(point_grobs$y)
+    yvals <- yvals * panel_height + from_bottom
+    xvals <- xvals * panel_width + from_left
+    data.frame(x = xvals / img_dim[1], y = yvals / img_dim[2])
+}

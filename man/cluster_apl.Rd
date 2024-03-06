@@ -12,7 +12,8 @@ cluster_apl(
   cluster_id = "NA",
   show_points = TRUE,
   show_lines = TRUE,
-  plot_group = FALSE
+  plot_group = FALSE,
+  point_size = 1.5
 )
 }
 \arguments{
@@ -25,7 +26,15 @@ cluster_apl(
 \item{group}{A vector of indices which indicate the points
 that belong to the cluster. Only needed here to orient the plot.}
 
-\item{cluster_id}{The cluster for which to plot the APL.}
+\item{cluster_id}{The name of the cluster for the plot title.}
+
+\item{show_points}{If TRUE, points (cells) are plotted.}
+
+\item{show_lines}{If TRUE, the directions in cadir are plotted.}
+
+\item{plot_group}{If TRUE, highlights the points in \code{group}.}
+
+\item{point_size}{Size of the points (cells).}
 }
 \value{
 An APL plot (ggplot2 object).

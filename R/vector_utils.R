@@ -68,8 +68,8 @@ ang_sim_to_deg <- function(ang_sim) {
 
 #' Convert the angular similarity to degrees.
 #' Function for manual checking and debugging.
-#' @param ang_sim Angular similarity.
-#' @returns scalar. The angle in degrees.
+#' @param rad The input radians.
+#' @returns scalar. radians converted to angular similarity.
 rad_to_ang_sim <- function(rad) {
     ang_sim <- 1-(rad/pi)
     return(ang_sim)

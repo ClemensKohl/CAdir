@@ -10,6 +10,24 @@ Class to store biclustering by directions results.
 \section{Slots}{
 
 \describe{
+\item{\code{SNN}}{sparse shared nearest neighbours matrix. Values indicate the
+jaccard similarity.}
+
+\item{\code{eigen}}{matrix, Slot for storing eigenvectors from spectral clustering}
+
+\item{\code{cell_prob}}{matrix. Matrix that stores the probabilities that a cell belongs
+to a cluster. Only filled when running spectral clustering with GMM.}
+
+\item{\code{gene_prob}}{matrix. Matrix that stores the probabilities that a gene belongs
+to a cluster. Only filled when running spectral clustering with GMM.}
+
+\item{\code{cell_idxs}}{integer. Indices of the cells in the SNN adjacency matrix.}
+
+\item{\code{gene_idxs}}{integer. Indices of the genes in the SNN adjacency matrix.}
+
+\item{\code{bimap}}{data.frame. Data frame storing the biMAP coordinates (x, y) and
+the type (cell or gene) as well as the assigned clusters.}
+
 \item{\code{cell_clusters}}{factors. The assigned cell clusters with cell names in
 the names attribute.}
 
@@ -20,7 +38,11 @@ the names attribute.}
 
 \item{\code{distances}}{Matrix of distances of points to the respective directions.}
 
-\item{\code{parameters}}{List of used parameters and function name with which results
+\item{\code{parameters}}{List of used parameters and function name with which results}
+
+\item{\code{log}}{This slot saves information during the clustering process, such as the clusters at each iteration.}
+
+\item{\code{plots}}{This slot saves the plots generated during the clustering process.
 were generated.}
 }}
 

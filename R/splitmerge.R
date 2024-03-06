@@ -84,9 +84,6 @@ split_clusters <- function(
         if (is.null(cutoff)) {
 
             grp_idx <- which(cadir@cell_clusters == i)
-            #TODO: remove
-            # cat("dim: ", dim(cadir@directions), "\n")
-            # cat("i: ", i, "\n")
             aplcds <- apl_dir_coords(
                 cadir = sres,
                 caobj = caobj,
@@ -254,16 +251,10 @@ merge_clusters <- function(caobj,
 
         if (isTRUE(make_plots)) {
 
-            sres <- new("cadir",
+            sres <- methods::new("cadir",
                 cell_clusters = clusters[cls],
                 directions = directions[mergers, ]
             )
-
-            # FIXME: Breaks things, but why?
-            # sres@cell_clusters <- as.factor(match(
-            #     f2n(sres@cell_clusters),
-            #     sort(unique(f2n(sres@cell_clusters)))
-            # ))
 
             names(sres@cell_clusters) <- names(clusters[cls])
 
@@ -329,10 +320,13 @@ merge_clusters <- function(caobj,
 
 #' Perform Clustering by CA directions with splitting and merging.
 #' @inheritParams dirclust
+#' @inheritParams get_apl_cutoff
 #' @param caobj A `caclust` object.
 #' @param reps Number of repetitions to perform the splitting and merging.
 #' @param min_cells Minimum number of cells to form a cluster.
 #' @param make_plots Logical. If `TRUE` plots are generated for each
+#' @param apl_quant The quantile to use for the APL cutoff. Only used
+#' if cutoff is `NULL`.
 #' split and merge
 #' @param cutoff Degrees. The cutoff angle to split and merge clusters.
 #'  If `NULL` the cutoff angle is calculated based on the cutoff angle based
@@ -372,7 +366,7 @@ dirclust_splitmerge <- function(caobj,
     )
 
     cl_log <- cbind(cl_log,
-                    setNames(data.frame(f2n(out@cell_clusters)),
+                    stats::setNames(data.frame(f2n(out@cell_clusters)),
                              "iter_0"))
 
     for (i in seq_len(reps)) {
@@ -393,7 +387,7 @@ dirclust_splitmerge <- function(caobj,
         )
 
         cl_log <- cbind(cl_log,
-                        setNames(data.frame(f2n(out@cell_clusters)),
+                        stats::setNames(data.frame(f2n(out@cell_clusters)),
                                  paste0("split_", iter_nm)))
 
         plots <- out@plots
@@ -407,7 +401,7 @@ dirclust_splitmerge <- function(caobj,
         out@plots <- plots
 
         cl_log <- cbind(cl_log,
-                        setNames(data.frame(f2n(out@cell_clusters)),
+                        stats::setNames(data.frame(f2n(out@cell_clusters)),
                                  paste0("interS_", iter_nm)))
 
         out <- merge_clusters(
@@ -421,7 +415,7 @@ dirclust_splitmerge <- function(caobj,
         )
 
         cl_log <- cbind(cl_log,
-                        setNames(data.frame(f2n(out@cell_clusters)),
+                        stats::setNames(data.frame(f2n(out@cell_clusters)),
                                  paste0("merge_", iter_nm)))
 
         plots <- out@plots
@@ -435,7 +429,7 @@ dirclust_splitmerge <- function(caobj,
         out@plots <- plots
 
         cl_log <- cbind(cl_log,
-                        setNames(data.frame(f2n(out@cell_clusters)),
+                        stats::setNames(data.frame(f2n(out@cell_clusters)),
                                  paste0("interM_", iter_nm)))
 
     }
@@ -450,7 +444,7 @@ dirclust_splitmerge <- function(caobj,
     out <- rename_clusters(out)
 
     cl_log <- cbind(cl_log,
-                    setNames(data.frame(f2n(out@cell_clusters)),
+                    stats::setNames(data.frame(f2n(out@cell_clusters)),
                              "end"))
 
     out@log$clusters <- cl_log

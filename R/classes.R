@@ -3,13 +3,12 @@
 
 #' Checks if cadir-class was constructed correctly
 #'
-#' @param obj cadir object
+#' @param obj A `cadir` object
 #'
 #' @return
 #' If object is a valid cadir object returns TRUE, otherwise the errors.
-#'
 check_cadir <- function(obj) {
-    stopifnot(is(obj, "cadir"))
+    stopifnot(methods::is(obj, "cadir"))
 
     errors <- character()
 
@@ -50,8 +49,21 @@ check_cadir <- function(obj) {
 #' An S4 class for the CA directional clustering.
 #' @name cadir-class
 #' @rdname cadir-class
+#' @import CAbiNet
 #' @description
 #' Class to store biclustering by directions results.
+#'
+#' @slot SNN sparse shared nearest neighbours matrix. Values indicate the
+#' jaccard similarity.
+#' @slot eigen matrix, Slot for storing eigenvectors from spectral clustering
+#' @slot cell_prob matrix. Matrix that stores the probabilities that a cell belongs
+#' to a cluster. Only filled when running spectral clustering with GMM.
+#' @slot gene_prob matrix. Matrix that stores the probabilities that a gene belongs
+#' to a cluster. Only filled when running spectral clustering with GMM.
+#' @slot cell_idxs integer. Indices of the cells in the SNN adjacency matrix.
+#' @slot gene_idxs integer. Indices of the genes in the SNN adjacency matrix.
+#' @slot bimap data.frame. Data frame storing the biMAP coordinates (x, y) and
+#' the type (cell or gene) as well as the assigned clusters.
 #' @slot cell_clusters factors. The assigned cell clusters with cell names in
 #' the names attribute.
 #' @slot gene_clusters factors. The assigned gene clusters with gene names in
@@ -59,6 +71,8 @@ check_cadir <- function(obj) {
 #' @slot directions Matrix of directions by which the data was clustered.
 #' @slot distances Matrix of distances of points to the respective directions.
 #' @slot parameters List of used parameters and function name with which results
+#' @slot log This slot saves information during the clustering process, such as the clusters at each iteration.
+#' @slot plots This slot saves the plots generated during the clustering process.
 #' were generated.
 #' @export
 setClass("cadir",

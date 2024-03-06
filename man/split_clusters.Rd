@@ -25,12 +25,20 @@ split_clusters(
 If \code{NULL} the cutoff angle is calculated based on the cutoff angle based
 on the quantile defined through \code{apl_quant}.}
 
+\item{method}{Method to use for computing the cutoff.
+Either "random" or "permutation".}
+
 \item{min_cells}{Minimum number of cells to form a cluster.}
 
-\item{make_plots}{Logical. If \code{TRUE} plots are generated for each
-split and merge}
+\item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
+
+\item{counts}{The original count matrix that was used to compute the caobj.}
 
 \item{reps}{Number of repetitions to perform the splitting and merging.}
+
+\item{apl_quant}{The quantile to use for the APL cutoff. Only used
+if cutoff is \code{NULL}.
+split and merge}
 }
 \value{
 A \code{cadir} object with split clusters.

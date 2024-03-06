@@ -8,10 +8,10 @@ Function for manual checking and debugging.}
 rad_to_ang_sim(rad)
 }
 \arguments{
-\item{ang_sim}{Angular similarity.}
+\item{rad}{The input radians.}
 }
 \value{
-scalar. The angle in degrees.
+scalar. radians converted to angular similarity.
 }
 \description{
 Convert the angular similarity to degrees.
