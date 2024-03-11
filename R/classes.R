@@ -99,5 +99,3 @@ setClass("cadir",
     ),
     validity = check_cadir
 )
-
-

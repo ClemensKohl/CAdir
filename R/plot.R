@@ -94,7 +94,7 @@ cluster_apl <- function(
             rad2deg(get_angle(-cadir@directions[1, ], cadir@directions[2, ]))
         )
     } else {
-        ang = 0
+        ang <- 0
     }
 
     model <- apl_model(
@@ -161,14 +161,14 @@ cluster_apl <- function(
 
             if (isTRUE(all.equal(dapl[d, ], c(1, 0), tolerance = 1e-4, check.attributes = FALSE)) ||
                 isTRUE(all.equal(dapl[d, ], c(-1, 0), tolerance = 1e-4, check.attributes = FALSE))) {
-                lcolor = "black"
-                ltype = "solid"
+                lcolor <- "black"
+                ltype <- "solid"
             } else {
-                lcolor = "red"
-                ltype = "dashed"
+                lcolor <- "red"
+                ltype <- "dashed"
 
                 if(isTRUE(plot_group)) {
-                    lcolor = "#006c66"
+                    lcolor <- "#006c66"
                 }
             }
 
@@ -215,13 +215,11 @@ plot_results <- function(cadir, caobj) {
     for (j in seq_along(cls)) {
 
       sel <- which(cadir@cell_clusters == cls[i] | cadir@cell_clusters == cls[j])
-      sel_dir <- unique(c(f2n(cls[i]),f2n(cls[j])))
+      sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
 
       sub_cak <- methods::new("cadir",
                      cell_clusters = cadir@cell_clusters[sel],
                      directions = cadir@directions[sel_dir, , drop = FALSE])
-
-      nm <- paste0("cluster_", as.character(cls[i]))
 
       p <- cluster_apl(caobj = caobj,
                        cadir = sub_cak,
@@ -326,10 +324,9 @@ plot_sm_graph <- function(cadir,
 #' @param rm_redund If TRUE, only shows an iteration if something changes.
 #' @returns A sankey plot of the clustering results.
 plot_flow <- function(cadir, rm_redund = TRUE) {
-
     node_pattern <- c("root|iter_0|split|merge|end")
-    sel <- which(grepl(node_pattern, colnames(cak@log$clusters)))
-    sub_cls <- cak@log$clusters[, sel]
+    sel <- which(grepl(node_pattern, colnames(cadir@log$clusters)))
+    sub_cls <- cadir@log$clusters[, sel]
 
     if (isTRUE(rm_redund)) {
         for (c in seq_len(ncol(sub_cls))) {
@@ -340,20 +337,26 @@ plot_flow <- function(cadir, rm_redund = TRUE) {
         }
     }
 
-    sank <- ggsankey::make_long(sub_cls,
-                                colnames(sub_cls))
-    p <- ggplot2::ggplot(sank,
-                        ggplot2::aes(x = x,
-                                     next_x = next_x,
-                                     node = node,
-                                     next_node = next_node,
-                                     fill = factor(node),
-                                     label = node)) +
-                      ggsankey::geom_sankey(node_color = 1, flow_alpha = 0.7)  +
-                      ggsankey::geom_sankey_label(size = 3.5, color = 1, fill = "white") +
-                      ggplot2::scale_fill_viridis_d(option = "A", alpha = 0.95) +
-                      ggsankey::theme_sankey(base_size = 12) +
-                      ggplot2::theme(legend.position = "none")
+    sank <- ggsankey::make_long(
+        sub_cls,
+        colnames(sub_cls)
+    )
+    p <- ggplot2::ggplot(
+        sank,
+        ggplot2::aes(
+            x = x,
+            next_x = next_x,
+            node = node,
+            next_node = next_node,
+            fill = factor(node),
+            label = node
+        )
+    ) +
+        ggsankey::geom_sankey(node_color = 1, flow_alpha = 0.7) +
+        ggsankey::geom_sankey_label(size = 3.5, color = 1, fill = "white") +
+        ggplot2::scale_fill_viridis_d(option = "A", alpha = 0.95) +
+        ggsankey::theme_sankey(base_size = 12) +
+        ggplot2::theme(legend.position = "none")
     return(p)
 }
 
@@ -369,7 +372,7 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
 
     lgraph <- ggraph::create_layout(graph, layout="tree")
 
-    ggraph::set_graph_style(plot_margin = ggplot2::margin(0,0,0,0))
+    ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
     bg <- ggraph::ggraph(lgraph) +
         ggraph::geom_edge_link() +
         ggraph::geom_node_point(alpha = 1)
@@ -394,7 +397,7 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
         grp_idx <- which(cls[, iter_nm] == cluster)
 
         # TODO: We calculate the directions new. Shouldn't we save them somehow?
-        dir <- total_least_squares(caobj@prin_coords_cols[grp_idx,])
+        dir <- total_least_squares(caobj@prin_coords_cols[grp_idx, ])
 
         p <- cluster_apl(caobj = caobj,
                          cadir = cadir,
