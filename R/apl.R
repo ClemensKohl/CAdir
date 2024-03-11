@@ -35,8 +35,13 @@ random_direction_cutoff <- function(
 
 
     for (k in seq(reps)) {
+        # this picks random directions within the space of the original data.
+        avg_group_coords <- stats::runif(
+            n = dims,
+            min = 0,
+            max = stats::quantile(cols, 0.99)
+        )
 
-        avg_group_coords <- stats::runif(n = dims, min = 0, max = stats::quantile(cols, 0.99))
         length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
         length_vector_cols <- sqrt(rowSums(cols^2))
 
@@ -294,5 +299,3 @@ get_apl_mergers <- function(cadir,
 
     return(candidates)
 }
-
-

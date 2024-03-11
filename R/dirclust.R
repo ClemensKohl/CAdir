@@ -78,7 +78,7 @@ update_line <- function(points, clusters, lines, k) {
     for (c in seq_len(length(k))) {
         sel <- which(clusters == k[c])
 
-        if (length(sel) == 0){
+        if (length(sel) == 0) {
             next
         } else {
             lines[c, ] <- total_least_squares(points[sel, , drop = FALSE])

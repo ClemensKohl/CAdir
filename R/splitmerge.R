@@ -130,7 +130,7 @@ split_clusters <- function(
 
                 rep <- paste0("rep_", cadir@log$last_rep)
                 nms_rep <- names(cadir@plots$splits[[rep]])
-                nm <- paste("cluster", f2n(i), collapse = "_", sep="")
+                nm <- paste("cluster", f2n(i), collapse = "_", sep = "")
 
                 if (nm %in% names(nms_rep)) {
                     cnt <- sum(grepl(nm, nms_rep))
@@ -452,4 +452,3 @@ dirclust_splitmerge <- function(caobj,
 
     return(out)
 }
-
