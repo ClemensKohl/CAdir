@@ -329,12 +329,14 @@ plot_flow <- function(cadir, rm_redund = TRUE) {
     sub_cls <- cadir@log$clusters[, sel]
 
     if (isTRUE(rm_redund)) {
+        del_cl <- c()
         for (c in seq_len(ncol(sub_cls))) {
             if (c == 1) next
             if (all(sub_cls[, c] == sub_cls[, c - 1])) {
-                sub_cls <- sub_cls[, -c]
+                del_cl <- c(del_cl, c)
             }
         }
+        sub_cls <- sub_cls[, -del_cl]
     }
 
     sank <- ggsankey::make_long(
