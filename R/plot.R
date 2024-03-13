@@ -362,6 +362,68 @@ plot_flow <- function(cadir, rm_redund = TRUE) {
     return(p)
 }
 
+plot_networkd3 <- function(cadir, rm_redund = rm_redund) {
+
+    # graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
+    #
+    # mbms <- igraph::membership(graph)
+    # ntwd3 <- networkD3::igraph_to_networkD3(graph)
+
+    node_pattern <- c("root|iter_0|split|merge|end")
+    sel <- which(grepl(node_pattern, colnames(cadir@log$clusters)))
+    sub_cls <- cadir@log$clusters[, sel]
+
+    if (isTRUE(rm_redund)) {
+        del_cl <- c()
+        for (c in seq_len(ncol(sub_cls))) {
+            if (c == 1) next
+            if (all(sub_cls[, c] == sub_cls[, c - 1])) {
+                del_cl <- c(del_cl, c)
+            }
+        }
+        sub_cls <- sub_cls[, -del_cl]
+    }
+    nodes <- data.frame("name" = unique(as.vector(as.matrix(sub_cls))))
+    links <- data.frame()
+    for (n in seq_len(ncol(sub_cls))) {
+        from  <- unique(sub_cls[, n])
+
+        for (l in seq_len(length(from))) {
+            idx <- which(sub_cls[, n] == from[l])
+            to <- unique(sub_cls[idx, n + 1])
+
+            for (t in seq_len(length(to))) {
+                val <- sum(sub_cls[idx, n + 1] == to[t])
+
+                tmpdf <- data.frame(
+                    "source" = from[l],
+                    "target" = to[t],
+                    "value" = val
+                )
+
+                links <- rbind(links, tmpdf)
+            }
+        }
+
+    }
+
+
+
+    sankeyNetwork(
+        Links = links,
+        Nodes = nodes,
+        Source = "source",
+        Target = "target",
+        Value = "value",
+        NodeID = "name",
+        fontSize = 12,
+        nodeWidth = 30
+    )
+
+
+
+}
+
 #' Plots the graph of the clustering splits and merges
 #' and overlays APL plots over the nodes.
 #' @inheritParams plot_sm_graph

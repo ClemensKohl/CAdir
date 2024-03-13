@@ -1,4 +1,3 @@
-#TODO: saving cutoff results.
 
 #' Random direction association plot coordinates
 #'
@@ -153,7 +152,25 @@ get_apl_cutoff <- function(caobj,
                            group = caobj@group,
                            counts = NULL,
                            quant = 0.99,
-                           reps = NULL) {
+                           reps = NULL,
+                           store_cutoff = FALSE) {
+
+    # Determine whether to store and use the cutoff.
+
+    is_rnd <- method == "random"
+    to_store <- isTRUE(is_rnd) || (isTRUE(store_cutoff))
+
+    if (isTRUE(to_store) &&
+        identical(reps, attr(caobj@permuted_data, "reps")) &&
+        identical(quant, attr(caobj@permuted_data, "quantile")) &&
+        isTRUE(caobj@params$score_method == method)) {
+
+        alpha <- attr(caobj@permuted_data, "cutoff")
+
+        if (!is.null(alpha)) {
+            return(alpha)
+        }
+    }
 
     if (method == "random") {
 
@@ -195,6 +212,17 @@ get_apl_cutoff <- function(caobj,
 
     # angle alpha is in radian.
     alpha <- atan(1 / cutoff_cotan)
+
+
+    if (isTRUE(to_store) &&
+        !identical(reps, attr(caobj@permuted_data, "reps"))) {
+
+        caobj@permuted_data <- apl_perm
+        attr(caobj@permuted_data, "cutoff") <- alpha
+        attr(caobj@permuted_data, "reps") <- reps
+        attr(caobj@permuted_data, "quantile") <- quant
+        caobj@params$score_method <- method
+    }
 
     return(alpha)
 }
