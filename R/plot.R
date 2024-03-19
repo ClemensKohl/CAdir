@@ -317,13 +317,12 @@ plot_sm_graph <- function(cadir,
 }
 
 
-# TODO: Move to a package that is on CRAN (so not ggsankey)
 
 #' Creates a sankey plot of the clustering results with all splits and merges.
 #' @param cadir A cadir object with valid clustering results.
 #' @param rm_redund If TRUE, only shows an iteration if something changes.
 #' @returns A sankey plot of the clustering results.
-plot_flow <- function(cadir, rm_redund = TRUE) {
+plot_ggsankey <- function(cadir, rm_redund = TRUE) {
     node_pattern <- c("root|iter_0|split|merge|end")
     sel <- which(grepl(node_pattern, colnames(cadir@log$clusters)))
     sub_cls <- cadir@log$clusters[, sel]
@@ -362,7 +361,11 @@ plot_flow <- function(cadir, rm_redund = TRUE) {
     return(p)
 }
 
-plot_networkd3 <- function(cadir, rm_redund = rm_redund) {
+#' Creates a sankey plot of the clustering results with all splits and merges.
+#' @param cadir A cadir object with valid clustering results.
+#' @param rm_redund If TRUE, only shows an iteration if something changes.
+#' @returns A sankey plot of the clustering results.
+plot_sankey <- function(cadir, rm_redund = rm_redund) {
 
     # graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
     #
@@ -381,11 +384,21 @@ plot_networkd3 <- function(cadir, rm_redund = rm_redund) {
                 del_cl <- c(del_cl, c)
             }
         }
-        sub_cls <- sub_cls[, -del_cl]
+        if (!is.null(del_cl)) {
+            sub_cls <- sub_cls[, -del_cl]
+        }
     }
-    nodes <- data.frame("name" = unique(as.vector(as.matrix(sub_cls))))
+
+    nodes_nms <- c()
     links <- data.frame()
+
+    stepnm <- colnames(sub_cls)
+
     for (n in seq_len(ncol(sub_cls))) {
+        nodes_nms <- c(nodes_nms, paste0(stepnm[n], "_", unique(sub_cls[, n])))
+
+        if (n == ncol(sub_cls)) next
+
         from  <- unique(sub_cls[, n])
 
         for (l in seq_len(length(from))) {
@@ -396,8 +409,8 @@ plot_networkd3 <- function(cadir, rm_redund = rm_redund) {
                 val <- sum(sub_cls[idx, n + 1] == to[t])
 
                 tmpdf <- data.frame(
-                    "source" = from[l],
-                    "target" = to[t],
+                    "source" = paste0(stepnm[n], "_", from[l]),
+                    "target" = paste0(stepnm[n + 1], "_", to[t]),
                     "value" = val
                 )
 
@@ -407,17 +420,27 @@ plot_networkd3 <- function(cadir, rm_redund = rm_redund) {
 
     }
 
+    nodes_nms <- factor(nodes_nms, levels = nodes_nms)
+    node_ids <- as.numeric(nodes_nms) - 1 # 0-idxed
+    nodes <- data.frame("id" = node_ids, "name" = nodes_nms)
+
+    links$source <- factor(links$source, levels = nodes_nms)
+    links$target <- factor(links$target, levels = nodes_nms)
+    links$source_id <- as.numeric(links$source) - 1
+    links$target_id <- as.numeric(links$target) - 1
 
 
-    sankeyNetwork(
+    networkD3::sankeyNetwork(
         Links = links,
         Nodes = nodes,
-        Source = "source",
-        Target = "target",
+        Source = "source_id",
+        Target = "target_id",
         Value = "value",
         NodeID = "name",
         fontSize = 12,
-        nodeWidth = 30
+        nodeWidth = 30,
+        NodeGroup = "name",
+        # LinkGroup = "source"
     )
 
 
@@ -450,8 +473,9 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
     for (i in seq_len(nrow(lgraph))) {
 
         node_nm <- nodes[i]
-        # TODO: replace with base R code and remove dependency.
-        name_elems <- stringr::str_split_1(node_nm, "-")
+
+        name_elems <- base::strsplit(node_nm, "-", fixed = TRUE)[[1]]
+        # name_elems <- stringr::str_split_1(node_nm, "-")
 
         if (name_elems[1] == "root") next
 
@@ -599,7 +623,8 @@ if (name == "mpimg") {
   }
 }
 
-# TODO: add documentation
+#' MPIMG color palette.
+#' @returns A function that can be used to generate colors.
 mpimg_pal <- function() {
 
     mpi_colors <- c(
@@ -615,7 +640,8 @@ mpimg_pal <- function() {
     scales::manual_pal(values = mpi_colors)
 }
 
-# TODO: add documentation
+# MPI color palette
+# @returns A function that can be used to generate colors.
 mpi_pal <- function() {
 
     # mpi colors extended.

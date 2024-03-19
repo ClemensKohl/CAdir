@@ -15,19 +15,19 @@ License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
-Depends:
 Imports:
     CAbiNet,
     APL,
     irlba,
     ggplot2,
-    ggsankey,
     igraph,
     ggraph,
     patchwork,
     scales,
     methods,
-    stringr,
     ggpubr,
     gtable,
     networkD3,
+    ggsankey
+Remotes:
+    davidsjoberg/ggsankey

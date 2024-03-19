@@ -1,4 +1,3 @@
-# TODO: make plots work with apl mode.
 # TODO: make a verbose toggle.
 
 #' Split a cluster into 2 sub-clusters.
@@ -399,6 +398,7 @@ dirclust_splitmerge <- function(caobj,
             log = FALSE
         )
         out@plots <- plots
+        out@log$last_rep <- i
 
         cl_log <- cbind(cl_log,
                         stats::setNames(data.frame(f2n(out@cell_clusters)),
@@ -427,6 +427,7 @@ dirclust_splitmerge <- function(caobj,
             log = FALSE
         )
         out@plots <- plots
+        out@log$last_rep <- i
 
         cl_log <- cbind(cl_log,
                         stats::setNames(data.frame(f2n(out@cell_clusters)),

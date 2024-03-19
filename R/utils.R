@@ -230,3 +230,54 @@ get_x_y_values <- function(gg_plot) {
     xvals <- xvals * panel_width + from_left
     data.frame(x = xvals / img_dim[1], y = yvals / img_dim[2])
 }
+
+
+
+#' Converts a `cadir` object to `Biclust` object
+#'
+#' @param cadir A cadir object with cell and gene clusters.
+#'
+#' @return
+#' An object of type "Biclust".
+#'
+#' @export
+cadir_to_biclust <- function(cadir) {
+    require("biclust")
+    cell_clusters <- cadir@cell_clusters
+    gene_clusters <- cadir@gene_clusters
+    params <- cadir@parameters
+
+    ctypes <- sort(unique(cell_clusters))
+    gtypes <- sort(unique(gene_clusters))
+    bitypes <- union(ctypes, gtypes)
+
+    nr <- length(bitypes)
+
+    if (nr == 0) {
+        number_x_col <- matrix(0)
+        row_x_number <- matrix(0)
+    } else {
+        number_x_col <- do.call(rbind, lapply(bitypes, function(x) {
+            cell_clusters == x
+        }))
+        row_x_number <- do.call(cbind, lapply(bitypes, function(x) {
+            gene_clusters == x
+        }))
+    }
+
+    rownames(row_x_number) <- names(gene_clusters)
+    colnames(row_x_number) <- paste0("BC", bitypes)
+
+    rownames(number_x_col) <- paste0("BC", bitypes)
+    colnames(number_x_col) <- names(cell_clusters)
+
+    bic <- new("Biclust",
+        "Parameters" = params,
+        "RowxNumber" = row_x_number,
+        "NumberxCol" = number_x_col,
+        "Number" = nr,
+        "info" = list("Generated from cell and gene clusters.")
+    )
+
+    return(bic)
+}

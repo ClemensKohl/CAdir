@@ -10,7 +10,8 @@ get_apl_cutoff(
   group = caobj@group,
   counts = NULL,
   quant = 0.99,
-  reps = NULL
+  reps = NULL,
+  store_cutoff = TRUE
 )
 }
 \arguments{
@@ -27,6 +28,9 @@ Either "random" or "permutation".}
 
 \item{reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
+
+\item{store_cutoff}{If TRUE, the cutoff is stored in the caobj
+and is not recalculated.}
 }
 \value{
 The cutoff angle alpha in radians.
