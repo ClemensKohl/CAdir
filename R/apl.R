@@ -59,7 +59,6 @@ random_direction_cutoff <- function(
 }
 
 
-# TODO: Add way to store permutation results.
 
 #' Calculates permuted association plot coordinates
 #'
@@ -143,6 +142,8 @@ permutation_cutoff <- function(caobj,
 #' @param quant The quantile to use for the cutoff.
 #' @param reps The number of repetitions to use.
 #' Should be between 3-10 for permutation, and >=100 for random.
+#' @param store_cutoff If TRUE, the cutoff is stored in the caobj
+#'  and is not recalculated.
 #'
 #' @returns
 #' The cutoff angle alpha in radians.
@@ -153,7 +154,7 @@ get_apl_cutoff <- function(caobj,
                            counts = NULL,
                            quant = 0.99,
                            reps = NULL,
-                           store_cutoff = FALSE) {
+                           store_cutoff = TRUE) {
 
     # Determine whether to store and use the cutoff.
 
@@ -161,6 +162,7 @@ get_apl_cutoff <- function(caobj,
     to_store <- isTRUE(is_rnd) || (isTRUE(store_cutoff))
 
     if (isTRUE(to_store) &&
+        !is.null(attr(caobj@permuted_data, "cutoff")) &&
         identical(reps, attr(caobj@permuted_data, "reps")) &&
         identical(quant, attr(caobj@permuted_data, "quantile")) &&
         isTRUE(caobj@params$score_method == method)) {
