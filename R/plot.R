@@ -494,7 +494,7 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
                          cluster_id = as.character("cluster"),
                          show_lines = FALSE,
                          point_size = 0.3) +
-                      scale_color_mpimg(name = "mpimg") +
+                      # scale_color_mpimg(name = "mpimg") + #FIXME: We need to pick a color palette for a large number of clusters
                       theme_blank()
 
                       bg <-  bg +
