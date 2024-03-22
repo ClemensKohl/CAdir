@@ -45,7 +45,7 @@ setMethod(f = "annotate_by_goa",
     })
 
     # Solve assignment problem with the hungarian algorithm.
-    cluster_anno <- assign_cts(goa_res)
+    cluster_anno <- CAbiNet::assign_cts(goa_res)
 
     # Rename clusters based on GSE.
     for (c in seq_len(length(allcs))) {
