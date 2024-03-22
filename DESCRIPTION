@@ -31,3 +31,13 @@ Imports:
     ggsankey
 Remotes:
     davidsjoberg/ggsankey
+Collate: 
+    'apl.R'
+    'classes.R'
+    'celltype_anno.R'
+    'dirclust.R'
+    'genes.R'
+    'plot.R'
+    'splitmerge.R'
+    'utils.R'
+    'vector_utils.R'
