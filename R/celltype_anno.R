@@ -52,10 +52,13 @@ setMethod(f = "annotate_by_goa",
 
         noanno <- paste0("cluster", allcs[c])
 
-        ct <- cluster_anno[cluster_anno$cluster == allcs[c], "cell_type"]
-        padj <- cluster_anno[cluster_anno$cluster == allcs[c], "padj"]
-
-        if (padj > alpha) ct <- noanno
+        if (!allcs[c] %in% cluster_anno$cluster) {
+            ct <- noanno
+        } else {
+            ct <- cluster_anno[cluster_anno$cluster == allcs[c], "cell_type"]
+            padj <- cluster_anno[cluster_anno$cluster == allcs[c], "padj"]
+            if (padj > alpha) ct <- noanno
+        }
 
         if (allcs[c] %in% ungcs) {
 
