@@ -335,7 +335,9 @@ plot_ggsankey <- function(cadir, rm_redund = TRUE) {
                 del_cl <- c(del_cl, c)
             }
         }
-        sub_cls <- sub_cls[, -del_cl]
+        if (length(del_cl) > 0) {
+            sub_cls <- sub_cls[, -del_cl]
+        }
     }
 
     sank <- ggsankey::make_long(
