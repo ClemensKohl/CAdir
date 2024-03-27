@@ -207,16 +207,6 @@ merge_clusters <- function(caobj,
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
 
-    if (isTRUE(make_plots)) {
-        rep <- paste0("rep_", cadir@log$last_rep)
-
-        if (length(cadir@plots$merges[[rep]]) == 0) {
-            mergeplots <- list()
-        } else {
-            mergeplots <- cadir@plots$merges[[rep]]
-        }
-    }
-
     if (is.null(cutoff)) {
         candidates <- get_apl_mergers(cadir = cadir,
                                       caobj = caobj,
@@ -250,6 +240,8 @@ merge_clusters <- function(caobj,
 
         if (isTRUE(make_plots)) {
 
+            rep <- paste0("rep_", cadir@log$last_rep)
+
             sres <- methods::new("cadir",
                 cell_clusters = clusters[cls],
                 directions = directions[mergers, ]
@@ -265,10 +257,15 @@ merge_clusters <- function(caobj,
                 cluster_id = s
             )
 
+            nms_rep <- names(cadir@plots$merges[[rep]])
             nm <- paste("cluster", mergers, collapse = "_", sep = "")
 
-            if (nm %in% names(mergeplots)) nm <- paste0(nm, "_v2")
-            mergeplots[[nm]] <- p
+            if (nm %in% names(nms_rep)) {
+                cnt <- sum(grepl(nm, nms_rep))
+                nm <- paste0(nm, cnt + 1)
+            }
+
+            cadir@plots$merges[[rep]][[nm]] <- p
         }
 
         clusters[cls] <- s
@@ -280,14 +277,6 @@ merge_clusters <- function(caobj,
         cadir@distances <- matrix(0, 0, 0) # dists not true anymore.
 
         cadir <- rename_clusters(cadir = cadir)
-
-        if (isTRUE(make_plots)) {
-            rep <- paste0("rep_", cadir@log$last_rep)
-            cadir@plots$merges[[rep]] <- append(
-                cadir@plots$merges[[rep]],
-                mergeplots
-            )
-        }
 
         out <- merge_clusters(
             caobj = caobj,
@@ -304,14 +293,6 @@ merge_clusters <- function(caobj,
     cadir@directions <- directions
     cadir@cell_clusters <- clusters
     cadir <- rename_clusters(cadir)
-
-    if (isTRUE(make_plots)) {
-        rep <- paste0("rep_", cadir@log$last_rep)
-        cadir@plots$merges[[rep]] <- append(
-            cadir@plots$merges[[rep]],
-            mergeplots
-        )
-    }
 
     return(cadir)
 }
