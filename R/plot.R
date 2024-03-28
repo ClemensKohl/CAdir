@@ -642,8 +642,8 @@ mpimg_pal <- function() {
     scales::manual_pal(values = mpi_colors)
 }
 
-# MPI color palette
-# @returns A function that can be used to generate colors.
+#' MPI color palette
+#' @returns A function that can be used to generate colors.
 mpi_pal <- function() {
 
     # mpi colors extended.
