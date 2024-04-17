@@ -39,7 +39,8 @@ kernel_ca <- function(obj,
 
     kpca <- kernlab::kpca(x = s,
                           kernel = kernel,
-                          features = dims)
+                          features = dims,
+                          kpar = kpar)
 
     # S = UDV^T
     # cxg = [cxd][dxd][dxg]
