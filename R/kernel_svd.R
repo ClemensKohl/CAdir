@@ -10,19 +10,18 @@ kernel_ca <- function(obj,
                       kernel = "rbfdot",
                       kpar = list(sigma = 0.1)) {
 
-    data <- APL:::rm_zeros(obj)
+    obj <- APL:::rm_zeros(obj)
 
     if (!is.null(top) && top < nrow(obj)) {
 
         obj <- APL:::var_rows(mat = obj,
-                        top = top,
-                        residuals = residuals,
-                        clip = clip,
-                        cutoff = cutoff)
-        toptmp <- top
+                              top = top,
+                              residuals = residuals,
+                              clip = clip,
+                              cutoff = cutoff)
     }
 
-    top <- toptmp <- nrow(obj)
+    top <- nrow(obj)
 
     if (top > nrow(obj)) {
         warning("\nParameter top is >nrow(obj) and therefore ignored.")
@@ -36,80 +35,41 @@ kernel_ca <- function(obj,
                                 residuals = residuals,
                                 clip = clip,
                                 cutoff = cutoff)
-    S <- t(res$S)
+    s <- t(res$S)
 
-    kpca <- kernlab::kpca(x = S,
+    kpca <- kernlab::kpca(x = s,
                           kernel = kernel,
                           features = dims)
 
-    # X = UDV^T
+    # S = UDV^T
     # cxg = [cxd][dxd][dxg]
 
-    V <- kpca@pcv
-    E <- kpca@eig
-    D <- sqrt(E) # D <- sqrt(E)*(nrow(S) - 1)
-    U <- t(diag(1/D) %*% t(V) %*% kpca@xmatrix) # TODO: Check if correct
+    v <- kpca@pcv
+    e <- kpca@eig
+    d <- sqrt(e) # D <- sqrt(E)*(nrow(S) - 1)
+    u <- t(diag(1 / d) %*% t(v) %*% kpca@xmatrix) # TODO: Check if correct
 
 
-    names(D) <- paste0("Dim", seq_len(length(D)))
-    dimnames(V) <- list(rownames(S), paste0("Dim", seq_len(ncol(V))))
-    dimnames(U) <- list(colnames(S), paste0("Dim", seq_len(ncol(U))))
+    names(d) <- paste0("Dim", seq_len(length(d)))
+    dimnames(v) <- list(rownames(s), paste0("Dim", seq_len(ncol(v))))
+    dimnames(u) <- list(colnames(s), paste0("Dim", seq_len(ncol(u))))
 
 
-    caobj <- do.call(APL::new_cacomp,
-                     list(
-                          "U" = U,
-                          "V" = V,
-                          "D" = D,
-                          "row_masses" = res$rowm,
-                          "col_masses" = res$colm,
-                          "top_rows" = top,
-                          "tot_inertia" = res$tot,
-                          "dims" = dims
-                          ))
+    caobj <- do.call(
+        APL::new_cacomp,
+        list(
+            "U" = u,
+            "V" = v,
+            "D" = d,
+            "row_masses" = res$rowm,
+            "col_masses" = res$colm,
+            "top_rows" = top,
+            "tot_inertia" = res$tot,
+            "dims" = dims
+        )
+    )
 
     caobj <- APL::ca_coords(caobj)
 
     return(caobj)
 }
-
-
-## TESTING
-library(SingleCellExperiment)
-library(kernlab)
-library(RUtils)
-
-sce <- RUtils:::get_zeisel_brain()
-
-kca <- kernel_ca(obj = logcounts(sce),
-                 dims = 30,
-                 top = 2000,
-                 residuals = "pearson",
-                 kernel = "rbfdot",
-                 kpar = list(sigma = 0.3))
-
-kca <- kernel_ca(obj = logcounts(sce),
-                 dims = 30,
-                 top = 2000,
-                 residuals = "pearson",
-                 kernel = "vanilladot")
-
-ca <- APL::cacomp(obj = logcounts(sce),
-                   dims = 30,
-                   top = 2000,
-                   residuals = "pearson")
-
-cabic <- dirclust_splitmerge(caobj = kca,
-                             k = 7,
-                             cutoff = 85,
-                             qcutoff = 0.8,
-                             method = "random",
-                             counts = NULL,
-                             apl_quant = 0.99,
-                             min_cells = 5,
-                             epochs = 15,
-                             reps = 5,
-                             make_plots = FALSE)
-
-APL::ca_biplot(kca)
-
