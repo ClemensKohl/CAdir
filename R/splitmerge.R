@@ -416,12 +416,15 @@ dirclust_splitmerge <- function(caobj,
 
     }
 
-    out@gene_clusters <- assign_genes(
-        caobj = caobj,
-        cadir = out,
-        qcutoff = qcutoff,
-        coords = "prin"
-    )
+    # Check necessary as kernel CA doesnt provide gene coords.
+    if (!is.empty(ca@std_coords_rows)) {
+        out@gene_clusters <- assign_genes(
+            caobj = caobj,
+            cadir = out,
+            qcutoff = qcutoff,
+            coords = "prin"
+        )
+    }
 
     out <- rename_clusters(out)
 
