@@ -58,6 +58,10 @@ rbfdot <- function(sigma = 1) {
 }
 
 # FIXME: WIP
+# NOTE: Kernel CA: According to Greenacre S^TS=VD^2V^T and SS^T = UD^2U^T.
+# We can use this maybe to calculate both U and V using the kernel trick?
+# Only remaining question is if we can center the kernel matrix? Check the original Kernel PCA paper.
+# There is a part about the Gram matrix needing to be centered, possibly this helps here.
 kernel_ca <- function(obj,
                       dims = 2,
                       top = nrow(obj),
