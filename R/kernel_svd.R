@@ -109,10 +109,10 @@ kernel_ca <- function(obj,
     km <- kernlab::kernelMatrix(kernel = kern, x = s)
 
     ## center kernel matrix
-    # kc <- t(t(km - colSums(km) / m) - rowSums(km) / m) + sum(km) / m^2
+    m <- nrow(s)
+    km <- t(t(km - colSums(km) / m) - rowSums(km) / m) + sum(km) / m^2
 
     ## compute eigenvectors
-    m <- nrow(s)
     kpca <- eigen(km / m, symmetric = TRUE)
 
     v <- t(t(kpca$vectors[, 1:dims]) / sqrt(kpca$values[1:dims]))
@@ -121,35 +121,45 @@ kernel_ca <- function(obj,
     names(e) <- paste("Comp.", 1:dims, sep = "")
     prin_coords_cols <- km %*% v
 
-    # NOTE: We have to provide a matrix U, so we make a dummy vector.
-    u <- matrix(NA, nrow = ncol(s), ncol = dims)
+    names(d) <- paste0("Dim", seq_len(length(d)))
+    dimnames(v) <- list(rownames(s), paste0("Dim", seq_len(ncol(v))))
 
-    # eigenvalues in a decreasing order
-    # svd_res <- irlba::irlba(A = km, nv = dims, smallest = FALSE)
-    # svd_res <- svd_res[1:3]
-    # names(svd_res)[1:3] <- c("D", "U", "V")
-    # svd_res$D <- as.vector(svd_res$D)
+    #NOTE: attempt to calculate feature vectors the same way as the cell vectors.
 
-    # S = UDV^T
-    # cxg = [cxd][dxd][dxg]
+    s <- as.matrix(res$S)
+    kern <- do.call(kernel, kpar)
+    km <- kernlab::kernelMatrix(kernel = kern, x = s)
+
+    ## center kernel matrix
+    m <- nrow(s)
+    km <- t(t(km - colSums(km) / m) - rowSums(km) / m) + sum(km) / m^2
+
+    ## compute eigenvectors
+    kpca <- eigen(km / m, symmetric = TRUE)
+
+    u_genes <- t(t(kpca$vectors[, 1:dims]) / sqrt(kpca$values[1:dims]))
+    e_genes <- kpca$values[1:dims]
+    # d_genes <- sqrt(e_genes) # D <- sqrt(E)*(nrow(S) - 1)
+    names(e_genes) <- paste("Comp.", 1:dims, sep = "")
+    prin_coords_rows <- km %*% u_genes
 
     # v <- kpca@pcv
     # e <- kpca@eig
     # d <- sqrt(e) # D <- sqrt(E)*(nrow(S) - 1)
-    # u <- t(diag(1 / d) %*% t(v) %*% kpca@xmatrix) # NOTE: This cannot be done! PCA is in kernel space!
+    # NOTE: This cannot be done! PCA is in kernel space!
+    # u <- t(diag(1 / d) %*% t(v) %*% kpca@xmatrix)
 
-    names(d) <- paste0("Dim", seq_len(length(d)))
-    dimnames(v) <- list(rownames(s), paste0("Dim", seq_len(ncol(v))))
-    dimnames(u) <- list(colnames(s), paste0("Dim", seq_len(ncol(u))))
+    dimnames(u_genes) <- list(rownames(s), paste0("Dim", seq_len(ncol(u_genes))))
 
-
+    #TODO: Calculate std. coordinates!
     caobj <- do.call(
         APL::new_cacomp,
         list(
-            "U" = u,
+            "U" = u_genes,
             "V" = v,
             "D" = d,
             "prin_coords_cols" = prin_coords_cols,
+            "prin_coords_rows" = prin_coords_rows,
             "row_masses" = res$rowm,
             "col_masses" = res$colm,
             "top_rows" = top,
@@ -158,7 +168,9 @@ kernel_ca <- function(obj,
         )
     )
 
-    # caobj <- APL::ca_coords(caobj) # NOTE: Again, we cannot compute this, as we are working in kernel space!
+    # NOTE: Again, we cannot compute this, as we are working in kernel space!
+    # We do it anyways 😄
+    caobj <- APL::ca_coords(caobj, princ_coords = 0)
 
     return(caobj)
 }

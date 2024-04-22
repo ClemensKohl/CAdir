@@ -417,7 +417,7 @@ dirclust_splitmerge <- function(caobj,
     }
 
     # Check necessary as kernel CA doesnt provide gene coords.
-    if (!is.empty(ca@std_coords_rows)) {
+    if (!is.empty(caobj@std_coords_rows)) {
         out@gene_clusters <- assign_genes(
             caobj = caobj,
             cadir = out,
