@@ -56,3 +56,26 @@ assign_genes <- function(caobj,
 
     return(clusters)
 }
+
+#TODO: Implement per-cluster gene ranking by S-alpha score
+
+rank_genes <- function(cadir, caobj){
+    stop("Not implemented yet")
+
+    # Step1: Get cutoff
+    alpha <- attr(caobj@permuted_data, "cutoff")
+
+    # Step 2: Get APL coordinates of co-clustered genes for the cluster direction.
+    # Step 3: Score by cutoff
+    score <- caobj@apl_rows[,1] - (caobj@apl_rows[,2] * cutoff_cotan)
+    ranking <- data.frame("Rowname" = rownames(caobj@apl_rows),
+                          "Score" = score,
+                          "Row_num" = seq_len(nrow(caobj@apl_rows)))
+
+    ranking <- ranking[order(ranking$Score, decreasing = TRUE),]
+    ranking$Rank <- seq_len(nrow(ranking))
+
+    # Step 4: Store results is new slot (needs to be created)
+
+    return(cadir)
+}
