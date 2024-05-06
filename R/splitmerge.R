@@ -270,7 +270,7 @@ merge_clusters <- function(caobj,
 
         clusters[cls] <- s
         directions[s, ] <- new_dir
-        directions <- directions[-cds, ]
+        directions <- directions[-cds, , drop = FALSE]
 
         cadir@cell_clusters <- clusters
         cadir@directions <- directions
