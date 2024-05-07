@@ -242,7 +242,6 @@ get_x_y_values <- function(gg_plot) {
 #'
 #' @export
 cadir_to_biclust <- function(cadir) {
-    require("biclust")
     cell_clusters <- cadir@cell_clusters
     gene_clusters <- cadir@gene_clusters
     params <- cadir@parameters
