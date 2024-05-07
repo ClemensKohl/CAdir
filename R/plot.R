@@ -8,8 +8,7 @@
 apl_model <- function(
     caobj,
     direction,
-    group = NULL
-) {
+    group = NULL) {
     stopifnot(methods::is(caobj, "cacomp"))
 
     cent <- caobj@prin_coords_cols
@@ -71,24 +70,22 @@ apl_model <- function(
 #' @param point_size Size of the points (cells).
 #' @returns
 #' An APL plot (ggplot2 object).
-cluster_apl <- function(
-        caobj,
-        cadir,
-        direction,
-        group,
-        cluster_id = "NA",
-        show_points = TRUE,
-        show_lines = TRUE,
-        plot_group = FALSE,
-        point_size = 1.5) {
-
+cluster_apl <- function(caobj,
+                        cadir,
+                        direction,
+                        group,
+                        cluster_id = "NA",
+                        show_cells = TRUE,
+                        show_genes = FALSE,
+                        show_lines = TRUE,
+                        plot_group = FALSE,
+                        point_size = 1.5) {
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
 
     # ensure that clusters and directions are coherent
     cadir <- rename_clusters(cadir)
     if (nrow(cadir@directions) > 1) {
-
         ang <- min(
             rad2deg(get_angle(cadir@directions[1, ], cadir@directions[2, ])),
             rad2deg(get_angle(-cadir@directions[1, ], cadir@directions[2, ]))
@@ -103,8 +100,32 @@ cluster_apl <- function(
         group = group
     )
 
-    capl <- model(caobj@prin_coords_cols)
     dapl <- model(cadir@directions)
+
+    if (show_cells && !show_genes) {
+        capl <- model(caobj@prin_coords_cols)
+        df <- as.data.frame(capl)
+        df$sample <- rownames(df)
+        df$type <- "cell"
+
+    } else if (show_cells && show_genes) {
+        capl <- model(caobj@std_coords_cols)
+        gapl <- model(caobj@prin_coords_rows)
+        df <- as.data.frame(capl)
+        df$sample <- rownames(df)
+        df$type <- "cell"
+
+        dfg <- as.data.frame(gapl)
+        dfg$sample  <- rownames(dfg)
+        dfg$type <- "gene"
+
+        df <- rbind(df, dfg)
+    } else if (!show_cells && show_genes) {
+        gapl <- model(caobj@prin_coords_rows)
+        df <- as.data.frame(gapl)
+        df$sample <- rownames(df)
+        df$type <- "gene"
+    }
 
     # If the line points into the opposite direction of points
     # we flip the line.
@@ -127,10 +148,9 @@ cluster_apl <- function(
         }
     }
 
-    df <- as.data.frame(capl)
-    df$sample <- rownames(df)
 
     if (isTRUE(plot_group)) {
+        #FIXME: Fix this part. include genes.
         sel <- match(rownames(caobj@prin_coords_cols)[group], df$sample)
         df$cluster <- "other"
         df$cluster[sel] <- "cluster"
@@ -144,21 +164,21 @@ cluster_apl <- function(
 
     p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
 
-    if (isTRUE(show_points)) {
-
+    if (isTRUE(show_cells) || isTRUE(show_genes)) {
         p <- p +
             ggplot2::geom_point(size = point_size)
 
         if (isTRUE(plot_group)) {
-            p <- p + ggplot2::scale_color_manual(values = c("cluster" = "#c6d325",
-                                                            "other" = "#006c66"))
+            p <- p + ggplot2::scale_color_manual(values = c(
+                "cluster" = "#c6d325",
+                "other" = "#006c66"
+            ))
         }
     }
 
+
     if (isTRUE(show_lines)) {
-
         for (d in seq_len(nrow(dapl))) {
-
             if (isTRUE(all.equal(dapl[d, ], c(1, 0), tolerance = 1e-4, check.attributes = FALSE)) ||
                 isTRUE(all.equal(dapl[d, ], c(-1, 0), tolerance = 1e-4, check.attributes = FALSE))) {
                 lcolor <- "black"
@@ -167,7 +187,7 @@ cluster_apl <- function(
                 lcolor <- "red"
                 ltype <- "dashed"
 
-                if(isTRUE(plot_group)) {
+                if (isTRUE(plot_group)) {
                     lcolor <- "#006c66"
                 }
             }
@@ -178,7 +198,7 @@ cluster_apl <- function(
                 color = lcolor,
                 linetype = ltype,
                 size = 1
-                ) +
+            ) +
                 ggplot2::geom_point(
                     data = data.frame(x = 0, y = 0),
                     ggplot2::aes(x, y), color = lcolor
@@ -187,11 +207,11 @@ cluster_apl <- function(
     }
 
     p <- p + ggplot2::ggtitle(paste0(
-            "Cluster: ",
-            cluster_id,
-            ", CA-angle: ",
-            round(ang, 2)
-        )) +
+        "Cluster: ",
+        cluster_id,
+        ", CA-angle: ",
+        round(ang, 2)
+    )) +
         ggplot2::theme_bw()
 
     return(p)
@@ -205,52 +225,53 @@ cluster_apl <- function(
 #' @returns A plot that summarizes the cell clustering results and
 #' how the clusters relate to each other.
 plot_results <- function(cadir, caobj) {
+    size <- 1
+    pls <- list()
+    cls <- sort(unique(cadir@cell_clusters))
 
-  size <- 1
-  pls <- list()
-  cls <- sort(unique(cadir@cell_clusters))
+    for (i in seq_along(cls)) {
+        for (j in seq_along(cls)) {
+            sel <- which(cadir@cell_clusters == cls[i] | cadir@cell_clusters == cls[j])
+            sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
 
-  for (i in seq_along(cls)) {
+            sub_cak <- methods::new("cadir",
+                cell_clusters = cadir@cell_clusters[sel],
+                directions = cadir@directions[sel_dir, , drop = FALSE]
+            )
 
-    for (j in seq_along(cls)) {
-
-      sel <- which(cadir@cell_clusters == cls[i] | cadir@cell_clusters == cls[j])
-      sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
-
-      sub_cak <- methods::new("cadir",
-                     cell_clusters = cadir@cell_clusters[sel],
-                     directions = cadir@directions[sel_dir, , drop = FALSE])
-
-      p <- cluster_apl(caobj = caobj,
-                       cadir = sub_cak,
-                       direction = cadir@directions[f2n(cls[i]), ],
-                       group = which(cadir@cell_clusters == cls[i]),
-                       cluster_id = "cell_clusters",
-                       show_points = i == j,
-                       show_lines = i != j,
-                       plot_group = TRUE) +
-                           ggplot2::ggtitle("") +
-                           ggplot2::theme(legend.position = "none",
-                                 axis.title.x = ggplot2::element_blank(),
-                                 axis.text.x = ggplot2::element_blank(),
-                                 axis.ticks.x = ggplot2::element_blank(),
-                                 axis.title.y = ggplot2::element_blank(),
-                                 axis.text.y = ggplot2::element_blank(),
-                                 axis.ticks.y = ggplot2::element_blank())
+            p <- cluster_apl(
+                caobj = caobj,
+                cadir = sub_cak,
+                direction = cadir@directions[f2n(cls[i]), ],
+                group = which(cadir@cell_clusters == cls[i]),
+                cluster_id = "cell_clusters",
+                show_points = i == j,
+                show_lines = i != j,
+                plot_group = TRUE
+            ) +
+                ggplot2::ggtitle("") +
+                ggplot2::theme(
+                    legend.position = "none",
+                    axis.title.x = ggplot2::element_blank(),
+                    axis.text.x = ggplot2::element_blank(),
+                    axis.ticks.x = ggplot2::element_blank(),
+                    axis.title.y = ggplot2::element_blank(),
+                    axis.text.y = ggplot2::element_blank(),
+                    axis.ticks.y = ggplot2::element_blank()
+                )
 
 
-                           if (i == j) {
-                             p$layers[[1]]$aes_params$size <- size
-                           } else {
-                             p$layers[[2]]$aes_params$size <- size
-                           }
-                           pls[[paste0(i, "_", j)]] <- p
+            if (i == j) {
+                p$layers[[1]]$aes_params$size <- size
+            } else {
+                p$layers[[2]]$aes_params$size <- size
+            }
+            pls[[paste0(i, "_", j)]] <- p
+        }
     }
 
-  }
-
-  fig <- ggpubr::ggarrange(plotlist = pls, nrow = length(cls), ncol = length(cls))
-  return(fig)
+    fig <- ggpubr::ggarrange(plotlist = pls, nrow = length(cls), ncol = length(cls))
+    return(fig)
 }
 
 #' Summarizes the cell clustering results in a single plot.
@@ -263,22 +284,25 @@ plot_clusters <- function(cadir, caobj, point_size = 1) {
     cls <- sort(unique(cadir@cell_clusters))
 
     for (i in seq_along(cls)) {
-
-        p <- cluster_apl(caobj = caobj,
-                         cadir = cadir,
-                         direction = cadir@directions[f2n(cls[i]), ],
-                         group = which(cadir@cell_clusters == cls[i]),
-                         show_points = TRUE,
-                         show_lines = FALSE,
-                         plot_group = TRUE) +
-                      ggplot2::ggtitle(paste0("cluster_", i)) +
-                      ggplot2::theme(legend.position = "none",
-                                     axis.title.x = ggplot2::element_blank(),
-                                     axis.text.x = ggplot2::element_blank(),
-                                     axis.ticks.x = ggplot2::element_blank(),
-                                     axis.title.y = ggplot2::element_blank(),
-                                     axis.text.y = ggplot2::element_blank(),
-                                     axis.ticks.y = ggplot2::element_blank())
+        p <- cluster_apl(
+            caobj = caobj,
+            cadir = cadir,
+            direction = cadir@directions[f2n(cls[i]), ],
+            group = which(cadir@cell_clusters == cls[i]),
+            show_points = TRUE,
+            show_lines = FALSE,
+            plot_group = TRUE
+        ) +
+            ggplot2::ggtitle(paste0("cluster_", i)) +
+            ggplot2::theme(
+                legend.position = "none",
+                axis.title.x = ggplot2::element_blank(),
+                axis.text.x = ggplot2::element_blank(),
+                axis.ticks.x = ggplot2::element_blank(),
+                axis.title.y = ggplot2::element_blank(),
+                axis.text.y = ggplot2::element_blank(),
+                axis.ticks.y = ggplot2::element_blank()
+            )
 
         p$layers[[1]]$aes_params$size <- point_size
 
@@ -287,7 +311,6 @@ plot_clusters <- function(cadir, caobj, point_size = 1) {
 
     fig <- ggpubr::ggarrange(plotlist = pls, nrow = ceiling(sqrt(length(cls))), ncol = ceiling(sqrt(length(cls))))
     return(fig)
-
 }
 
 
@@ -302,7 +325,6 @@ plot_sm_graph <- function(cadir,
                           rm_redund = TRUE,
                           size = 3,
                           alpha = 1) {
-
     graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
 
     lgraph <- ggraph::create_layout(graph, layout = "tree")
@@ -368,7 +390,6 @@ plot_ggsankey <- function(cadir, rm_redund = TRUE) {
 #' @param rm_redund If TRUE, only shows an iteration if something changes.
 #' @returns A sankey plot of the clustering results.
 plot_sankey <- function(cadir, rm_redund = rm_redund) {
-
     # graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
     #
     # mbms <- igraph::membership(graph)
@@ -401,7 +422,7 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
 
         if (n == ncol(sub_cls)) next
 
-        from  <- unique(sub_cls[, n])
+        from <- unique(sub_cls[, n])
 
         for (l in seq_len(length(from))) {
             idx <- which(sub_cls[, n] == from[l])
@@ -419,7 +440,6 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
                 links <- rbind(links, tmpdf)
             }
         }
-
     }
 
     nodes_nms <- factor(nodes_nms, levels = nodes_nms)
@@ -444,9 +464,6 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
         NodeGroup = "name",
         # LinkGroup = "source"
     )
-
-
-
 }
 
 #' Plots the graph of the clustering splits and merges
@@ -456,10 +473,9 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
 #' @returns
 #' A ggplot object showing the split-merge graph and APL plots for each cluster.
 sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
-
     graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
 
-    lgraph <- ggraph::create_layout(graph, layout="tree")
+    lgraph <- ggraph::create_layout(graph, layout = "tree")
 
     ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
     bg <- ggraph::ggraph(lgraph) +
@@ -473,7 +489,6 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
     nodes <- names(igraph::V(graph))
 
     for (i in seq_len(nrow(lgraph))) {
-
         node_nm <- nodes[i]
 
         name_elems <- base::strsplit(node_nm, "-", fixed = TRUE)[[1]]
@@ -481,7 +496,7 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
 
         if (name_elems[1] == "root") next
 
-        iter_nm  <- name_elems[1]
+        iter_nm <- name_elems[1]
         cluster <- as.numeric(name_elems[2])
 
         grp_idx <- which(cls[, iter_nm] == cluster)
@@ -489,28 +504,29 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
         # TODO: We calculate the directions new. Shouldn't we save them somehow?
         dir <- total_least_squares(caobj@prin_coords_cols[grp_idx, ])
 
-        p <- cluster_apl(caobj = caobj,
-                         cadir = cadir,
-                         direction = as.numeric(dir),
-                         group = grp_idx,
-                         cluster_id = as.character("cluster"),
-                         show_lines = FALSE,
-                         point_size = 0.3) +
-                      # scale_color_mpimg(name = "mpimg") + #FIXME: We need to pick a color palette for a large number of clusters
-                      theme_blank()
+        p <- cluster_apl(
+            caobj = caobj,
+            cadir = cadir,
+            direction = as.numeric(dir),
+            group = grp_idx,
+            cluster_id = as.character("cluster"),
+            show_lines = FALSE,
+            point_size = 0.3
+        ) +
+            # scale_color_mpimg(name = "mpimg") + #FIXME: We need to pick a color palette for a large number of clusters
+            theme_blank()
 
-                      bg <-  bg +
-                          patchwork::inset_element(p,
-                                                   left = bg_coords[i, 1] - 0.04,
-                                                   right = bg_coords[i, 1] + 0.038,
-                                                   top = bg_coords[i, 2] + 0.04,
-                                                   bottom = bg_coords[i, 2] - 0.04,
-                                                   align_to = "panel")
-
+        bg <- bg +
+            patchwork::inset_element(p,
+                left = bg_coords[i, 1] - 0.04,
+                right = bg_coords[i, 1] + 0.038,
+                top = bg_coords[i, 2] + 0.04,
+                bottom = bg_coords[i, 2] - 0.04,
+                align_to = "panel"
+            )
     }
 
     return(bg)
-
 }
 
 
@@ -520,80 +536,78 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
 theme_blank <- function() {
     ggplot2::theme_void() %+replace%
         ggplot2::theme(
-              # Elements in this first block aren't used directly, but are inherited
-              line = ggplot2::element_blank(),
-              rect = ggplot2::element_rect(),
-              text = ggplot2::element_blank(),
-              aspect.ratio = 1,
-              axis.line =          ggplot2::element_blank(),
-              axis.line.x =        NULL,
-              axis.line.y =        NULL,
-              axis.text =          ggplot2::element_blank(),
-              axis.text.x =        NULL,
-              axis.text.x.top =    NULL,
-              axis.text.y =        NULL,
-              axis.text.y.right =  NULL,
-              axis.ticks =         ggplot2::element_blank(),
-              axis.ticks.length =  ggplot2::unit(0, "pt"),
-              axis.title =         ggplot2::element_blank(),
-              axis.title.x =       NULL,
-              axis.title.x.top =   NULL,
-              axis.title.y =       NULL,
-              axis.title.y.right = NULL,
-
-              legend.background =  ggplot2::element_blank(),
-              legend.spacing =     NULL,
-              legend.spacing.x =   NULL,
-              legend.spacing.y =   NULL,
-              legend.margin =      ggplot2::margin(0, 0, 0, 0),
-              legend.key =         ggplot2::element_blank(),
-              legend.key.size =   NULL,
-              legend.key.height =  NULL,
-              legend.key.width =   NULL,
-              legend.text =        ggplot2::element_blank(),
-              legend.text.align =  NULL,
-              legend.title =       ggplot2::element_text(hjust = 0),
-              legend.title.align = NULL,
-              legend.position =    "none",
-              legend.direction =   NULL,
-              legend.justification = "center",
-              legend.box =         NULL,
-              legend.box.margin =  ggplot2::margin(0, 0, 0, 0),
-              legend.box.background = ggplot2::element_blank(),
-              legend.box.spacing = ggplot2::unit(0, "pt"),
-
-              panel.grid =         ggplot2::element_blank(),
-              panel.grid.major =   NULL,
-              panel.grid.minor =   NULL,
-              panel.spacing =      ggplot2::unit(0, "pt"),
-              panel.spacing.x =    NULL,
-              panel.spacing.y =    NULL,
-              panel.ontop    =     FALSE,
-
-              strip.background =   ggplot2::element_blank(),
-              strip.text =         ggplot2::element_blank(),
-              strip.text.x =       NULL,
-              strip.text.y =       NULL,
-              strip.placement =    "inside",
-              strip.placement.x =  NULL,
-              strip.placement.y =  NULL,
-              strip.switch.pad.grid = ggplot2::unit(0., "cm"),
-              strip.switch.pad.wrap = ggplot2::unit(0., "cm"),
-
-              plot.background =    ggplot2::element_blank(),
-              plot.title =         ggplot2::element_blank(),
-              plot.subtitle =      ggplot2::element_blank(),
-              plot.caption =       ggplot2::element_blank(),
-              plot.tag           = ggplot2::element_blank(),
-              plot.margin =        ggplot2::margin(0, 0, 0, 0),
-
-              panel.background = ggplot2::element_rect(fill = "#ffffffcc",
-                                                       colour = "#ffffffcc"),
-              panel.border = ggplot2::element_rect(colour = "black",
-                                                   fill = NA),
-              complete = TRUE
+            # Elements in this first block aren't used directly, but are inherited
+            line = ggplot2::element_blank(),
+            rect = ggplot2::element_rect(),
+            text = ggplot2::element_blank(),
+            aspect.ratio = 1,
+            axis.line = ggplot2::element_blank(),
+            axis.line.x = NULL,
+            axis.line.y = NULL,
+            axis.text = ggplot2::element_blank(),
+            axis.text.x = NULL,
+            axis.text.x.top = NULL,
+            axis.text.y = NULL,
+            axis.text.y.right = NULL,
+            axis.ticks = ggplot2::element_blank(),
+            axis.ticks.length = ggplot2::unit(0, "pt"),
+            axis.title = ggplot2::element_blank(),
+            axis.title.x = NULL,
+            axis.title.x.top = NULL,
+            axis.title.y = NULL,
+            axis.title.y.right = NULL,
+            legend.background = ggplot2::element_blank(),
+            legend.spacing = NULL,
+            legend.spacing.x = NULL,
+            legend.spacing.y = NULL,
+            legend.margin = ggplot2::margin(0, 0, 0, 0),
+            legend.key = ggplot2::element_blank(),
+            legend.key.size = NULL,
+            legend.key.height = NULL,
+            legend.key.width = NULL,
+            legend.text = ggplot2::element_blank(),
+            legend.text.align = NULL,
+            legend.title = ggplot2::element_text(hjust = 0),
+            legend.title.align = NULL,
+            legend.position = "none",
+            legend.direction = NULL,
+            legend.justification = "center",
+            legend.box = NULL,
+            legend.box.margin = ggplot2::margin(0, 0, 0, 0),
+            legend.box.background = ggplot2::element_blank(),
+            legend.box.spacing = ggplot2::unit(0, "pt"),
+            panel.grid = ggplot2::element_blank(),
+            panel.grid.major = NULL,
+            panel.grid.minor = NULL,
+            panel.spacing = ggplot2::unit(0, "pt"),
+            panel.spacing.x = NULL,
+            panel.spacing.y = NULL,
+            panel.ontop = FALSE,
+            strip.background = ggplot2::element_blank(),
+            strip.text = ggplot2::element_blank(),
+            strip.text.x = NULL,
+            strip.text.y = NULL,
+            strip.placement = "inside",
+            strip.placement.x = NULL,
+            strip.placement.y = NULL,
+            strip.switch.pad.grid = ggplot2::unit(0., "cm"),
+            strip.switch.pad.wrap = ggplot2::unit(0., "cm"),
+            plot.background = ggplot2::element_blank(),
+            plot.title = ggplot2::element_blank(),
+            plot.subtitle = ggplot2::element_blank(),
+            plot.caption = ggplot2::element_blank(),
+            plot.tag = ggplot2::element_blank(),
+            plot.margin = ggplot2::margin(0, 0, 0, 0),
+            panel.background = ggplot2::element_rect(
+                fill = "#ffffffcc",
+                colour = "#ffffffcc"
+            ),
+            panel.border = ggplot2::element_rect(
+                colour = "black",
+                fill = NA
+            ),
+            complete = TRUE
         )
-
 }
 
 
@@ -603,32 +617,26 @@ theme_blank <- function() {
 #' @param name The name of the scale. Either "mpi" or "mpimg".
 #' @param ... Further arguments to ggplot2::discrete_scale.
 scale_color_mpimg <- function(name = "mpimg", ...) {
-
-if (name == "mpimg") {
-
-    ggplot2::discrete_scale(
-      scale_name = "mpimg",
-      aesthetics = "color",
-      palette = mpimg_pal(),
-      ...
-    )
-
-  } else if (name == "mpi") {
-
-    ggplot2::discrete_scale(
-      scale_name = "mpi",
-      aesthetics = "color",
-      palette = mpi_pal(),
-      ...
-    )
-
-  }
+    if (name == "mpimg") {
+        ggplot2::discrete_scale(
+            scale_name = "mpimg",
+            aesthetics = "color",
+            palette = mpimg_pal(),
+            ...
+        )
+    } else if (name == "mpi") {
+        ggplot2::discrete_scale(
+            scale_name = "mpi",
+            aesthetics = "color",
+            palette = mpi_pal(),
+            ...
+        )
+    }
 }
 
 #' MPIMG color palette.
 #' @returns A function that can be used to generate colors.
 mpimg_pal <- function() {
-
     mpi_colors <- c(
         "#006c66", # MPG-CD-Grün
         "#777777", # MPG-Dunkelgrau
@@ -645,7 +653,6 @@ mpimg_pal <- function() {
 #' MPI color palette
 #' @returns A function that can be used to generate colors.
 mpi_pal <- function() {
-
     # mpi colors extended.
     mpimg_colors <- c(
         "#006C66",
