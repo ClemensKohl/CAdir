@@ -7,7 +7,6 @@
 #' @returns
 #' Indices of points lying outside of sphere
 ca_sphere_idx <- function(x, qcutoff = 0.8) {
-
     xn <- row_norm(x)
     q <- stats::quantile(xn, qcutoff)
     idx <- which(xn > q)
@@ -32,7 +31,6 @@ assign_genes <- function(caobj,
                          cadir,
                          qcutoff = NULL,
                          coords = "prin") {
-
     if (coords == "prin") {
         idx <- ca_sphere_idx(caobj@prin_coords_rows, qcutoff = qcutoff)
     } else if (coords == "std") {
@@ -57,25 +55,78 @@ assign_genes <- function(caobj,
     return(clusters)
 }
 
-#TODO: Implement per-cluster gene ranking by S-alpha score
-
-rank_genes <- function(cadir, caobj){
-    stop("Not implemented yet")
+# TODO: Add documentation
+rank_genes <- function(cadir, caobj) {
 
     # Step1: Get cutoff
-    alpha <- attr(caobj@permuted_data, "cutoff")
+    alpha <- cadir@parameters$sa_cutoff
 
-    # Step 2: Get APL coordinates of co-clustered genes for the cluster direction.
-    # Step 3: Score by cutoff
-    score <- caobj@apl_rows[,1] - (caobj@apl_rows[,2] * cutoff_cotan)
-    ranking <- data.frame("Rowname" = rownames(caobj@apl_rows),
-                          "Score" = score,
-                          "Row_num" = seq_len(nrow(caobj@apl_rows)))
+    # Step 2: Get APL coordinates of co-clustered genes
+    # for the cluster direction.
+    gcs <- sort(unique(cadir@gene_clusters))
+    gcs_lvls <- as.numeric(levels(gcs))
 
-    ranking <- ranking[order(ranking$Score, decreasing = TRUE),]
-    ranking$Rank <- seq_len(nrow(ranking))
+    all_ranks <- list()
+    for (c in gcs_lvls) {
 
+        if (is.null(alpha)) {
+            alpha <- get_apl_cutoff(
+                caobj = caobj,
+                method = "random",
+                group = which(cadir@cell_clusters == gcs[c]),
+                quant = 0.99,
+                # quant = cadir@parameters$apl_quant,
+                reps = 100,
+                store_cutoff = TRUE
+            )
+        }
+
+        direction <- cadir@directions[c, ]
+
+        model <- apl_model(
+            caobj = caobj,
+            direction = direction,
+            group = which(cadir@cell_clusters == gcs[c])
+        )
+
+        gene_coords <- model(caobj@prin_coords_rows)
+
+        # subset genes to cluster genes
+        gene_coords <- gene_coords[
+            which(cadir@gene_clusters == gcs[c]), ,
+            drop = FALSE
+        ]
+
+        # Step 3: Score by cutoff
+        score <- gene_coords[, 1] - (gene_coords[, 2] * alpha)
+
+        ranking <- data.frame(
+            "Rowname" = rownames(gene_coords),
+            "Score" = score,
+            "Row_num" = seq_len(nrow(gene_coords)),
+            "cluster" = gcs[c]
+        )
+
+        ranking <- ranking[order(ranking$Score, decreasing = TRUE), ]
+        ranking$Rank <- seq_len(nrow(ranking))
+        all_ranks[[paste0("cluster_", c)]] <- ranking
+    }
     # Step 4: Store results is new slot (needs to be created)
+    cadir@gene_ranks <- all_ranks
 
     return(cadir)
+}
+
+#TODO: Add documentation
+top_genes <- function(cadir, cutoff = 0) {
+    top_list <- list()
+    gene_ranks <- cadir@gene_ranks
+    for (i in seq_len(length(gene_ranks))) {
+        relevant_genes <- gene_ranks[[i]][gene_ranks[[i]]$Score > cutoff, ]
+        del <- which(colnames(relevant_genes) == "Rank")
+        top_list[[names(gene_ranks)[i]]] <- relevant_genes[, -del]
+    }
+
+    topdf <- do.call("rbind", top_list)
+    return(topdf)
 }

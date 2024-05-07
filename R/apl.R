@@ -215,7 +215,8 @@ get_apl_cutoff <- function(caobj,
     # angle alpha is in radian.
     alpha <- atan(1 / cutoff_cotan)
 
-
+    #FIXME: If I am not mistaken, this shouldnt do anything.
+    # We never export the object again!
     if (isTRUE(to_store) &&
         !identical(reps, attr(caobj@permuted_data, "reps"))) {
 
@@ -314,6 +315,8 @@ get_apl_mergers <- function(cadir,
                                  group = grp_idx,
                                  reps = reps,
                                  quant = apl_quant)
+
+        cadir@parameters$sa_cutoff <- cutoff
 
         cutoff <- rad_to_ang_sim(cutoff)
 
