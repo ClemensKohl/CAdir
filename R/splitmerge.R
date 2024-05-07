@@ -106,6 +106,7 @@ split_clusters <- function(
                 group = grp_idx,
                 quant = apl_quant
             )
+            cadir@parameters$sa_cutoff <- cutoff
 
             to_split <- decide_split(aplcds$apl_dirs, cutoff = cutoff)
 
@@ -327,7 +328,7 @@ dirclust_splitmerge <- function(caobj,
                                 make_plots = FALSE) {
     # Convert cutoff to radians
     if (!is.null(cutoff)) cutoff <- deg2rad(cutoff)
-
+    fun_args <- match.call()
     cl_log <- as.data.frame(matrix(0,
                                    ncol = 1,
                                    nrow = nrow(caobj@prin_coords_cols)))
@@ -371,6 +372,8 @@ dirclust_splitmerge <- function(caobj,
                                  paste0("split_", iter_nm)))
 
         plots <- out@plots
+
+        parameters <- out@parameters
         out <- dirclust(
             points = caobj@prin_coords_cols,
             k = ncol(out@directions),
@@ -379,6 +382,7 @@ dirclust_splitmerge <- function(caobj,
             log = FALSE
         )
         out@plots <- plots
+        out@parameters <- parameters
         out@log$last_rep <- i
 
         cl_log <- cbind(cl_log,
@@ -400,6 +404,8 @@ dirclust_splitmerge <- function(caobj,
                                  paste0("merge_", iter_nm)))
 
         plots <- out@plots
+        parameters <- out@parameters
+
         out <- dirclust(
             points = caobj@prin_coords_cols,
             k = ncol(out@directions),
@@ -408,6 +414,7 @@ dirclust_splitmerge <- function(caobj,
             log = FALSE
         )
         out@plots <- plots
+        out@parameters <- parameters
         out@log$last_rep <- i
 
         cl_log <- cbind(cl_log,
@@ -431,6 +438,7 @@ dirclust_splitmerge <- function(caobj,
 
     out@log$clusters <- cl_log
     out@log$graph <- graph_log
+    out@parameters$call <- fun_args
 
     return(out)
 }

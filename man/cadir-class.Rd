@@ -44,5 +44,7 @@ the names attribute.}
 
 \item{\code{plots}}{This slot saves the plots generated during the clustering process.
 were generated.}
+
+\item{\code{gene_ranks}}{Ranks for all co-clustered genes.}
 }}
 
