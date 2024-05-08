@@ -7,7 +7,7 @@
 get_apl_mergers(
   cadir,
   caobj,
-  reps = 100,
+  apl_cutoff_reps = 100,
   method = "random",
   counts = NULL,
   apl_quant = 0.99
@@ -18,7 +18,7 @@ get_apl_mergers(
 
 \item{caobj}{A cacomp object.}
 
-\item{reps}{The number of repetitions to use.
+\item{apl_cutoff_reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
 
 \item{method}{Method to use for computing the cutoff.

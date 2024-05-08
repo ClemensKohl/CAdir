@@ -11,7 +11,8 @@ merge_clusters(
   method = "random",
   counts = NULL,
   apl_quant = 0.99,
-  make_plots = FALSE
+  make_plots = FALSE,
+  apl_cutoff_reps = 100
 )
 }
 \arguments{
@@ -33,6 +34,9 @@ if cutoff is \code{NULL}.
 split and merge}
 
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
+
+\item{apl_cutoff_reps}{The number of repetitions to use.
+Should be between 3-10 for permutation, and >=100 for random.}
 }
 \value{
 A \code{cadir} object with merged clusters.
