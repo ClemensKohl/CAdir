@@ -15,6 +15,7 @@ dirclust_splitmerge(
   min_cells = 5,
   epochs = 15,
   reps = 5,
+  apl_cutoff_reps = 100,
   make_plots = FALSE
 )
 }
@@ -43,6 +44,9 @@ split and merge}
 \item{epochs}{Number of iterations.}
 
 \item{reps}{Number of repetitions to perform the splitting and merging.}
+
+\item{apl_cutoff_reps}{The number of repetitions to use.
+Should be between 3-10 for permutation, and >=100 for random.}
 
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
 }

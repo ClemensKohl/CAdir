@@ -2,6 +2,7 @@
 
 export(cadir_to_biclust)
 export(dirclust)
+export(dirclust_splitmerge)
 exportClasses(cadir)
 exportMethods(annotate_biclustering)
 exportMethods(show)
