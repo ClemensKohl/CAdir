@@ -57,10 +57,11 @@ split_clusters <- function(
     min_cells = 5,
     make_plots = FALSE,
     counts = NULL,
-    reps = 100,
+    apl_cutoff_reps = 100,
     apl_quant = 0.99
 ) {
 
+    fun_args <- match.call()
     cls <- sort(unique(cadir@cell_clusters))
 
     for (i in cls) {
@@ -99,14 +100,21 @@ split_clusters <- function(
                 method <- "random"
             }
 
-            cutoff <- get_apl_cutoff(
-                caobj = caobj,
-                counts = counts,
-                method = method,
-                group = grp_idx,
-                quant = apl_quant
-            )
-            cadir@parameters$sa_cutoff <- cutoff
+            cutoff_exists <- is_stored(cadir = cadir, fun_args = fun_args)
+
+            if (isTRUE(cutoff_exists)) {
+                cutoff <- cadir@parameters$sa_cutoff
+            } else {
+                cutoff <- get_apl_cutoff(
+                    caobj = caobj,
+                    counts = counts,
+                    method = method,
+                    group = grp_idx,
+                    quant = apl_quant,
+                    apl_cutoff_reps = apl_cutoff_reps
+                )
+                cadir@parameters$sa_cutoff <- cutoff
+            }
 
             to_split <- decide_split(aplcds$apl_dirs, cutoff = cutoff)
 
@@ -203,7 +211,8 @@ merge_clusters <- function(caobj,
                            method = "random",
                            counts = NULL,
                            apl_quant = 0.99,
-                           make_plots = FALSE) {
+                           make_plots = FALSE,
+                           apl_cutoff_reps = 100) {
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
@@ -213,7 +222,8 @@ merge_clusters <- function(caobj,
                                       caobj = caobj,
                                       method = method,
                                       counts = counts,
-                                      apl_quant = apl_quant)
+                                      apl_quant = apl_quant,
+                                      apl_cutoff_reps = apl_cutoff_reps)
 
 
         candidates <- apply(candidates, 1, function(x) which(x))
@@ -315,6 +325,7 @@ merge_clusters <- function(caobj,
 #' @param qcutoff The quantile cutoff for gene selection.
 #' @return A `cadir` object with cell clusters.
 #' @seealso [get_apl_cutoff()]
+#' @export
 dirclust_splitmerge <- function(caobj,
                                 k,
                                 cutoff = 40,
@@ -325,6 +336,7 @@ dirclust_splitmerge <- function(caobj,
                                 min_cells = 5,
                                 epochs = 15,
                                 reps = 5,
+                                apl_cutoff_reps = 100,
                                 make_plots = FALSE) {
     # Convert cutoff to radians
     if (!is.null(cutoff)) cutoff <- deg2rad(cutoff)
@@ -364,7 +376,8 @@ dirclust_splitmerge <- function(caobj,
             counts = counts,
             apl_quant = apl_quant,
             min_cells = min_cells,
-            make_plots = make_plots
+            make_plots = make_plots,
+            apl_cutoff_reps = apl_cutoff_reps
         )
 
         cl_log <- cbind(cl_log,
@@ -396,7 +409,8 @@ dirclust_splitmerge <- function(caobj,
             method = method,
             counts = counts,
             apl_quant = apl_quant,
-            make_plots = make_plots
+            make_plots = make_plots,
+            apl_cutoff_reps = apl_cutoff_reps
         )
 
         cl_log <- cbind(cl_log,

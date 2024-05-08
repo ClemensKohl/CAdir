@@ -12,7 +12,7 @@ split_clusters(
   min_cells = 5,
   make_plots = FALSE,
   counts = NULL,
-  reps = 100,
+  apl_cutoff_reps = 100,
   apl_quant = 0.99
 )
 }
@@ -34,7 +34,8 @@ Either "random" or "permutation".}
 
 \item{counts}{The original count matrix that was used to compute the caobj.}
 
-\item{reps}{Number of repetitions to perform the splitting and merging.}
+\item{apl_cutoff_reps}{The number of repetitions to use.
+Should be between 3-10 for permutation, and >=100 for random.}
 
 \item{apl_quant}{The quantile to use for the APL cutoff. Only used
 if cutoff is \code{NULL}.
