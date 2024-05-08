@@ -122,12 +122,17 @@ setMethod(
 #' @returns
 #' The factors converted to numbers.
 f2n <- function(f) {
-    f <- as.numeric(as.character(f))
-    stopifnot(is.numeric(f))
+    n <- as.numeric(as.character(f))
+    stopifnot(is.numeric(n))
 
-    return(f)
+    return(n)
 }
 
+#TODO: Add documentation
+n2f <- function(n, lvls) {
+    f <- factor(n, levels = lvls)
+    return(f)
+}
 
 #' Build a sub-graph that can be joined to a larger graph.
 #' By itself it is a valid graph too.
@@ -279,4 +284,15 @@ cadir_to_biclust <- function(cadir) {
     )
 
     return(bic)
+}
+
+#TODO: Add documentation
+#' Checks if APL S-alpha cutoff is already calculated.
+#' @param cadir Cadir object
+#' @param fun_args Arguments with which the parent function was called.
+is_stored <- function(cadir, fun_args) {
+    !is.null(cadir@parameters$sa_cutoff) &&
+        identical(fun_args$apl_cutoff_reps, cadir@parameters$apl_cutoff_reps) &&
+        identical(fun_args$apl_quant, cadir@parameters$call$apl_quant) &&
+        identical(fun_args$method, cadir@parameters$call$method)
 }

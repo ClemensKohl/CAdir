@@ -72,8 +72,9 @@ apl_model <- function(
 #' An APL plot (ggplot2 object).
 cluster_apl <- function(caobj,
                         cadir,
-                        direction,
-                        group,
+                        cluster,
+                        # direction,
+                        # group,
                         cluster_id = "NA",
                         show_cells = TRUE,
                         show_genes = FALSE,
@@ -82,6 +83,8 @@ cluster_apl <- function(caobj,
                         point_size = 1.5) {
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
+
+    direction <- cadir@directions[cluster, ]
 
     # ensure that clusters and directions are coherent
     cadir <- rename_clusters(cadir)
@@ -97,7 +100,7 @@ cluster_apl <- function(caobj,
     model <- apl_model(
         caobj = caobj,
         direction = direction,
-        group = group
+        group = which(cadir@cell_clusters == n2f(cluster, lvls = levels(cadir@cell_clusters)))
     )
 
     dapl <- model(cadir@directions)
@@ -107,7 +110,6 @@ cluster_apl <- function(caobj,
         df <- as.data.frame(capl)
         df$sample <- rownames(df)
         df$type <- "cell"
-
     } else if (show_cells && show_genes) {
         capl <- model(caobj@std_coords_cols)
         gapl <- model(caobj@prin_coords_rows)
@@ -116,7 +118,7 @@ cluster_apl <- function(caobj,
         df$type <- "cell"
 
         dfg <- as.data.frame(gapl)
-        dfg$sample  <- rownames(dfg)
+        dfg$sample <- rownames(dfg)
         dfg$type <- "gene"
 
         df <- rbind(df, dfg)
@@ -138,9 +140,9 @@ cluster_apl <- function(caobj,
         if (length(sel) == 0) next
 
         if (length(sel) > 1) {
-            grp_mean <- colMeans(capl[sel, ])
+            grp_mean <- colMeans(model(caobj@prin_coords_cols)[sel, ])
         } else {
-            grp_mean <- capl[sel, ]
+            grp_mean <- model(caobj@prin_coords_cols)[sel, ]
         }
 
         if (sign(grp_mean[1]) != sign(dapl[d, 1])) {
@@ -150,13 +152,42 @@ cluster_apl <- function(caobj,
 
 
     if (isTRUE(plot_group)) {
-        #FIXME: Fix this part. include genes.
-        sel <- match(rownames(caobj@prin_coords_cols)[group], df$sample)
+        cell_grp <- which(
+            cadir@cell_clusters == n2f(
+                cluster,
+                lvls = levels(cadir@cell_clusters)
+            )
+        )
+        gene_grp <- which(
+            cadir@gene_clusters == n2f(
+                cluster,
+                lvls = levels(cadir@gene_clusters)
+            )
+        )
+
+        sel_cells <- match(
+            rownames(caobj@prin_coords_cols)[cell_grp],
+            df$sample
+        )
+        sel_genes <- match(
+            rownames(caobj@prin_coords_rows)[gene_grp],
+            df$sample
+        )
+
+        sel <- c(sel_cells, sel_genes)
+        sel <- na.omit(sel)
+
         df$cluster <- "other"
         df$cluster[sel] <- "cluster"
     } else {
         df$cluster <- 0
-        sel <- match(names(cadir@cell_clusters), df$sample)
+
+        sel_cells <- match(names(cadir@cell_clusters), df$sample)
+        sel_genes <- match(names(cadir@gene_clusters), df$sample)
+        sel <- c(sel_cells, sel_genes)
+        sel <- na.omit(sel)
+
+        #FIXME: only cells!
         df$cluster[sel] <- cadir@cell_clusters
     }
 
@@ -165,10 +196,16 @@ cluster_apl <- function(caobj,
     p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
 
     if (isTRUE(show_cells) || isTRUE(show_genes)) {
+        #FIXME: Decrease size only if both are shown. Maybe play with shape.
         p <- p +
-            ggplot2::geom_point(size = point_size)
+            ggplot2::geom_point(ggplot2::aes(shape = type, size = type)) +
+            ggplot2::scale_size_manual(values = c(
+                "cell" = point_size,
+                "gene" = point_size / 2
+            ))
 
         if (isTRUE(plot_group)) {
+            #FIXME: Plot cluster cells/genes OVER the others!
             p <- p + ggplot2::scale_color_manual(values = c(
                 "cluster" = "#c6d325",
                 "other" = "#006c66"
@@ -179,8 +216,14 @@ cluster_apl <- function(caobj,
 
     if (isTRUE(show_lines)) {
         for (d in seq_len(nrow(dapl))) {
-            if (isTRUE(all.equal(dapl[d, ], c(1, 0), tolerance = 1e-4, check.attributes = FALSE)) ||
-                isTRUE(all.equal(dapl[d, ], c(-1, 0), tolerance = 1e-4, check.attributes = FALSE))) {
+            if (isTRUE(all.equal(dapl[d, ],
+                                 c(1, 0),
+                                 tolerance = 1e-4,
+                                 check.attributes = FALSE)) ||
+                isTRUE(all.equal(dapl[d, ],
+                                 c(-1, 0),
+                                 tolerance = 1e-4,
+                                 check.attributes = FALSE))) {
                 lcolor <- "black"
                 ltype <- "solid"
             } else {

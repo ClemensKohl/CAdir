@@ -9,7 +9,7 @@ permutation_cutoff(
   counts,
   group = caobj@group,
   dims = caobj@dims,
-  reps = 10,
+  apl_cutoff_reps = 10,
   python = TRUE
 )
 }
@@ -23,7 +23,7 @@ permutation_cutoff(
 \item{dims}{The number of dimensions to when performing SVD.
 Usually can be kept as \code{caobj@dims}.}
 
-\item{reps}{The number of repetitions to use.
+\item{apl_cutoff_reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
 
 \item{python}{If TRUE, use python for CA SVD.}
