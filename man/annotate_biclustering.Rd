@@ -12,6 +12,7 @@
   alpha = 0.05,
   min_size = 10,
   max_size = 500,
+  verbose = TRUE,
   ...
 )
 }
