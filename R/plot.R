@@ -235,6 +235,11 @@ cluster_apl <- function(caobj,
         )
     }
 
+    # if conditions, conc. type and cluster.
+    if (highlight_cluster && show_cells && show_genes) {
+        df$cluster <- paste0(df$type, "_", df$cluster)
+    }
+
     p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
 
     if (isTRUE(show_cells) || isTRUE(show_genes)) {
@@ -255,10 +260,19 @@ cluster_apl <- function(caobj,
             ))
 
         if (isTRUE(highlight_cluster)) {
-            p <- p + ggplot2::scale_color_manual(values = c(
-                "cluster" = "#c6d325",
-                "other" = "#006c66"
-            ))
+            if (show_cells && show_genes) {
+                p <- p + ggplot2::scale_color_manual(values = c(
+                    "cell_cluster" = "#c6d325",
+                    "gene_cluster" = "#ef7c00",
+                    "cell_other" = "#006c66",
+                    "gene_other" = "#777777"
+                ))
+            } else {
+                p <- p + ggplot2::scale_color_manual(values = c(
+                    "cluster" = "#c6d325",
+                    "other" = "#006c66"
+                ))
+            }
         }
     }
 
@@ -320,7 +334,11 @@ cluster_apl <- function(caobj,
 #' @returns A plot that summarizes the cell clustering results and
 #' how the clusters relate to each other.
 #' @export
-plot_results <- function(cadir, caobj, highlight_cluster = TRUE) {
+plot_results <- function(cadir,
+                         caobj,
+                         highlight_cluster = TRUE,
+                         show_cells = TRUE,
+                         show_genes = FALSE) {
     size <- 1
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
@@ -336,14 +354,16 @@ plot_results <- function(cadir, caobj, highlight_cluster = TRUE) {
                 directions = cadir@directions[sel_dir, , drop = FALSE]
             )
             # cat("\n\ni,j", i, ",", j)
+            if (show_cells) sc <- i == j
+            if (show_genes) sg <- i == j
             p <- cluster_apl(
                 caobj = caobj,
                 cadir = sub_cak,
                 direction = cadir@directions[f2n(cls[i]), ],
                 group = which(cadir@cell_clusters == cls[i]),
                 cluster = cls[i],
-                show_cells = i == j,
-                show_genes = FALSE,
+                show_cells = sc,
+                show_genes = sg,
                 show_lines = i != j,
                 highlight_cluster = highlight_cluster,
                 colour_by_group = TRUE
@@ -396,7 +416,8 @@ plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
             show_cells = TRUE,
             show_genes = show_genes,
             show_lines = FALSE,
-            highlight_cluster = TRUE
+            highlight_cluster = TRUE,
+            colour_by_group = FALSE
         ) +
             ggplot2::ggtitle(paste0("cluster_", i)) +
             ggplot2::theme(

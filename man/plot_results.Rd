@@ -6,7 +6,13 @@
 relationship between the clusters. In the diagonal
 an APL plot for the respective cluster is shown.}
 \usage{
-plot_results(cadir, caobj, highlight_cluster = TRUE)
+plot_results(
+  cadir,
+  caobj,
+  highlight_cluster = TRUE,
+  show_cells = TRUE,
+  show_genes = FALSE
+)
 }
 \arguments{
 \item{cadir}{A cadir object with valid cell clustering results.}
@@ -15,6 +21,10 @@ plot_results(cadir, caobj, highlight_cluster = TRUE)
 
 \item{highlight_cluster}{If TRUE, highlights the points in belonging to
 \code{cluster}, unless colour_by_group is TRUE.}
+
+\item{show_cells}{If TRUE, points (cells) are plotted.}
+
+\item{show_genes}{If TRUE, genes are plotted.}
 }
 \value{
 A plot that summarizes the cell clustering results and
