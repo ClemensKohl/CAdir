@@ -6,12 +6,15 @@
 relationship between the clusters. In the diagonal
 an APL plot for the respective cluster is shown.}
 \usage{
-plot_results(cadir, caobj)
+plot_results(cadir, caobj, highlight_cluster = TRUE)
 }
 \arguments{
 \item{cadir}{A cadir object with valid cell clustering results.}
 
 \item{caobj}{A cacomp object.}
+
+\item{highlight_cluster}{If TRUE, highlights the points in belonging to
+\code{cluster}, unless colour_by_group is TRUE.}
 }
 \value{
 A plot that summarizes the cell clustering results and

@@ -65,7 +65,7 @@ split_clusters <- function(
     cls <- sort(unique(cadir@cell_clusters))
 
     for (i in cls) {
-
+        # cat("Type of i", class(i))
         if (sum(cadir@cell_clusters == i) < 2) next
 
         sres <- sub_cluster(
@@ -133,7 +133,7 @@ split_clusters <- function(
                     cadir = sres,
                     direction = cadir@directions[f2n(i), ],
                     group = which(cadir@cell_clusters == i),
-                    cluster_id = as.character(i)
+                    cluster = NULL
                 )
 
                 rep <- paste0("rep_", cadir@log$last_rep)
@@ -265,7 +265,7 @@ merge_clusters <- function(caobj,
                 cadir = sres,
                 direction = new_dir,
                 group = cls,
-                cluster_id = s
+                cluster = s
             )
 
             nms_rep <- names(cadir@plots$merges[[rep]])

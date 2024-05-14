@@ -129,6 +129,7 @@ f2n <- function(f) {
 }
 
 #TODO: Add documentation
+#' Convert a numeric (or character) to a factor
 n2f <- function(n, lvls) {
     f <- factor(n, levels = lvls)
     return(f)

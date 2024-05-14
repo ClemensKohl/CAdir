@@ -9,6 +9,7 @@ apl_model <- function(
     caobj,
     direction,
     group = NULL) {
+
     stopifnot(methods::is(caobj, "cacomp"))
 
     cent <- caobj@prin_coords_cols
@@ -62,33 +63,65 @@ apl_model <- function(
 #' Plot a cluster with the respective direction/line in an APL.
 #' @inheritParams apl_model
 #' @param cadir A cadir object for which to compute the APL
-#' @param cluster_id The cluster for which to plot the APL.
-#' @param cluster_id The name of the cluster for the plot title.
-#' @param show_points If TRUE, points (cells) are plotted.
+#' @param direction Direction of the APL plot.
+#' @param cluster The cluster (if any) to highlight cells and genes by.
+#' @param group Group to determine the correct direction of the APL plot.
+#' Can be the same as the cluster.
+#' @param show_cells If TRUE, points (cells) are plotted.
+#' @param show_genes If TRUE, genes are plotted.
 #' @param show_lines If TRUE, the directions in cadir are plotted.
-#' @param plot_group If TRUE, highlights the points in `group`.
+#' @param highlight_cluster If TRUE, highlights the points in belonging to
+#'  `cluster`, unless colour_by_group is TRUE.
+#' @param colour_by_group If TRUE highlights cells that belong to `group`.
 #' @param point_size Size of the points (cells).
 #' @returns
 #' An APL plot (ggplot2 object).
+#' @export
 cluster_apl <- function(caobj,
                         cadir,
-                        cluster,
-                        # direction,
-                        # group,
-                        cluster_id = "NA",
+                        cluster = NULL,
+                        direction,
+                        group,
                         show_cells = TRUE,
                         show_genes = FALSE,
                         show_lines = TRUE,
-                        plot_group = FALSE,
+                        highlight_cluster = TRUE,
+                        colour_by_group = FALSE,
                         point_size = 1.5) {
+
+    # TODO: Check if you can simplify the cluster/group assignments.
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
 
-    direction <- cadir@directions[cluster, ]
+    all_cls <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
+    if (!cluster %in% all_cls) cluster <- NULL
+
+    if (is.null(cluster)) {
+        # Kinda redundant. placeholder if I want to do deal with special case.
+        ccluster <- NULL
+        gcluster <- NULL
+
+        cell_grp <- seq_len(length(cadir@cell_clusters))
+        gene_grp <- seq_len(length(cadir@gene_clusters))
+    } else {
+        ccluster <- n2f(cluster, lvls = levels(cadir@cell_clusters))
+        gcluster <- n2f(cluster, lvls = levels(cadir@gene_clusters))
+        cell_grp <- which(cadir@cell_clusters == ccluster)
+        gene_grp <- which(cadir@gene_clusters == gcluster)
+    }
+
+    # cat("\nCluster:", cluster)
+    # cat("\nType of cluster", class(cluster))
+    # cat("\n cell clusters:", unique(cadir@cell_clusters))
+    # cat("\n cell clusters class:", class(cadir@cell_clusters))
+    # cat("\n directions:", nrow(cadir@directions))
+
+    # sel <- match(cluster, sort(unique(cadir@cell_clusters)))
+    # direction <- cadir@directions[sel, ]
 
     # ensure that clusters and directions are coherent
-    cadir <- rename_clusters(cadir)
-    if (nrow(cadir@directions) > 1) {
+    # cadir <- rename_clusters(cadir)
+    if (nrow(cadir@directions) == 2) {
         ang <- min(
             rad2deg(get_angle(cadir@directions[1, ], cadir@directions[2, ])),
             rad2deg(get_angle(-cadir@directions[1, ], cadir@directions[2, ]))
@@ -100,7 +133,7 @@ cluster_apl <- function(caobj,
     model <- apl_model(
         caobj = caobj,
         direction = direction,
-        group = which(cadir@cell_clusters == n2f(cluster, lvls = levels(cadir@cell_clusters)))
+        group = group
     )
 
     dapl <- model(cadir@directions)
@@ -127,6 +160,11 @@ cluster_apl <- function(caobj,
         df <- as.data.frame(gapl)
         df$sample <- rownames(df)
         df$type <- "gene"
+    } else {
+        df <- data.frame(
+            "sample" = c(),
+            "type" = c()
+        )
     }
 
     # If the line points into the opposite direction of points
@@ -150,62 +188,73 @@ cluster_apl <- function(caobj,
         }
     }
 
-
-    if (isTRUE(plot_group)) {
-        cell_grp <- which(
-            cadir@cell_clusters == n2f(
-                cluster,
-                lvls = levels(cadir@cell_clusters)
-            )
-        )
-        gene_grp <- which(
-            cadir@gene_clusters == n2f(
-                cluster,
-                lvls = levels(cadir@gene_clusters)
-            )
-        )
-
-        sel_cells <- match(
-            rownames(caobj@prin_coords_cols)[cell_grp],
-            df$sample
-        )
-        sel_genes <- match(
-            rownames(caobj@prin_coords_rows)[gene_grp],
-            df$sample
-        )
-
-        sel <- c(sel_cells, sel_genes)
+    if (isTRUE(highlight_cluster) && (show_cells || show_genes)) {
+        if (isTRUE(colour_by_group)) {
+            sel <- group
+        } else {
+            sel <- c()
+            if (show_cells) {
+                sel_cells <- match(
+                    rownames(caobj@prin_coords_cols)[cell_grp],
+                    df$sample
+                )
+                sel <- c(sel, sel_cells)
+            }
+            if (show_genes) {
+                sel_genes <- match(
+                    rownames(caobj@prin_coords_rows)[gene_grp],
+                    df$sample
+                )
+                sel <- c(sel, sel_genes)
+            }
+        }
         sel <- na.omit(sel)
 
         df$cluster <- "other"
         df$cluster[sel] <- "cluster"
-    } else {
+        df$cluster <- factor(df$cluster, levels = c("other", "cluster"))
+        ord <- order(df$cluster)
+        df <- df[ord, ]
+    } else if (show_cells || show_genes){
         df$cluster <- 0
 
         sel_cells <- match(names(cadir@cell_clusters), df$sample)
         sel_genes <- match(names(cadir@gene_clusters), df$sample)
-        sel <- c(sel_cells, sel_genes)
-        sel <- na.omit(sel)
+        sel_cells <- na.omit(sel_cells)
+        sel_genes <- na.omit(sel_genes)
 
-        #FIXME: only cells!
-        df$cluster[sel] <- cadir@cell_clusters
+        df$cluster[sel_cells] <- cadir@cell_clusters
+        df$cluster[sel_genes] <- cadir@gene_clusters
+
+        df$cluster <- factor(df$cluster,
+            levels = sort(unique(c(
+                0,
+                cadir@cell_clusters,
+                cadir@gene_clusters
+            )))
+        )
     }
-
-    df$cluster <- as.factor(df$cluster)
 
     p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
 
     if (isTRUE(show_cells) || isTRUE(show_genes)) {
-        #FIXME: Decrease size only if both are shown. Maybe play with shape.
+        if (show_cells && show_genes) {
+            size_factor <- 1.5
+        } else {
+            size_factor <- 1
+        }
         p <- p +
             ggplot2::geom_point(ggplot2::aes(shape = type, size = type)) +
             ggplot2::scale_size_manual(values = c(
                 "cell" = point_size,
-                "gene" = point_size / 2
+                "gene" = point_size / size_factor
+            )) +
+            ggplot2::scale_shape_manual(values = c(
+                "cell" = 19,
+                "gene" = 1
             ))
 
-        if (isTRUE(plot_group)) {
-            #FIXME: Plot cluster cells/genes OVER the others!
+        if (isTRUE(highlight_cluster)) {
             p <- p + ggplot2::scale_color_manual(values = c(
                 "cluster" = "#c6d325",
                 "other" = "#006c66"
@@ -217,20 +266,22 @@ cluster_apl <- function(caobj,
     if (isTRUE(show_lines)) {
         for (d in seq_len(nrow(dapl))) {
             if (isTRUE(all.equal(dapl[d, ],
-                                 c(1, 0),
-                                 tolerance = 1e-4,
-                                 check.attributes = FALSE)) ||
+                c(1, 0),
+                tolerance = 1e-4,
+                check.attributes = FALSE
+            )) ||
                 isTRUE(all.equal(dapl[d, ],
-                                 c(-1, 0),
-                                 tolerance = 1e-4,
-                                 check.attributes = FALSE))) {
+                    c(-1, 0),
+                    tolerance = 1e-4,
+                    check.attributes = FALSE
+                ))) {
                 lcolor <- "black"
                 ltype <- "solid"
             } else {
                 lcolor <- "red"
                 ltype <- "dashed"
 
-                if (isTRUE(plot_group)) {
+                if (isTRUE(highlight_cluster)) {
                     lcolor <- "#006c66"
                 }
             }
@@ -251,7 +302,7 @@ cluster_apl <- function(caobj,
 
     p <- p + ggplot2::ggtitle(paste0(
         "Cluster: ",
-        cluster_id,
+        as.character(cluster),
         ", CA-angle: ",
         round(ang, 2)
     )) +
@@ -265,32 +316,37 @@ cluster_apl <- function(caobj,
 #' an APL plot for the respective cluster is shown.
 #' @param cadir A cadir object with valid cell clustering results.
 #' @param caobj A cacomp object.
+#' @inheritParams cluster_apl
 #' @returns A plot that summarizes the cell clustering results and
 #' how the clusters relate to each other.
-plot_results <- function(cadir, caobj) {
+#' @export
+plot_results <- function(cadir, caobj, highlight_cluster = TRUE) {
     size <- 1
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
 
     for (i in seq_along(cls)) {
         for (j in seq_along(cls)) {
-            sel <- which(cadir@cell_clusters == cls[i] | cadir@cell_clusters == cls[j])
+            sel <- which(cadir@cell_clusters == cls[i] |
+                         cadir@cell_clusters == cls[j])
             sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
 
             sub_cak <- methods::new("cadir",
                 cell_clusters = cadir@cell_clusters[sel],
                 directions = cadir@directions[sel_dir, , drop = FALSE]
             )
-
+            # cat("\n\ni,j", i, ",", j)
             p <- cluster_apl(
                 caobj = caobj,
                 cadir = sub_cak,
                 direction = cadir@directions[f2n(cls[i]), ],
                 group = which(cadir@cell_clusters == cls[i]),
-                cluster_id = "cell_clusters",
-                show_points = i == j,
+                cluster = cls[i],
+                show_cells = i == j,
+                show_genes = FALSE,
                 show_lines = i != j,
-                plot_group = TRUE
+                highlight_cluster = highlight_cluster,
+                colour_by_group = TRUE
             ) +
                 ggplot2::ggtitle("") +
                 ggplot2::theme(
@@ -313,7 +369,9 @@ plot_results <- function(cadir, caobj) {
         }
     }
 
-    fig <- ggpubr::ggarrange(plotlist = pls, nrow = length(cls), ncol = length(cls))
+    fig <- ggpubr::ggarrange(plotlist = pls,
+                             nrow = length(cls),
+                             ncol = length(cls))
     return(fig)
 }
 
@@ -321,8 +379,10 @@ plot_results <- function(cadir, caobj) {
 #' @param cadir A cadir object with valid cell clustering results.
 #' @param caobj A cacomp object.
 #' @param point_size Size of the points (cells).
+#' @inheritParams cluster_apl
 #' @returns A plot that summarizes the cell clustering results.
-plot_clusters <- function(cadir, caobj, point_size = 1) {
+#' @export
+plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
 
@@ -331,10 +391,12 @@ plot_clusters <- function(cadir, caobj, point_size = 1) {
             caobj = caobj,
             cadir = cadir,
             direction = cadir@directions[f2n(cls[i]), ],
+            cluster = cls[i],
             group = which(cadir@cell_clusters == cls[i]),
-            show_points = TRUE,
+            show_cells = TRUE,
+            show_genes = show_genes,
             show_lines = FALSE,
-            plot_group = TRUE
+            highlight_cluster = TRUE
         ) +
             ggplot2::ggtitle(paste0("cluster_", i)) +
             ggplot2::theme(
@@ -432,6 +494,7 @@ plot_ggsankey <- function(cadir, rm_redund = TRUE) {
 #' @param cadir A cadir object with valid clustering results.
 #' @param rm_redund If TRUE, only shows an iteration if something changes.
 #' @returns A sankey plot of the clustering results.
+#' @export
 plot_sankey <- function(cadir, rm_redund = rm_redund) {
     # graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
     #
@@ -512,10 +575,18 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
 #' Plots the graph of the clustering splits and merges
 #' and overlays APL plots over the nodes.
 #' @inheritParams plot_sm_graph
+#' @inheritParams cluster_apl
 #' @param caobj A cacomp object.
 #' @returns
 #' A ggplot object showing the split-merge graph and APL plots for each cluster.
-sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
+#' @export
+sm_plot <- function(cadir,
+                    caobj,
+                    rm_redund = TRUE,
+                    show_cells = TRUE,
+                    show_genes = FALSE,
+                    highlight_cluster = FALSE) {
+    #FIXME: Genes are basically impossible to tell from cells
     graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
 
     lgraph <- ggraph::create_layout(graph, layout = "tree")
@@ -552,7 +623,11 @@ sm_plot <- function(cadir, caobj, rm_redund = TRUE) {
             cadir = cadir,
             direction = as.numeric(dir),
             group = grp_idx,
-            cluster_id = as.character("cluster"),
+            cluster = cluster,
+            show_cells = show_cells,
+            show_genes = show_genes,
+            highlight_cluster = highlight_cluster,
+            colour_by_group = TRUE,
             show_lines = FALSE,
             point_size = 0.3
         ) +
