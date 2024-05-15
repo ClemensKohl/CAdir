@@ -94,8 +94,8 @@ cluster_apl <- function(caobj,
     stopifnot(methods::is(cadir, "cadir"))
 
     all_cls <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
-    if (!cluster %in% all_cls) cluster <- NULL
 
+    if (!is.null(cluster) && (!cluster %in% all_cls)) cluster <- NULL
     if (is.null(cluster)) {
         # Kinda redundant. placeholder if I want to do deal with special case.
         ccluster <- NULL

@@ -75,9 +75,7 @@ rank_genes <- function(cadir, caobj) {
                 method = "random",
                 group = which(cadir@cell_clusters == gcs[c]),
                 quant = 0.99,
-                # quant = cadir@parameters$apl_quant,
-                reps = 100,
-                store_cutoff = TRUE
+                apl_cutoff_reps = 100
             )
         }
 
