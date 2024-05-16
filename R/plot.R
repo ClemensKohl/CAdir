@@ -607,6 +607,7 @@ sm_plot <- function(cadir,
                     show_cells = TRUE,
                     show_genes = FALSE,
                     highlight_cluster = FALSE) {
+
     #FIXME: Genes are basically impossible to tell from cells
     graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
 

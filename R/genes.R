@@ -27,6 +27,7 @@ ca_sphere_idx <- function(x, qcutoff = 0.8) {
 #' @param coords The coordinates to use for gene selection ("std" or "prin").
 #' @returns
 #' Gene clusters.
+#' @export
 assign_genes <- function(caobj,
                          cadir,
                          qcutoff = NULL,
