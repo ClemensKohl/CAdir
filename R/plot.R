@@ -621,6 +621,7 @@ sm_plot <- function(cadir,
     bg_coords <- get_x_y_values(bg)
 
     cls <- cadir@log$clusters
+    dirs <- cadir@log$directions
 
     nodes <- names(igraph::V(graph))
 
@@ -638,7 +639,12 @@ sm_plot <- function(cadir,
         grp_idx <- which(cls[, iter_nm] == cluster)
 
         # TODO: We calculate the directions new. Shouldn't we save them somehow?
-        dir <- total_least_squares(caobj@prin_coords_cols[grp_idx, ])
+        # dir <- total_least_squares(caobj@prin_coords_cols[grp_idx, ])
+
+        is_iter_dirs <- dirs$iter == iter_nm
+        dir <- dirs[is_iter_dirs, colnames(dirs) != "iter"]
+        # FIXME: this is not reliable. Maybe add the cluster to the logging info.
+        dir <- dir[cluster, ]
 
         p <- cluster_apl(
             caobj = caobj,
@@ -673,13 +679,14 @@ sm_plot <- function(cadir,
 # Adapted from cowplot::theme_nothing
 #' @importFrom ggplot2 '%+replace%'
 # ggplot2 theme that strips all elements from a plot.
-theme_blank <- function() {
+theme_blank <- function(title = ggplot2::element_blank(),
+                        text = ggplot2::element_blank()) {
     ggplot2::theme_void() %+replace%
         ggplot2::theme(
             # Elements in this first block aren't used directly, but are inherited
             line = ggplot2::element_blank(),
             rect = ggplot2::element_rect(),
-            text = ggplot2::element_blank(),
+            text = text,
             aspect.ratio = 1,
             axis.line = ggplot2::element_blank(),
             axis.line.x = NULL,
@@ -733,7 +740,7 @@ theme_blank <- function() {
             strip.switch.pad.grid = ggplot2::unit(0., "cm"),
             strip.switch.pad.wrap = ggplot2::unit(0., "cm"),
             plot.background = ggplot2::element_blank(),
-            plot.title = ggplot2::element_blank(),
+            plot.title = title,
             plot.subtitle = ggplot2::element_blank(),
             plot.caption = ggplot2::element_blank(),
             plot.tag = ggplot2::element_blank(),
