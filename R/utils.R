@@ -128,7 +128,7 @@ f2n <- function(f) {
     return(n)
 }
 
-#TODO: Add documentation
+# TODO: Add documentation
 #' Convert a numeric (or character) to a factor
 n2f <- function(n, lvls) {
     f <- factor(n, levels = lvls)
@@ -146,9 +146,9 @@ n2f <- function(n, lvls) {
 #' A data.frame with two columns ("from", "to") representing the edges in the graph.
 #' The data frame can be used to generate a graph.
 build_sub_graph <- function(before,
-                           after,
-                           before_nm = "start",
-                           after_nm = "end") {
+                            after,
+                            before_nm = "start",
+                            after_nm = "end") {
     graph <- data.frame()
     node <- unique(before)
 
@@ -287,7 +287,7 @@ cadir_to_biclust <- function(cadir) {
     return(bic)
 }
 
-#TODO: Add documentation
+# TODO: Add documentation
 #' Checks if APL S-alpha cutoff is already calculated.
 #' @param cadir Cadir object
 #' @param fun_args Arguments with which the parent function was called.
@@ -296,4 +296,26 @@ is_stored <- function(cadir, fun_args) {
         identical(fun_args$apl_cutoff_reps, cadir@parameters$apl_cutoff_reps) &&
         identical(fun_args$apl_quant, cadir@parameters$call$apl_quant) &&
         identical(fun_args$method, cadir@parameters$call$method)
+}
+
+log_iter <- function(log, cadir, name) {
+
+    log$clusters <- cbind(
+        log$clusters,
+        stats::setNames(
+            data.frame(f2n(cadir@cell_clusters)),
+            name
+        )
+    )
+
+
+    log$directions <- rbind(
+        log$directions,
+        cbind(
+            iter = name,
+            as.data.frame(cadir@directions)
+        )
+    )
+
+    return(log)
 }
