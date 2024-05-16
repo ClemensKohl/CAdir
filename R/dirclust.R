@@ -4,6 +4,8 @@
 # regular splitmerging (e.g. setting cutoff = auto or similar)
 #
 
+#FIXME: Change the naming scheme of the directions.
+# -> Also change `assign_cells() if you do!
 
 #' Initialize directions by kmeans++ method
 #' @param points Row-wise matrix of points to be clustered.
@@ -198,4 +200,25 @@ dirclust <- function(
 
 
     return(out)
+}
+
+#TODO: Document!
+assign_cells <- function(cells, directions) {
+
+    # vector norm
+    pnorm <- row_norm(cells)
+
+    # calculate distance to line.
+    ldist <- dist_to_line(cells, cells, pnorm)
+
+    # find closest line
+    clusters <- apply(ldist, 1, which.min)
+
+    dir_nms <- rownames(directions)
+    std_nm <- grepl("line[[:digit:]]+$", dir_nms)
+    if (all(std_nm)) {
+        clusters <- rownames(directions)[clusters]
+    }
+
+    return(clusters)
 }

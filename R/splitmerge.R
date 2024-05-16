@@ -341,14 +341,20 @@ dirclust_splitmerge <- function(caobj,
     # Convert cutoff to radians
     if (!is.null(cutoff)) cutoff <- deg2rad(cutoff)
     fun_args <- match.call()
-    cl_log <- as.data.frame(matrix(0,
+
+    # Set up logging.
+    log <- list()
+    log$clusters <- as.data.frame(matrix(0,
                                    ncol = 1,
                                    nrow = nrow(caobj@prin_coords_cols)))
-    colnames(cl_log) <- "root"
+    colnames(log$clusters) <- "root"
 
-    graph_log <- list()
+    log$directions <- as.data.frame(matrix(0,
+                                    ncol = ncol(caobj@prin_coords_cols),
+                                    nrow = 1))
+    log$directions <- cbind(iter = "root", log$directions)
 
-
+    # Initial CAdir clustering.
     out <- dirclust(
         points = caobj@prin_coords_cols,
         k = k,
@@ -358,9 +364,9 @@ dirclust_splitmerge <- function(caobj,
         log = FALSE
     )
 
-    cl_log <- cbind(cl_log,
-                    stats::setNames(data.frame(f2n(out@cell_clusters)),
-                             "iter_0"))
+    log <- log_iter(log = log,
+                    cadir = out,
+                    name = "iter_0")
 
     for (i in seq_len(reps)) {
         message("Iteration ", i)
@@ -380,9 +386,9 @@ dirclust_splitmerge <- function(caobj,
             apl_cutoff_reps = apl_cutoff_reps
         )
 
-        cl_log <- cbind(cl_log,
-                        stats::setNames(data.frame(f2n(out@cell_clusters)),
-                                 paste0("split_", iter_nm)))
+        log <- log_iter(log = log,
+                        cadir = out,
+                        name = paste0("split_", iter_nm))
 
         plots <- out@plots
 
@@ -398,9 +404,9 @@ dirclust_splitmerge <- function(caobj,
         out@parameters <- parameters
         out@log$last_rep <- i
 
-        cl_log <- cbind(cl_log,
-                        stats::setNames(data.frame(f2n(out@cell_clusters)),
-                                 paste0("interS_", iter_nm)))
+        log <- log_iter(log = log,
+                        cadir = out,
+                        name = paste0("interS_", iter_nm))
 
         out <- merge_clusters(
             caobj = caobj,
@@ -413,9 +419,9 @@ dirclust_splitmerge <- function(caobj,
             apl_cutoff_reps = apl_cutoff_reps
         )
 
-        cl_log <- cbind(cl_log,
-                        stats::setNames(data.frame(f2n(out@cell_clusters)),
-                                 paste0("merge_", iter_nm)))
+        log <- log_iter(log = log,
+                        cadir = out,
+                        name = paste0("merge_", iter_nm))
 
         plots <- out@plots
         parameters <- out@parameters
@@ -431,9 +437,9 @@ dirclust_splitmerge <- function(caobj,
         out@parameters <- parameters
         out@log$last_rep <- i
 
-        cl_log <- cbind(cl_log,
-                        stats::setNames(data.frame(f2n(out@cell_clusters)),
-                                 paste0("interM_", iter_nm)))
+        log <- log_iter(log = log,
+                        cadir = out,
+                        name = paste0("interM_", iter_nm))
 
     }
 
@@ -446,12 +452,11 @@ dirclust_splitmerge <- function(caobj,
 
     out <- rename_clusters(out)
 
-    cl_log <- cbind(cl_log,
-                    stats::setNames(data.frame(f2n(out@cell_clusters)),
-                             "end"))
+    log <- log_iter(log = log,
+                    cadir = out,
+                    name = paste0("end", iter_nm))
 
-    out@log$clusters <- cl_log
-    out@log$graph <- graph_log
+    out@log <- log
     out@parameters$call <- fun_args
 
     return(out)
