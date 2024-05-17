@@ -612,10 +612,11 @@ sm_plot <- function(cadir,
                     show_genes = FALSE,
                     highlight_cluster = FALSE,
                     annotate_clusters = FALSE,
-                    org = "mm") {
+                    org = "mm",
+                    keep_end = TRUE) {
 
     #FIXME: Genes are basically impossible to tell from cells
-    graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
+    graph <- build_graph(cadir = cadir, rm_redund = rm_redund, keep_end = keep_end)
 
     lgraph <- ggraph::create_layout(graph, layout = "tree")
 
