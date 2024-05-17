@@ -699,10 +699,10 @@ sm_plot <- function(cadir,
             point_size = 0.3
         )
         if (isTRUE(annotate_clusters)) {
-            p <- p + ggtitle(cell_type) +
+            p <- p + ggplot2::ggtitle(cell_type) +
                 theme_blank(
-                    title = element_text(color = "black", size = 10, face = "bold"),
-                    text = element_text()
+                    title = ggplot2::element_text(color = "black", size = 10, face = "bold"),
+                    text = ggplot2::element_text()
                 )
         } else {
             # scale_color_mpimg(name = "mpimg") + #FIXME: We need to pick a color palette for a large number of clusters
