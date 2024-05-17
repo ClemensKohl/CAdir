@@ -610,7 +610,9 @@ sm_plot <- function(cadir,
                     rm_redund = TRUE,
                     show_cells = TRUE,
                     show_genes = FALSE,
-                    highlight_cluster = FALSE) {
+                    highlight_cluster = FALSE,
+                    annotate_clusters = FALSE,
+                    org = "mm") {
 
     #FIXME: Genes are basically impossible to tell from cells
     graph <- build_graph(cadir = cadir, rm_redund = rm_redund)
@@ -629,6 +631,7 @@ sm_plot <- function(cadir,
 
     nodes <- names(igraph::V(graph))
 
+    old_iter_nm <- ""
     for (i in seq_len(nrow(lgraph))) {
         node_nm <- nodes[i]
 
@@ -650,6 +653,38 @@ sm_plot <- function(cadir,
         # FIXME: this is not reliable. Maybe add the cluster to the logging info.
         dir <- dir[cluster, ]
 
+        if (isTRUE(annotate_clusters)) {
+            if (iter_nm != old_iter_nm) {
+                tmp_ccs <- n2f(cls[, iter_nm])
+                names(tmp_ccs) <- rownames(caobj@prin_coords_cols)
+
+                tmp_cadir <- methods::new(
+                    "cadir",
+                    cell_clusters = tmp_ccs,
+                    directions = as.matrix(dirs[is_iter_dirs,
+                                           colnames(dirs) != "iter"])
+                )
+
+                tmp_cadir@gene_clusters <- CAdir:::assign_genes(
+                    caobj = caobj,
+                    cadir = tmp_cadir,
+                    qcutoff = 0.8
+                )
+
+                tmp_cadir <- CAdir::annotate_biclustering(
+                    obj = tmp_cadir,
+                    universe = rownames(caobj@std_coords_rows),
+                    org = org,
+                    alpha = 0.05,
+                    min_size = 10,
+                    max_size = 500
+                )
+                old_iter_nm <- iter_nm
+            }
+
+            cell_type <- rownames(tmp_cadir@directions)[cluster]
+        }
+
         p <- cluster_apl(
             caobj = caobj,
             cadir = cadir,
@@ -662,9 +697,17 @@ sm_plot <- function(cadir,
             colour_by_group = TRUE,
             show_lines = FALSE,
             point_size = 0.3
-        ) +
+        )
+        if (isTRUE(annotate_clusters)) {
+            p <- p + ggtitle(cell_type) +
+                theme_blank(
+                    title = element_text(color = "black", size = 10, face = "bold"),
+                    text = element_text()
+                )
+        } else {
             # scale_color_mpimg(name = "mpimg") + #FIXME: We need to pick a color palette for a large number of clusters
-            theme_blank()
+            p <- p + theme_blank()
+        }
 
         bg <- bg +
             patchwork::inset_element(p,
