@@ -93,7 +93,11 @@ cluster_apl <- function(caobj,
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
 
-    all_cls <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
+    if (!is.null(cluster)) cluster <- as.character(cluster)
+
+    all_cls <- as.character(
+        sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
+    )
 
     if (!is.null(cluster) && (!cluster %in% all_cls)) cluster <- NULL
     if (is.null(cluster)) {
@@ -104,10 +108,10 @@ cluster_apl <- function(caobj,
         cell_grp <- seq_len(length(cadir@cell_clusters))
         gene_grp <- seq_len(length(cadir@gene_clusters))
     } else {
-        ccluster <- n2f(cluster, lvls = levels(cadir@cell_clusters))
-        gcluster <- n2f(cluster, lvls = levels(cadir@gene_clusters))
-        cell_grp <- which(cadir@cell_clusters == ccluster)
-        gene_grp <- which(cadir@gene_clusters == gcluster)
+        # ccluster <- n2f(cluster, lvls = levels(cadir@cell_clusters))
+        # gcluster <- n2f(cluster, lvls = levels(cadir@gene_clusters))
+        cell_grp <- which(f2c(cadir@cell_clusters) == cluster)
+        gene_grp <- which(f2c(cadir@gene_clusters) == cluster)
     }
 
     # cat("\nCluster:", cluster)
@@ -171,7 +175,7 @@ cluster_apl <- function(caobj,
     # we flip the line.
     for (d in seq_len(nrow(dapl))) {
         sel <- match(
-            names(cadir@cell_clusters)[f2n(cadir@cell_clusters) == d],
+            names(cadir@cell_clusters)[as.numeric(cadir@cell_clusters) == d],
             rownames(caobj@prin_coords_cols)
         )
 

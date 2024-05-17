@@ -128,6 +128,14 @@ f2n <- function(f) {
     return(n)
 }
 
+# TODO: Add documentation.
+f2c <- function(f) {
+    c <- as.character(f)
+    stopifnot(is.character(c))
+
+    return(c)
+}
+
 # TODO: Add documentation
 #' Convert a numeric (or character) to a factor
 n2f <- function(n, lvls) {

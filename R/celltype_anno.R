@@ -15,22 +15,22 @@ setMethod(
         # cell clusters
         ccs <- cell_clusters(obj)
         ccs_nm <- names(ccs)
-
         unccs <- sort(unique(ccs))
-
-        ccs <- as.character(ccs)
-        unccs <- as.character(unccs)
 
         # gene clusters
         gcs <- gene_clusters(obj)
         gcs_nm <- names(gcs)
         ungcs <- sort(unique(gcs))
 
-        gcs <- as.character(gcs)
-        ungcs <- as.character(ungcs)
-
         # Combine clusters
         allcs <- sort(unique(c(unccs, ungcs)))
+
+        # Convert to character
+        ccs <- as.character(ccs)
+        unccs <- as.character(unccs)
+        gcs <- as.character(gcs)
+        ungcs <- as.character(ungcs)
+        allcs <- as.character(allcs)
 
         # Directions
         dirs <- obj@directions
@@ -90,10 +90,11 @@ setMethod(
 
         names(gcs) <- gcs_nm
         names(ccs) <- ccs_nm
+        lvls <- rownames(dirs)
 
         # update results
-        obj@cell_clusters <- as.factor(ccs)
-        obj@gene_clusters <- as.factor(gcs)
+        obj@cell_clusters <- factor(ccs, levels = lvls)
+        obj@gene_clusters <- factor(gcs, levels = lvls)
         obj@directions <- dirs
 
         stopifnot(validObject(obj))
