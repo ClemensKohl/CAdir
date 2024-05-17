@@ -173,13 +173,12 @@ build_sub_graph <- function(before,
     return(graph)
 }
 
-# FIXME: Even if rm_redund include last (end) iteration!
 #' Build igraph from a cadir results.
 #' @param cadir A cadir object with valid clustering results.
 #' @param rm_redund If TRUE, removes all clustering iterations where nothing changed (no splits/merges).
 #' @returns
 #' A directed igraph object with all splits and merges.
-build_graph <- function(cadir, rm_redund = FALSE) {
+build_graph <- function(cadir, rm_redund = FALSE, keep_end = TRUE) {
     graph_list <- list()
     cls <- cadir@log$clusters
 
@@ -199,7 +198,8 @@ build_graph <- function(cadir, rm_redund = FALSE) {
         bef_cls <- cls[, sel[i] - 1]
         aft_cls <- cls[, sel[i]]
 
-        if (i != length(sel) &&
+        is_end <- (i != length(sel) && keep_end)
+        if (!is_end &&
             all(bef_cls == aft_cls) &&
             (isTRUE(rm_redund))) next
 
