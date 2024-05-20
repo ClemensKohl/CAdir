@@ -201,7 +201,7 @@ build_graph <- function(cadir, rm_redund = FALSE, keep_end = TRUE) {
         is_end <- (i != length(sel) && keep_end)
         if (!is_end &&
             all(bef_cls == aft_cls) &&
-            (isTRUE(rm_redund))) next
+            isTRUE(rm_redund)) next
 
         graph_list[[i]] <- build_sub_graph(
             before = bef_cls,
