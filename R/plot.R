@@ -646,9 +646,6 @@ sm_plot <- function(cadir,
 
         grp_idx <- which(cls[, iter_nm] == cluster)
 
-        # TODO: We calculate the directions new. Shouldn't we save them somehow?
-        # dir <- total_least_squares(caobj@prin_coords_cols[grp_idx, ])
-
         is_iter_dirs <- dirs$iter == iter_nm
         dir <- dirs[is_iter_dirs, colnames(dirs) != "iter"]
         # FIXME: this is not reliable. Maybe add the cluster to the logging info.
@@ -672,14 +669,16 @@ sm_plot <- function(cadir,
                     qcutoff = 0.8
                 )
 
-                tmp_cadir <- CAdir::annotate_biclustering(
-                    obj = tmp_cadir,
-                    universe = rownames(caobj@std_coords_rows),
-                    org = org,
-                    alpha = 0.05,
-                    min_size = 10,
-                    max_size = 500
-                )
+                suppressWarnings({
+                    tmp_cadir <- CAdir::annotate_biclustering(
+                        obj = tmp_cadir,
+                        universe = rownames(caobj@std_coords_rows),
+                        org = org,
+                        alpha = 0.05,
+                        min_size = 10,
+                        max_size = 500
+                    )
+                })
                 old_iter_nm <- iter_nm
             }
 
