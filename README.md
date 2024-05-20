@@ -4,9 +4,10 @@ This package implements a clustering algorithms that determines clusters iterati
 Unlike most other algorithms it does not require prior knowledge of the number of clusters in the data, but can instead infer them during clustering.
 
 # TODO
-- [x] Add documentation to missing functions.
+- [ ] Add documentation to missing functions.
 - [ ] Reduce dependencies and insure that all packages are available on CRAN/Bioconductor. -> ggsankey!
-- [ ] "Prettify" plotting functions. -> Colors for APL plots!
+- [x] "Prettify" plotting functions. -> Colors for APL plots!
 - [ ] Write vignette.
-- [ ] Add Salpha scoring to rank the genes.
-- [ ] Add kernel CA as a non-linear alternative.
+- [x] Add Salpha scoring to rank the genes.
+- [ ] Add kernel CA as a non-linear alternative. (Prototype exists on branch kernel_svd)
+- [ ] Enable labeling of genes in cluster_apl
