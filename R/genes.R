@@ -65,7 +65,7 @@ rank_genes <- function(cadir, caobj) {
     # Step 2: Get APL coordinates of co-clustered genes
     # for the cluster direction.
     gcs <- sort(unique(cadir@gene_clusters))
-    gcs_lvls <- as.numeric(levels(gcs))
+    gcs_lvls <- as.numeric(gcs)
 
     all_ranks <- list()
     for (c in gcs_lvls) {
@@ -108,7 +108,9 @@ rank_genes <- function(cadir, caobj) {
 
         ranking <- ranking[order(ranking$Score, decreasing = TRUE), ]
         ranking$Rank <- seq_len(nrow(ranking))
-        all_ranks[[paste0("cluster_", c)]] <- ranking
+
+        all_ranks[[as.character(gcs[c])]] <- ranking
+        # all_ranks[[paste0("cluster_", c)]] <- ranking
     }
     # Step 4: Store results is new slot (needs to be created)
     cadir@gene_ranks <- all_ranks
