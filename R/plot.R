@@ -88,7 +88,7 @@ cluster_apl <- function(caobj,
                         highlight_cluster = TRUE,
                         colour_by_group = FALSE,
                         point_size = 1.5) {
-
+    # TODO: Add an easy way to highlight co-clustered genes.
     # TODO: Check if you can simplify the cluster/group assignments.
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
@@ -102,8 +102,8 @@ cluster_apl <- function(caobj,
     if (!is.null(cluster) && (!cluster %in% all_cls)) cluster <- NULL
     if (is.null(cluster)) {
         # Kinda redundant. placeholder if I want to do deal with special case.
-        ccluster <- NULL
-        gcluster <- NULL
+        # ccluster <- NULL
+        # gcluster <- NULL
 
         cell_grp <- seq_len(length(cadir@cell_clusters))
         gene_grp <- seq_len(length(cadir@gene_clusters))
@@ -407,6 +407,9 @@ plot_results <- function(cadir,
 #' @returns A plot that summarizes the cell clustering results.
 #' @export
 plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
+    #TODO: Check if it really works as intended.
+    #FIXME: some of the boolean comparison might break?
+
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
 
@@ -414,8 +417,8 @@ plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
         p <- cluster_apl(
             caobj = caobj,
             cadir = cadir,
-            direction = cadir@directions[f2n(cls[i]), ],
-            cluster = cls[i],
+            direction = cadir@directions[as.numeric(cls[i]), ],
+            cluster = as.character(cls[i]),
             group = which(cadir@cell_clusters == cls[i]),
             show_cells = TRUE,
             show_genes = show_genes,
@@ -439,7 +442,9 @@ plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
         pls[[i]] <- p
     }
 
-    fig <- ggpubr::ggarrange(plotlist = pls, nrow = ceiling(sqrt(length(cls))), ncol = ceiling(sqrt(length(cls))))
+    fig <- ggpubr::ggarrange(plotlist = pls,
+                             nrow = ceiling(sqrt(length(cls))),
+                             ncol = ceiling(sqrt(length(cls))))
     return(fig)
 }
 
@@ -646,9 +651,6 @@ sm_plot <- function(cadir,
 
         grp_idx <- which(cls[, iter_nm] == cluster)
 
-        # TODO: We calculate the directions new. Shouldn't we save them somehow?
-        # dir <- total_least_squares(caobj@prin_coords_cols[grp_idx, ])
-
         is_iter_dirs <- dirs$iter == iter_nm
         dir <- dirs[is_iter_dirs, colnames(dirs) != "iter"]
         # FIXME: this is not reliable. Maybe add the cluster to the logging info.
@@ -672,14 +674,16 @@ sm_plot <- function(cadir,
                     qcutoff = 0.8
                 )
 
-                tmp_cadir <- CAdir::annotate_biclustering(
-                    obj = tmp_cadir,
-                    universe = rownames(caobj@std_coords_rows),
-                    org = org,
-                    alpha = 0.05,
-                    min_size = 10,
-                    max_size = 500
-                )
+                suppressWarnings({
+                    tmp_cadir <- CAdir::annotate_biclustering(
+                        obj = tmp_cadir,
+                        universe = rownames(caobj@std_coords_rows),
+                        org = org,
+                        alpha = 0.05,
+                        min_size = 10,
+                        max_size = 500
+                    )
+                })
                 old_iter_nm <- iter_nm
             }
 
