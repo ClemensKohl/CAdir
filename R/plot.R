@@ -9,7 +9,6 @@ apl_model <- function(
     caobj,
     direction,
     group = NULL) {
-
     stopifnot(methods::is(caobj, "cacomp"))
 
     cent <- caobj@prin_coords_cols
@@ -87,8 +86,8 @@ cluster_apl <- function(caobj,
                         show_lines = TRUE,
                         highlight_cluster = TRUE,
                         colour_by_group = FALSE,
+                        label_genes = FALSE,
                         point_size = 1.5) {
-    # TODO: Add an easy way to highlight co-clustered genes.
     # TODO: Check if you can simplify the cluster/group assignments.
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
@@ -219,7 +218,7 @@ cluster_apl <- function(caobj,
         df$cluster <- factor(df$cluster, levels = c("other", "cluster"))
         ord <- order(df$cluster)
         df <- df[ord, ]
-    } else if (show_cells || show_genes){
+    } else if (show_cells || show_genes) {
         df$cluster <- 0
 
         sel_cells <- match(names(cadir@cell_clusters), df$sample)
@@ -276,6 +275,20 @@ cluster_apl <- function(caobj,
                     "cluster" = "#c6d325",
                     "other" = "#006c66"
                 ))
+            }
+
+            if (label_genes) {
+                to_highlight <- (df$type == "gene" &
+                    df$cluster == "gene_cluster")
+                p <- p + ggrepel::geom_label_repel(
+                    data = df[to_highlight, ],
+                    ggplot2::aes(
+                        x = x,
+                        y = y,
+                        label = sample
+                    ),
+                    max.overlaps = Inf
+                )
             }
         }
     }
@@ -350,7 +363,7 @@ plot_results <- function(cadir,
     for (i in seq_along(cls)) {
         for (j in seq_along(cls)) {
             sel <- which(cadir@cell_clusters == cls[i] |
-                         cadir@cell_clusters == cls[j])
+                cadir@cell_clusters == cls[j])
             sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
 
             sub_cak <- methods::new("cadir",
@@ -393,9 +406,11 @@ plot_results <- function(cadir,
         }
     }
 
-    fig <- ggpubr::ggarrange(plotlist = pls,
-                             nrow = length(cls),
-                             ncol = length(cls))
+    fig <- ggpubr::ggarrange(
+        plotlist = pls,
+        nrow = length(cls),
+        ncol = length(cls)
+    )
     return(fig)
 }
 
@@ -406,10 +421,11 @@ plot_results <- function(cadir,
 #' @inheritParams cluster_apl
 #' @returns A plot that summarizes the cell clustering results.
 #' @export
-plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
-    #TODO: Check if it really works as intended.
-    #FIXME: some of the boolean comparison might break?
-
+plot_clusters <- function(cadir,
+                          caobj,
+                          point_size = 1,
+                          show_genes = FALSE,
+                          label_genes = FALSE) {
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
 
@@ -424,7 +440,8 @@ plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
             show_genes = show_genes,
             show_lines = FALSE,
             highlight_cluster = TRUE,
-            colour_by_group = FALSE
+            colour_by_group = FALSE,
+            label_genes = label_genes
         ) +
             ggplot2::ggtitle(paste0("cluster_", i)) +
             ggplot2::theme(
@@ -442,9 +459,11 @@ plot_clusters <- function(cadir, caobj, point_size = 1, show_genes = FALSE) {
         pls[[i]] <- p
     }
 
-    fig <- ggpubr::ggarrange(plotlist = pls,
-                             nrow = ceiling(sqrt(length(cls))),
-                             ncol = ceiling(sqrt(length(cls))))
+    fig <- ggpubr::ggarrange(
+        plotlist = pls,
+        nrow = ceiling(sqrt(length(cls))),
+        ncol = ceiling(sqrt(length(cls)))
+    )
     return(fig)
 }
 
@@ -619,8 +638,7 @@ sm_plot <- function(cadir,
                     annotate_clusters = FALSE,
                     org = "mm",
                     keep_end = TRUE) {
-
-    #FIXME: Genes are basically impossible to tell from cells
+    # FIXME: Genes are basically impossible to tell from cells
     graph <- build_graph(cadir = cadir, rm_redund = rm_redund, keep_end = keep_end)
 
     lgraph <- ggraph::create_layout(graph, layout = "tree")
@@ -664,8 +682,10 @@ sm_plot <- function(cadir,
                 tmp_cadir <- methods::new(
                     "cadir",
                     cell_clusters = tmp_ccs,
-                    directions = as.matrix(dirs[is_iter_dirs,
-                                           colnames(dirs) != "iter"])
+                    directions = as.matrix(dirs[
+                        is_iter_dirs,
+                        colnames(dirs) != "iter"
+                    ])
                 )
 
                 tmp_cadir@gene_clusters <- CAdir:::assign_genes(

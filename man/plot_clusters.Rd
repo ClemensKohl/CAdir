@@ -4,7 +4,13 @@
 \alias{plot_clusters}
 \title{Summarizes the cell clustering results in a single plot.}
 \usage{
-plot_clusters(cadir, caobj, point_size = 1, show_genes = FALSE)
+plot_clusters(
+  cadir,
+  caobj,
+  point_size = 1,
+  show_genes = FALSE,
+  label_genes = FALSE
+)
 }
 \arguments{
 \item{cadir}{A cadir object with valid cell clustering results.}

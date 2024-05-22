@@ -11,7 +11,10 @@ sm_plot(
   rm_redund = TRUE,
   show_cells = TRUE,
   show_genes = FALSE,
-  highlight_cluster = FALSE
+  highlight_cluster = FALSE,
+  annotate_clusters = FALSE,
+  org = "mm",
+  keep_end = TRUE
 )
 }
 \arguments{

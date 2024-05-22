@@ -15,6 +15,7 @@ cluster_apl(
   show_lines = TRUE,
   highlight_cluster = TRUE,
   colour_by_group = FALSE,
+  label_genes = FALSE,
   point_size = 1.5
 )
 }
