@@ -88,6 +88,7 @@ cluster_apl <- function(caobj,
                         colour_by_group = FALSE,
                         label_genes = FALSE,
                         point_size = 1.5) {
+
     # TODO: Check if you can simplify the cluster/group assignments.
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
@@ -198,14 +199,14 @@ cluster_apl <- function(caobj,
             sel <- c()
             if (show_cells) {
                 sel_cells <- match(
-                    rownames(caobj@prin_coords_cols)[cell_grp],
+                    names(cadir@cell_clusters)[cell_grp],
                     df$sample
                 )
                 sel <- c(sel, sel_cells)
             }
             if (show_genes) {
                 sel_genes <- match(
-                    rownames(caobj@prin_coords_rows)[gene_grp],
+                    names(cadir@gene_clusters)[gene_grp],
                     df$sample
                 )
                 sel <- c(sel, sel_genes)
@@ -247,7 +248,7 @@ cluster_apl <- function(caobj,
 
     if (isTRUE(show_cells) || isTRUE(show_genes)) {
         if (show_cells && show_genes) {
-            size_factor <- 1.5
+            size_factor <- 2
         } else {
             size_factor <- 1
         }
@@ -255,11 +256,11 @@ cluster_apl <- function(caobj,
             ggplot2::geom_point(ggplot2::aes(shape = type, size = type)) +
             ggplot2::scale_size_manual(values = c(
                 "cell" = point_size,
-                "gene" = point_size / size_factor
+                "gene" = point_size * size_factor
             )) +
             ggplot2::scale_shape_manual(values = c(
                 "cell" = 19,
-                "gene" = 1
+                "gene" = 8
             ))
 
         if (isTRUE(highlight_cluster)) {
@@ -279,7 +280,7 @@ cluster_apl <- function(caobj,
 
             if (label_genes) {
                 to_highlight <- (df$type == "gene" &
-                    df$cluster == "gene_cluster")
+                                 df$cluster == "gene_cluster")
                 p <- p + ggrepel::geom_label_repel(
                     data = df[to_highlight, ],
                     ggplot2::aes(
