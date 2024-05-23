@@ -87,8 +87,9 @@ cluster_apl <- function(caobj,
                         highlight_cluster = TRUE,
                         colour_by_group = FALSE,
                         label_genes = FALSE,
-                        point_size = 1.5) {
-
+                        point_size = 1.5,
+                        size_factor = 2,
+                        ntop = 15) {
     # TODO: Check if you can simplify the cluster/group assignments.
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
@@ -233,12 +234,12 @@ cluster_apl <- function(caobj,
 
     if (isTRUE(show_cells) || isTRUE(show_genes)) {
         if (show_cells && show_genes) {
-            size_factor <- 2
+            size_factor <- size_factor # I know, I know ...
         } else {
             size_factor <- 1
         }
         p <- p +
-            ggplot2::geom_point(ggplot2::aes(shape = type, size = type)) +
+            ggplot2::geom_point(ggplot2::aes(shape = type, size = type, alpha = cluster)) +
             ggplot2::scale_size_manual(values = c(
                 "cell" = point_size,
                 "gene" = point_size * size_factor
@@ -246,6 +247,14 @@ cluster_apl <- function(caobj,
             ggplot2::scale_shape_manual(values = c(
                 "cell" = 19,
                 "gene" = 8
+            )) +
+            ggplot2::scale_alpha_manual(values = c(
+                "cluster" = 1,
+                "other" = 0.7,
+                "cell_cluster" = 1,
+                "gene_cluster" = 1,
+                "cell_other" = 0.7,
+                "gene_other" = 0.3
             ))
 
         if (isTRUE(highlight_cluster)) {
@@ -265,9 +274,11 @@ cluster_apl <- function(caobj,
 
             if (label_genes) {
                 to_highlight <- (df$type == "gene" &
-                                 df$cluster == "gene_cluster")
+                    df$cluster == "gene_cluster")
+                dfh <- df[to_highlight, ]
+                dfh <- head(dfh[order(dfh$x, decreasing = TRUE), ], ntop)
                 p <- p + ggrepel::geom_label_repel(
-                    data = df[to_highlight, ],
+                    data = dfh,
                     ggplot2::aes(
                         x = x,
                         y = y,
@@ -357,8 +368,8 @@ plot_results <- function(cadir,
                 directions = cadir@directions[sel_dir, , drop = FALSE]
             )
             # cat("\n\ni,j", i, ",", j)
-            if (show_cells) sc <- i == j
-            if (show_genes) sg <- i == j
+            if (show_cells) sc <- i == j else sc <- FALSE
+            if (show_genes) sg <- i == j else sg <- FALSE
             p <- cluster_apl(
                 caobj = caobj,
                 cadir = sub_cak,
@@ -410,8 +421,10 @@ plot_results <- function(cadir,
 plot_clusters <- function(cadir,
                           caobj,
                           point_size = 1,
+                          size_factor = 1,
                           show_genes = FALSE,
-                          label_genes = FALSE) {
+                          label_genes = FALSE,
+                          ntop = 5) {
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
 
@@ -427,7 +440,10 @@ plot_clusters <- function(cadir,
             show_lines = FALSE,
             highlight_cluster = TRUE,
             colour_by_group = FALSE,
-            label_genes = label_genes
+            label_genes = label_genes,
+            point_size = point_size,
+            size_factor = size_factor,
+            ntop = ntop
         ) +
             ggplot2::ggtitle(paste0("cluster_", i)) +
             ggplot2::theme(
@@ -440,7 +456,7 @@ plot_clusters <- function(cadir,
                 axis.ticks.y = ggplot2::element_blank()
             )
 
-        p$layers[[1]]$aes_params$size <- point_size
+        # p$layers[[1]]$aes_params$size <- point_size
 
         pls[[i]] <- p
     }
@@ -450,7 +466,7 @@ plot_clusters <- function(cadir,
         nrow = ceiling(sqrt(length(cls))),
         ncol = ceiling(sqrt(length(cls)))
     )
-    return(fig)
+    return(suppressWarnings(fig))
 }
 
 
@@ -625,7 +641,11 @@ sm_plot <- function(cadir,
                     org = "mm",
                     keep_end = TRUE) {
     # FIXME: Genes are basically impossible to tell from cells
-    graph <- build_graph(cadir = cadir, rm_redund = rm_redund, keep_end = keep_end)
+    graph <- build_graph(
+        cadir = cadir,
+        rm_redund = rm_redund,
+        keep_end = keep_end
+    )
 
     lgraph <- ggraph::create_layout(graph, layout = "tree")
 
@@ -656,30 +676,35 @@ sm_plot <- function(cadir,
         grp_idx <- which(cls[, iter_nm] == cluster)
 
         is_iter_dirs <- dirs$iter == iter_nm
-        dir <- dirs[is_iter_dirs, colnames(dirs) != "iter"]
+        coord_column <- !colnames(dirs) %in% c("iter", "dirname")
+
+        tmp_dirs <- dirs[is_iter_dirs, coord_column]
+        rownames(tmp_dirs) <- dirs[is_iter_dirs, "dirname"]
+
         # FIXME: this is not reliable. Maybe add the cluster to the logging info.
-        dir <- dir[cluster, ]
+        dir <- tmp_dirs[cluster, ]
 
-        if (isTRUE(annotate_clusters)) {
-            if (iter_nm != old_iter_nm) {
-                tmp_ccs <- n2f(cls[, iter_nm])
-                names(tmp_ccs) <- rownames(caobj@prin_coords_cols)
+        if (iter_nm != old_iter_nm) {
+            tmp_ccs <- n2f(cls[, iter_nm])
+            names(tmp_ccs) <- rownames(caobj@prin_coords_cols)
 
-                tmp_cadir <- methods::new(
-                    "cadir",
-                    cell_clusters = tmp_ccs,
-                    directions = as.matrix(dirs[
-                        is_iter_dirs,
-                        colnames(dirs) != "iter"
-                    ])
-                )
+            tmp_cadir <- methods::new(
+                "cadir",
+                cell_clusters = tmp_ccs,
+                directions = as.matrix(tmp_dirs)
+            )
 
-                tmp_cadir@gene_clusters <- CAdir:::assign_genes(
-                    caobj = caobj,
-                    cadir = tmp_cadir,
-                    qcutoff = 0.8
-                )
+            if (is.null(cadir@parameters$qcutoff)) {
+                cadir@parameters$qcutoff <- 0.8
+            }
 
+            tmp_cadir@gene_clusters <- CAdir:::assign_genes(
+                caobj = caobj,
+                cadir = tmp_cadir,
+                qcutoff = cadir@parameters$qcutoff
+            )
+
+            if (isTRUE(annotate_clusters)) {
                 suppressWarnings({
                     tmp_cadir <- CAdir::annotate_biclustering(
                         obj = tmp_cadir,
@@ -690,27 +715,33 @@ sm_plot <- function(cadir,
                         max_size = 500
                     )
                 })
-                old_iter_nm <- iter_nm
             }
 
-            cell_type <- rownames(tmp_cadir@directions)[cluster]
+            old_iter_nm <- iter_nm
         }
+
+        cluster <- rownames(tmp_cadir@directions)[cluster]
+        cluster <- gsub("line", "cluster", cluster)
+        rownames(dir) <- cluster
+        # cluster <- cell_type
+
+        colour_by_group <- !highlight_cluster
 
         p <- cluster_apl(
             caobj = caobj,
-            cadir = cadir,
+            cadir = tmp_cadir,
             direction = as.numeric(dir),
             group = grp_idx,
             cluster = cluster,
             show_cells = show_cells,
             show_genes = show_genes,
             highlight_cluster = highlight_cluster,
-            colour_by_group = TRUE,
+            colour_by_group = colour_by_group,
             show_lines = FALSE,
             point_size = 0.3
         )
         if (isTRUE(annotate_clusters)) {
-            p <- p + ggplot2::ggtitle(cell_type) +
+            p <- p + ggplot2::ggtitle(cluster) +
                 theme_blank(
                     title = ggplot2::element_text(color = "black", size = 10, face = "bold"),
                     text = ggplot2::element_text()
