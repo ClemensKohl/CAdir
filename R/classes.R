@@ -3,18 +3,18 @@
 
 #' Checks if cadir-class was constructed correctly
 #'
-#' @param obj A `cadir` object
+#' @param object A `cadir` object
 #'
 #' @return
 #' If object is a valid cadir object returns TRUE, otherwise the errors.
-check_cadir <- function(obj) {
-    stopifnot(methods::is(obj, "cadir"))
+check_cadir <- function(object) {
+    stopifnot(methods::is(object, "cadir"))
 
     errors <- character()
 
-    ndir <- nrow(obj@directions)
-    n_cell_cl <- unique(obj@cell_clusters)
-    n_gene_cl <- unique(obj@gene_clusters)
+    ndir <- nrow(object@directions)
+    n_cell_cl <- unique(object@cell_clusters)
+    n_gene_cl <- unique(object@gene_clusters)
 
     n_cl <- length(unique(n_cell_cl, n_gene_cl))
 
@@ -27,17 +27,18 @@ check_cadir <- function(obj) {
         errors <- c(errors, msg)
     }
 
-    if (ndir != ncol(obj@distances) && !is.empty(obj@distances)) {
+    if (ndir != ncol(object@distances) && !is.empty(object@distances)) {
         msg <- c("Distances dont match directions.")
         errors <- c(errors, msg)
     }
 
-    if (is.null(names(obj@cell_clusters))) {
+    if (is.null(names(object@cell_clusters))) {
         msg <- c("Cell clusters have no names.")
         errors <- c(errors, msg)
     }
 
-    if (!is.empty(obj@gene_clusters) && is.null(names(obj@gene_clusters))) {
+    if (!is.empty(object@gene_clusters) &&
+        is.null(names(object@gene_clusters))) {
         msg <- c("Gene clusters have no names.")
         errors <- c(errors, msg)
     }
@@ -74,6 +75,7 @@ check_cadir <- function(obj) {
 #' @slot log This slot saves information during the clustering process, such as the clusters at each iteration.
 #' @slot plots This slot saves the plots generated during the clustering process.
 #' were generated.
+#' @slot gene_ranks Ranks for all co-clustered genes.
 #' @export
 setClass("cadir",
     contains = "caclust",
@@ -84,7 +86,8 @@ setClass("cadir",
         distances = "matrix",
         log = "list",
         parameters = "list",
-        plots = "list"
+        plots = "list",
+        gene_ranks = "list"
     ),
     prototype(
         cell_clusters = factor(),
@@ -93,9 +96,12 @@ setClass("cadir",
         distances = matrix(0, 0, 0),
         parameters = list(),
         log = list(),
-        plots = list("splits" = list(),
-                     "merges" = list(),
-                     "clusters" = list())
+        plots = list(
+            "splits" = list(),
+            "merges" = list(),
+            "clusters" = list()
+        ),
+        gene_ranks = list()
     ),
     validity = check_cadir
 )

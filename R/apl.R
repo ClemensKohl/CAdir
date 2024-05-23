@@ -1,4 +1,3 @@
-
 #' Random direction association plot coordinates
 #'
 #' @description
@@ -14,8 +13,7 @@
 random_direction_cutoff <- function(
     caobj,
     dims = caobj@dims,
-    reps = 300
-) {
+    apl_cutoff_reps = 300) {
     row_num <- nrow(caobj@prin_coords_cols)
 
     if (caobj@dims == 1 && !is.empty(caobj@dims)) {
@@ -28,12 +26,12 @@ random_direction_cutoff <- function(
 
     cols <- caobj@prin_coords_cols
     apl_perm <- data.frame(
-        "x" = rep(0, row_num * reps),
-        "y" = rep(0, row_num * reps)
+        "x" = rep(0, row_num * apl_cutoff_reps),
+        "y" = rep(0, row_num * apl_cutoff_reps)
     )
 
 
-    for (k in seq(reps)) {
+    for (k in seq(apl_cutoff_reps)) {
         # this picks random directions within the space of the original data.
         avg_group_coords <- stats::runif(
             n = dims,
@@ -53,7 +51,6 @@ random_direction_cutoff <- function(
 
         idx <- ((1:row_num) + ((k - 1) * row_num))
         apl_perm[idx, ] <- cbind("x" = colx, "y" = coly)
-
     }
     return(apl_perm)
 }
@@ -75,13 +72,13 @@ permutation_cutoff <- function(caobj,
                                counts,
                                group = caobj@group,
                                dims = caobj@dims,
-                               reps = 10,
+                               apl_cutoff_reps = 10,
                                python = TRUE) {
     row_num <- nrow(counts)
 
     apl_perm <- data.frame(
-        "x" = rep(0, row_num * reps),
-        "y" = rep(0, row_num * reps)
+        "x" = rep(0, row_num * apl_cutoff_reps),
+        "y" = rep(0, row_num * apl_cutoff_reps)
     )
 
 
@@ -94,7 +91,7 @@ permutation_cutoff <- function(caobj,
     cc <- TRUE
     cr <- FALSE
 
-    for (k in seq(reps)) {
+    for (k in seq(apl_cutoff_reps)) {
         # permute rows and rerun cacomp
 
         mat_perm <- t(apply(counts, margin, FUN = sample))
@@ -131,6 +128,7 @@ permutation_cutoff <- function(caobj,
     return(apl_perm)
 }
 
+# FIXME: Clean up function from commented out parts.
 
 #' Calculates the S_alpha cutoff based on random directions or permutations of the data
 #'
@@ -140,59 +138,34 @@ permutation_cutoff <- function(caobj,
 #' @param group A vector of group indices.
 #' @param counts The original count matrix that was used to compute the caobj.
 #' @param quant The quantile to use for the cutoff.
-#' @param reps The number of repetitions to use.
+#' @param apl_cutoff_reps The number of repetitions to use.
 #' Should be between 3-10 for permutation, and >=100 for random.
-#' @param store_cutoff If TRUE, the cutoff is stored in the caobj
-#'  and is not recalculated.
 #'
 #' @returns
 #' The cutoff angle alpha in radians.
-#'
 get_apl_cutoff <- function(caobj,
                            method = "random",
                            group = caobj@group,
                            counts = NULL,
                            quant = 0.99,
-                           reps = NULL,
-                           store_cutoff = TRUE) {
-
-    # Determine whether to store and use the cutoff.
-
-    is_rnd <- method == "random"
-    to_store <- isTRUE(is_rnd) || (isTRUE(store_cutoff))
-
-    if (isTRUE(to_store) &&
-        !is.null(attr(caobj@permuted_data, "cutoff")) &&
-        identical(reps, attr(caobj@permuted_data, "reps")) &&
-        identical(quant, attr(caobj@permuted_data, "quantile")) &&
-        isTRUE(caobj@params$score_method == method)) {
-
-        alpha <- attr(caobj@permuted_data, "cutoff")
-
-        if (!is.null(alpha)) {
-            return(alpha)
-        }
-    }
-
+                           apl_cutoff_reps = 100) {
     if (method == "random") {
-
-        if (is.null(reps)) {
-            reps <- 100
-        } else if (reps < 100) {
+        if (is.null(apl_cutoff_reps)) {
+            apl_cutoff_reps <- 100
+        } else if (apl_cutoff_reps < 100) {
             warning("Number of repetitions should be set >=100.")
-            reps <- 100
+            apl_cutoff_reps <- 100
         }
 
         apl_perm <- random_direction_cutoff(
             caobj = caobj,
             dims = caobj@dims,
-            reps = reps
+            apl_cutoff_reps = apl_cutoff_reps
         )
-
     } else if (method == "permutation") {
-        if (is.null(reps)) {
-            reps <- 5
-        } else if (reps > 10) {
+        if (is.null(apl_cutoff_reps)) {
+            apl_cutoff_reps <- 5
+        } else if (apl_cutoff_reps > 10) {
             message("Large number of repetitions might take a long time.")
         }
 
@@ -201,7 +174,7 @@ get_apl_cutoff <- function(caobj,
             counts = counts,
             group = group,
             dims = caobj@dims,
-            reps = reps,
+            apl_cutoff_reps = apl_cutoff_reps,
             python = TRUE
         )
     }
@@ -214,17 +187,6 @@ get_apl_cutoff <- function(caobj,
 
     # angle alpha is in radian.
     alpha <- atan(1 / cutoff_cotan)
-
-
-    if (isTRUE(to_store) &&
-        !identical(reps, attr(caobj@permuted_data, "reps"))) {
-
-        caobj@permuted_data <- apl_perm
-        attr(caobj@permuted_data, "cutoff") <- alpha
-        attr(caobj@permuted_data, "reps") <- reps
-        attr(caobj@permuted_data, "quantile") <- quant
-        caobj@params$score_method <- method
-    }
 
     return(alpha)
 }
@@ -242,7 +204,6 @@ get_apl_cutoff <- function(caobj,
 #' @returns
 #' A list with the columns (points) and directions projected into the APL space.
 apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
-
     model <- apl_model(
         caobj = caobj,
         direction = apl_dir,
@@ -253,7 +214,6 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
     apl_dirs <- model(cadir@directions)
 
     for (r in seq_len(nrow(apl_dirs))) {
-
         sel <- match(
             names(cadir@cell_clusters)[cadir@cell_clusters == r],
             rownames(caobj@prin_coords_cols)
@@ -268,11 +228,9 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
         if (sign(grp_mean[1]) != sign(apl_dirs[r, 1])) {
             apl_dirs[r, ] <- c(-1, 1) * apl_dirs[r, ]
         }
-
     }
 
     return(list("apl_cols" = apl_cols, "apl_dirs" = apl_dirs))
-
 }
 
 #' Checks if two clusters should be merged based on their angle in APL space.
@@ -280,40 +238,50 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
 #' @param caobj A cacomp object.
 #' @param apl_quant The quantile to use for the cutoff.
 #' @inheritParams get_apl_cutoff
-#' @inheritParams apl_dir_cutoff
 #' @returns
 #' A matrix with TRUE/FALSE values indicating if two clusters should be merged.
 #' Importantly the function returns as soon as a candidate is found,
 #'  the matrix stays the same size however.
 get_apl_mergers <- function(cadir,
                             caobj,
-                            reps = 100,
+                            apl_cutoff_reps = 100,
                             method = "random",
                             counts = NULL,
                             apl_quant = 0.99) {
-
+    fun_args <- match.call()
     candidates <- matrix(FALSE,
-                         nrow = nrow(cadir@directions),
-                         ncol = nrow(cadir@directions))
+        nrow = nrow(cadir@directions),
+        ncol = nrow(cadir@directions)
+    )
 
     for (d in seq_len(nrow(cadir@directions))) {
-
         grp_idx <- which(f2n(cadir@cell_clusters) == d)
 
         if (length(grp_idx) == 0) next
 
-        aplcds <- apl_dir_coords(cadir = cadir,
-                                 caobj = caobj,
-                                 apl_dir = cadir@directions[d, ],
-                                 group = grp_idx)
+        aplcds <- apl_dir_coords(
+            cadir = cadir,
+            caobj = caobj,
+            apl_dir = cadir@directions[d, ],
+            group = grp_idx
+        )
 
+        cutoff_exists <- is_stored(cadir = cadir, fun_args = fun_args)
 
-        cutoff <- get_apl_cutoff(caobj = caobj,
-                                 counts = counts,
-                                 method = method,
-                                 group = grp_idx,
-                                 reps = reps,
-                                 quant = apl_quant)
+        if (isTRUE(cutoff_exists)) {
+            cutoff <- cadir@parameters$sa_cutoff
+        } else {
+            cutoff <- get_apl_cutoff(
+                caobj = caobj,
+                counts = counts,
+                method = method,
+                group = grp_idx,
+                apl_cutoff_reps = apl_cutoff_reps,
+                quant = apl_quant
+            )
+
+            cadir@parameters$sa_cutoff <- cutoff
+        }
 
         cutoff <- rad_to_ang_sim(cutoff)
 

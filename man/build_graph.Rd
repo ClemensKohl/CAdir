@@ -4,7 +4,7 @@
 \alias{build_graph}
 \title{Build igraph from a cadir results.}
 \usage{
-build_graph(cadir, rm_redund = FALSE)
+build_graph(cadir, rm_redund = FALSE, keep_end = TRUE)
 }
 \arguments{
 \item{cadir}{A cadir object with valid clustering results.}

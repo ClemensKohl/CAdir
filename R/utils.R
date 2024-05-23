@@ -122,12 +122,26 @@ setMethod(
 #' @returns
 #' The factors converted to numbers.
 f2n <- function(f) {
-    f <- as.numeric(as.character(f))
-    stopifnot(is.numeric(f))
+    n <- as.numeric(as.character(f))
+    stopifnot(is.numeric(n))
 
-    return(f)
+    return(n)
 }
 
+# TODO: Add documentation.
+f2c <- function(f) {
+    c <- as.character(f)
+    stopifnot(is.character(c))
+
+    return(c)
+}
+
+# TODO: Add documentation
+#' Convert a numeric (or character) to a factor
+n2f <- function(n, lvls) {
+    f <- factor(n, levels = lvls)
+    return(f)
+}
 
 #' Build a sub-graph that can be joined to a larger graph.
 #' By itself it is a valid graph too.
@@ -140,9 +154,9 @@ f2n <- function(f) {
 #' A data.frame with two columns ("from", "to") representing the edges in the graph.
 #' The data frame can be used to generate a graph.
 build_sub_graph <- function(before,
-                           after,
-                           before_nm = "start",
-                           after_nm = "end") {
+                            after,
+                            before_nm = "start",
+                            after_nm = "end") {
     graph <- data.frame()
     node <- unique(before)
 
@@ -164,7 +178,7 @@ build_sub_graph <- function(before,
 #' @param rm_redund If TRUE, removes all clustering iterations where nothing changed (no splits/merges).
 #' @returns
 #' A directed igraph object with all splits and merges.
-build_graph <- function(cadir, rm_redund = FALSE) {
+build_graph <- function(cadir, rm_redund = FALSE, keep_end = TRUE) {
     graph_list <- list()
     cls <- cadir@log$clusters
 
@@ -184,7 +198,10 @@ build_graph <- function(cadir, rm_redund = FALSE) {
         bef_cls <- cls[, sel[i] - 1]
         aft_cls <- cls[, sel[i]]
 
-        if (all(bef_cls == aft_cls) && (isTRUE(rm_redund))) next
+        is_end <- (i != length(sel) && keep_end)
+        if (!is_end &&
+            all(bef_cls == aft_cls) &&
+            isTRUE(rm_redund)) next
 
         graph_list[[i]] <- build_sub_graph(
             before = bef_cls,
@@ -242,7 +259,6 @@ get_x_y_values <- function(gg_plot) {
 #'
 #' @export
 cadir_to_biclust <- function(cadir) {
-    require("biclust")
     cell_clusters <- cadir@cell_clusters
     gene_clusters <- cadir@gene_clusters
     params <- cadir@parameters
@@ -280,4 +296,37 @@ cadir_to_biclust <- function(cadir) {
     )
 
     return(bic)
+}
+
+# TODO: Add documentation
+#' Checks if APL S-alpha cutoff is already calculated.
+#' @param cadir Cadir object
+#' @param fun_args Arguments with which the parent function was called.
+is_stored <- function(cadir, fun_args) {
+    !is.null(cadir@parameters$sa_cutoff) &&
+        identical(fun_args$apl_cutoff_reps, cadir@parameters$apl_cutoff_reps) &&
+        identical(fun_args$apl_quant, cadir@parameters$call$apl_quant) &&
+        identical(fun_args$method, cadir@parameters$call$method)
+}
+
+log_iter <- function(log, cadir, name) {
+
+    log$clusters <- cbind(
+        log$clusters,
+        stats::setNames(
+            data.frame(f2n(cadir@cell_clusters)),
+            name
+        )
+    )
+
+
+    log$directions <- rbind(
+        log$directions,
+        cbind(
+            iter = name,
+            as.data.frame(cadir@directions)
+        )
+    )
+
+    return(log)
 }
