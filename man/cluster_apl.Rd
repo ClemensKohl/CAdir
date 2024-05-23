@@ -7,12 +7,15 @@
 cluster_apl(
   caobj,
   cadir,
+  cluster = NULL,
   direction,
   group,
-  cluster_id = "NA",
-  show_points = TRUE,
+  show_cells = TRUE,
+  show_genes = FALSE,
   show_lines = TRUE,
-  plot_group = FALSE,
+  highlight_cluster = TRUE,
+  colour_by_group = FALSE,
+  label_genes = FALSE,
   point_size = 1.5
 )
 }
@@ -21,18 +24,23 @@ cluster_apl(
 
 \item{cadir}{A cadir object for which to compute the APL}
 
-\item{direction}{Normed direction vector of the APL plot.}
+\item{cluster}{The cluster (if any) to highlight cells and genes by.}
 
-\item{group}{A vector of indices which indicate the points
-that belong to the cluster. Only needed here to orient the plot.}
+\item{direction}{Direction of the APL plot.}
 
-\item{cluster_id}{The name of the cluster for the plot title.}
+\item{group}{Group to determine the correct direction of the APL plot.
+Can be the same as the cluster.}
 
-\item{show_points}{If TRUE, points (cells) are plotted.}
+\item{show_cells}{If TRUE, points (cells) are plotted.}
+
+\item{show_genes}{If TRUE, genes are plotted.}
 
 \item{show_lines}{If TRUE, the directions in cadir are plotted.}
 
-\item{plot_group}{If TRUE, highlights the points in \code{group}.}
+\item{highlight_cluster}{If TRUE, highlights the points in belonging to
+\code{cluster}, unless colour_by_group is TRUE.}
+
+\item{colour_by_group}{If TRUE highlights cells that belong to \code{group}.}
 
 \item{point_size}{Size of the points (cells).}
 }

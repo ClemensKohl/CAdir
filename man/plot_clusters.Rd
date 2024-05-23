@@ -4,7 +4,13 @@
 \alias{plot_clusters}
 \title{Summarizes the cell clustering results in a single plot.}
 \usage{
-plot_clusters(cadir, caobj, point_size = 1)
+plot_clusters(
+  cadir,
+  caobj,
+  point_size = 1,
+  show_genes = FALSE,
+  label_genes = FALSE
+)
 }
 \arguments{
 \item{cadir}{A cadir object with valid cell clustering results.}
@@ -12,6 +18,8 @@ plot_clusters(cadir, caobj, point_size = 1)
 \item{caobj}{A cacomp object.}
 
 \item{point_size}{Size of the points (cells).}
+
+\item{show_genes}{If TRUE, genes are plotted.}
 }
 \value{
 A plot that summarizes the cell clustering results.

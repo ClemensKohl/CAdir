@@ -5,7 +5,17 @@
 \title{Plots the graph of the clustering splits and merges
 and overlays APL plots over the nodes.}
 \usage{
-sm_plot(cadir, caobj, rm_redund = TRUE)
+sm_plot(
+  cadir,
+  caobj,
+  rm_redund = TRUE,
+  show_cells = TRUE,
+  show_genes = FALSE,
+  highlight_cluster = FALSE,
+  annotate_clusters = FALSE,
+  org = "mm",
+  keep_end = TRUE
+)
 }
 \arguments{
 \item{cadir}{A cadir object with valid clustering results.}
@@ -13,6 +23,13 @@ sm_plot(cadir, caobj, rm_redund = TRUE)
 \item{caobj}{A cacomp object.}
 
 \item{rm_redund}{If TRUE, only shows an iteration if something changes.}
+
+\item{show_cells}{If TRUE, points (cells) are plotted.}
+
+\item{show_genes}{If TRUE, genes are plotted.}
+
+\item{highlight_cluster}{If TRUE, highlights the points in belonging to
+\code{cluster}, unless colour_by_group is TRUE.}
 }
 \value{
 A ggplot object showing the split-merge graph and APL plots for each cluster.

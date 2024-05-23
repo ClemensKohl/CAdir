@@ -4,14 +4,14 @@
 \alias{random_direction_cutoff}
 \title{Random direction association plot coordinates}
 \usage{
-random_direction_cutoff(caobj, dims = caobj@dims, reps = 300)
+random_direction_cutoff(caobj, dims = caobj@dims, apl_cutoff_reps = 300)
 }
 \arguments{
 \item{caobj}{A cacomp object.}
 
 \item{dims}{Number of dimensions to use for the analysis.}
 
-\item{reps}{The number of repetitions to use.
+\item{apl_cutoff_reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
 }
 \value{
