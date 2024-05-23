@@ -102,29 +102,14 @@ cluster_apl <- function(caobj,
     if (!is.null(cluster) && (!cluster %in% all_cls)) cluster <- NULL
     if (is.null(cluster)) {
         # Kinda redundant. placeholder if I want to do deal with special case.
-        # ccluster <- NULL
-        # gcluster <- NULL
-
         cell_grp <- seq_len(length(cadir@cell_clusters))
         gene_grp <- seq_len(length(cadir@gene_clusters))
     } else {
-        # ccluster <- n2f(cluster, lvls = levels(cadir@cell_clusters))
-        # gcluster <- n2f(cluster, lvls = levels(cadir@gene_clusters))
         cell_grp <- which(f2c(cadir@cell_clusters) == cluster)
         gene_grp <- which(f2c(cadir@gene_clusters) == cluster)
     }
 
-    # cat("\nCluster:", cluster)
-    # cat("\nType of cluster", class(cluster))
-    # cat("\n cell clusters:", unique(cadir@cell_clusters))
-    # cat("\n cell clusters class:", class(cadir@cell_clusters))
-    # cat("\n directions:", nrow(cadir@directions))
-
-    # sel <- match(cluster, sort(unique(cadir@cell_clusters)))
-    # direction <- cadir@directions[sel, ]
-
     # ensure that clusters and directions are coherent
-    # cadir <- rename_clusters(cadir)
     if (nrow(cadir@directions) == 2) {
         ang <- min(
             rad2deg(get_angle(cadir@directions[1, ], cadir@directions[2, ])),
