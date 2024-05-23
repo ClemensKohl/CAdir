@@ -353,7 +353,9 @@ dirclust_splitmerge <- function(caobj,
                                     ncol = ncol(caobj@prin_coords_cols),
                                     nrow = 1))
     colnames(log$directions) <- colnames(caobj@prin_coords_cols)
-    log$directions <- cbind(iter = "root", log$directions)
+    log$directions <- cbind(iter = "root",
+                            dirname = "root",
+                            log$directions)
 
     # Initial CAdir clustering.
     out <- dirclust(
@@ -458,7 +460,9 @@ dirclust_splitmerge <- function(caobj,
                     name = paste0("end", iter_nm))
 
     out@log <- log
+    out@parameters$qcutoff <- qcutoff
     out@parameters$call <- fun_args
+
 
     return(out)
 }

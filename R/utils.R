@@ -198,7 +198,8 @@ build_graph <- function(cadir, rm_redund = FALSE, keep_end = TRUE) {
         bef_cls <- cls[, sel[i] - 1]
         aft_cls <- cls[, sel[i]]
 
-        is_end <- (i != length(sel) && keep_end)
+        # FIXME: There is a bug with this.
+        is_end <- (i == length(sel) && keep_end)
         if (!is_end &&
             all(bef_cls == aft_cls) &&
             isTRUE(rm_redund)) next
@@ -324,6 +325,7 @@ log_iter <- function(log, cadir, name) {
         log$directions,
         cbind(
             iter = name,
+            dirname = rownames(cadir@directions),
             as.data.frame(cadir@directions)
         )
     )
