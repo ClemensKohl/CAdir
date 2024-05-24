@@ -445,7 +445,7 @@ plot_clusters <- function(cadir,
             size_factor = size_factor,
             ntop = ntop
         ) +
-            ggplot2::ggtitle(paste0("cluster_", i)) +
+            ggplot2::ggtitle(paste0("Cluster: ", cls[i])) +
             ggplot2::theme(
                 legend.position = "none",
                 axis.title.x = ggplot2::element_blank(),
@@ -715,13 +715,33 @@ sm_plot <- function(cadir,
                         max_size = 500
                     )
                 })
+            } else {
+                #FIXME: After fixing direction naming, this should be redundant.
+                tmp_cadir@cell_clusters <- factor(
+                    paste0("cluster_", f2c(tmp_cadir@cell_clusters)),
+                    levels = paste0("cluster_", levels(tmp_cadir@cell_clusters))
+                )
+                names(tmp_cadir@cell_clusters) <- names(tmp_ccs)
+
+                gnms <- names(cadir@gene_clusters)
+                tmp_cadir@gene_clusters <- factor(
+                    paste0("cluster_", f2c(tmp_cadir@gene_clusters)),
+                    levels = paste0("cluster_", levels(tmp_cadir@gene_clusters))
+                )
+                names(tmp_cadir@gene_clusters) <- gnms
+
+                rownames(tmp_cadir@directions) <- gsub(
+                    pattern = "line",
+                    replacement = "cluster_",
+                    x = rownames(tmp_cadir@directions)
+                )
             }
 
             old_iter_nm <- iter_nm
         }
 
         cluster <- rownames(tmp_cadir@directions)[cluster]
-        cluster <- gsub("line", "cluster", cluster)
+        # cluster <- gsub("line", "cluster_", cluster)
         rownames(dir) <- cluster
         # cluster <- cell_type
 
