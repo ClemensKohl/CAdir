@@ -353,15 +353,25 @@ plot_results <- function(cadir,
                          highlight_cluster = TRUE,
                          show_cells = TRUE,
                          show_genes = FALSE) {
+    #FIXME: Doesnt work with annotated data.
     size <- 1
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
+    anno_dirs <- all(rownames(cadir@directions) %in% cls)
 
     for (i in seq_along(cls)) {
         for (j in seq_along(cls)) {
             sel <- which(cadir@cell_clusters == cls[i] |
-                cadir@cell_clusters == cls[j])
-            sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
+                         cadir@cell_clusters == cls[j])
+
+            # FIXME: Rework below when changing dirnames.
+            if (anno_dirs) {
+                sel_dir <- which(rownames(cadir@directions) %in% unique(c(cls[i], cls[j])))
+                dir_idx <- which(rownames(cadir@directions) == cls[i])
+            } else {
+                sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
+                dir_idx <- f2n(cls[i])
+            }
 
             sub_cak <- methods::new("cadir",
                 cell_clusters = cadir@cell_clusters[sel],
@@ -373,7 +383,7 @@ plot_results <- function(cadir,
             p <- cluster_apl(
                 caobj = caobj,
                 cadir = sub_cak,
-                direction = cadir@directions[f2n(cls[i]), ],
+                direction = cadir@directions[dir_idx, ],
                 group = which(cadir@cell_clusters == cls[i]),
                 cluster = cls[i],
                 show_cells = sc,
@@ -382,7 +392,7 @@ plot_results <- function(cadir,
                 highlight_cluster = highlight_cluster,
                 colour_by_group = TRUE
             ) +
-                ggplot2::ggtitle("") +
+                ggplot2::ggtitle(ifelse(i == j, paste0("Cluster: ", cls[i]) , "")) +
                 ggplot2::theme(
                     legend.position = "none",
                     axis.title.x = ggplot2::element_blank(),
