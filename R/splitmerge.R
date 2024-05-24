@@ -367,6 +367,8 @@ dirclust_splitmerge <- function(caobj,
         log = FALSE
     )
 
+    out <- rename_clusters(out)
+
     log <- log_iter(log = log,
                     cadir = out,
                     name = "iter_0")
@@ -403,6 +405,9 @@ dirclust_splitmerge <- function(caobj,
             epochs = 5,
             log = FALSE
         )
+
+        out <- rename_clusters(out)
+
         out@plots <- plots
         out@parameters <- parameters
         out@log$last_rep <- i
@@ -436,6 +441,8 @@ dirclust_splitmerge <- function(caobj,
             epochs = 5,
             log = FALSE
         )
+        out <- rename_clusters(out)
+
         out@plots <- plots
         out@parameters <- parameters
         out@log$last_rep <- i
