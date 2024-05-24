@@ -17,6 +17,7 @@ rand_idx <- function(points, k) {
 #' @returns
 #' A cadir object with renamed clusters and directions.
 rename_clusters <- function(cadir) {
+    #FIXME: Likely fails with annotated dataset.
     uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
     cell_nms <- names(cadir@cell_clusters)
     gene_nms <- names(cadir@gene_clusters)
