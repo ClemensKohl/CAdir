@@ -16,7 +16,9 @@ cluster_apl(
   highlight_cluster = TRUE,
   colour_by_group = FALSE,
   label_genes = FALSE,
-  point_size = 1.5
+  point_size = 1.5,
+  size_factor = 2,
+  ntop = 15
 )
 }
 \arguments{

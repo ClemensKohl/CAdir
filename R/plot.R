@@ -435,7 +435,7 @@ plot_clusters <- function(cadir,
                           show_genes = FALSE,
                           label_genes = FALSE,
                           ntop = 5,
-                          text_size = 12) {
+                          text_size = 16) {
     pls <- list()
     cls <- sort(unique(cadir@cell_clusters))
 
@@ -465,7 +465,7 @@ plot_clusters <- function(cadir,
                 axis.title.y = ggplot2::element_blank(),
                 axis.text.y = ggplot2::element_blank(),
                 axis.ticks.y = ggplot2::element_blank(),
-                plot.title = element_text(size = text_size)
+                plot.title = ggplot2::element_text(size = text_size)
             )
 
         # p$layers[[1]]$aes_params$size <- point_size
