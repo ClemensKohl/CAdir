@@ -8,8 +8,11 @@ plot_clusters(
   cadir,
   caobj,
   point_size = 1,
+  size_factor = 1,
   show_genes = FALSE,
-  label_genes = FALSE
+  label_genes = FALSE,
+  ntop = 5,
+  text_size = 12
 )
 }
 \arguments{
