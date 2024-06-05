@@ -12,7 +12,7 @@ plot_clusters(
   show_genes = FALSE,
   label_genes = FALSE,
   ntop = 5,
-  text_size = 12
+  text_size = 16
 )
 }
 \arguments{
