@@ -929,6 +929,7 @@ scale_fill_mpimg <- function(name = "mpimg", ...) {
 
 #' MPIMG color palette.
 #' @returns A function that can be used to generate colors.
+#' @export
 mpimg_pal <- function() {
     mpi_colors <- c(
         "#006c66", # MPG-CD-Grün
