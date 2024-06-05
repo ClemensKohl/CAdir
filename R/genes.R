@@ -57,6 +57,7 @@ assign_genes <- function(caobj,
 }
 
 # TODO: Add documentation
+#' @export
 rank_genes <- function(cadir, caobj) {
 
     # Step1: Get cutoff
@@ -119,6 +120,7 @@ rank_genes <- function(cadir, caobj) {
 }
 
 #TODO: Add documentation
+#' @export
 top_genes <- function(cadir, cutoff = 0) {
     top_list <- list()
     gene_ranks <- cadir@gene_ranks
