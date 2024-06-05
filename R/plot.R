@@ -5,6 +5,7 @@
 #' that belong to the cluster. Only needed here to orient the plot.
 #' @returns
 #' A model that can be used to project new points onto the APL plot.
+#' @export
 apl_model <- function(
     caobj,
     direction,
@@ -512,6 +513,7 @@ plot_sm_graph <- function(cadir,
 #' @param cadir A cadir object with valid clustering results.
 #' @param rm_redund If TRUE, only shows an iteration if something changes.
 #' @returns A sankey plot of the clustering results.
+#' @export
 plot_ggsankey <- function(cadir, rm_redund = TRUE) {
     node_pattern <- c("root|iter_0|split|merge|end")
     sel <- which(grepl(node_pattern, colnames(cadir@log$clusters)))
@@ -884,6 +886,7 @@ theme_blank <- function(title = ggplot2::element_blank(),
 #' ggplot2 scale for the MPI colors and extended swatches.
 #' @param name The name of the scale. Either "mpi" or "mpimg".
 #' @param ... Further arguments to ggplot2::discrete_scale.
+#' @export
 scale_color_mpimg <- function(name = "mpimg", ...) {
     if (name == "mpimg") {
         ggplot2::discrete_scale(
@@ -902,17 +905,39 @@ scale_color_mpimg <- function(name = "mpimg", ...) {
     }
 }
 
+#' ggplot2 scale for the MPI colors and extended swatches.
+#' @param name The name of the scale. Either "mpi" or "mpimg".
+#' @param ... Further arguments to ggplot2::discrete_scale.
+#' @export
+scale_fill_mpimg <- function(name = "mpimg", ...) {
+    if (name == "mpimg") {
+        ggplot2::discrete_scale(
+            scale_name = "mpimg",
+            aesthetics = "fill",
+            palette = mpimg_pal(),
+            ...
+        )
+    } else if (name == "mpi") {
+        ggplot2::discrete_scale(
+            scale_name = "mpi",
+            aesthetics = "fill",
+            palette = mpi_pal(),
+            ...
+        )
+    }
+}
+
 #' MPIMG color palette.
 #' @returns A function that can be used to generate colors.
 mpimg_pal <- function() {
     mpi_colors <- c(
         "#006c66", # MPG-CD-Grün
-        "#777777", # MPG-Dunkelgrau
-        "#a7a7a8", # MPG-Grau
         "#c6d325", # MPG Hellgrün
+        "#ef7c00", # MPG Orange
         "#29485d", # MPG Dunkelblau
         "#00b1ea", # MPG Hellblau
-        "#ef7c00" # MPG Orange
+        "#777777", # MPG-Dunkelgrau
+        "#a7a7a8" # MPG-Grau
     )
 
     scales::manual_pal(values = mpi_colors)
@@ -920,6 +945,7 @@ mpimg_pal <- function() {
 
 #' MPI color palette
 #' @returns A function that can be used to generate colors.
+#' @export
 mpi_pal <- function() {
     # mpi colors extended.
     mpimg_colors <- c(
