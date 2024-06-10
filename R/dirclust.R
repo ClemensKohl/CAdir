@@ -122,8 +122,19 @@ dirclust <- function(
     epochs = 10,
     init = "kmeanspp",
     lines = NULL,
-    log = FALSE
+    log = FALSE,
+    cadir = NULL
 ) {
+
+    if (!is.null(cadir)) {
+        stopifnot(is(cadir, "cadir"))
+        lines <- cadir@directions
+
+        if (!is.null(lines)){
+            warning("You overspecified the init. directions with 'lines' and 'cadir'.",
+                    "Picking directions from 'cadir'.")
+        }
+    }
 
     pnorm <- row_norm(points)
 
@@ -144,7 +155,7 @@ dirclust <- function(
         lines <- lines / row_norm(lines)
     }
 
-    rownames(lines) <- paste0("line", seq_len(nrow(lines)))
+    rownames(lines) <- paste0("cluster_", seq_len(nrow(lines)))
 
     if (isTRUE(log)) {
         dist_log <- vector(mode = "list", length = epochs)
@@ -159,7 +170,6 @@ dirclust <- function(
         ldist <- dist_to_line(points, lines, pnorm)
 
         # find closest line
-        # FIXME: This step needs to take the direction into account
         clusters <- apply(ldist, 1, which.min)
 
         # update lines
@@ -204,19 +214,42 @@ dirclust <- function(
         ldist <- ldist[, uni_clust, drop = FALSE]
     }
 
-    out <- methods::new("cadir",
-        cell_clusters = factor(clusters),
-        directions = lines,
-        distances = ldist,
-        parameters = list(
-            "k" = k,
-            "epochs" = epochs,
-            "init" = init,
-            "log" = log
-        ),
-        log = log_list
-    )
 
+    cnms <- names(clusters)
+    clusters <- paste0("cluster_", clusters)
+    clusters <- factor(clusters, levels = sort(unique(clusters)))
+    names(clusters) <- cnms
+
+    cl2dir <- as.list(seq_len(nrow(lines)))
+    names(cl2dir) <- rownames(lines)
+
+    if (is.null(cadir)) {
+
+        out <- methods::new("cadir",
+            cell_clusters = clusters,
+            directions = lines,
+            distances = ldist,
+            parameters = list(
+                "k" = k,
+                "epochs" = epochs,
+                "init" = init,
+                "log" = log
+            ),
+            log = log_list,
+            cl2dir = cl2dir
+        )
+
+    } else {
+
+        out <- cadir
+        out@cell_clusters <- clusters
+        out@directions <- lines
+        out@distances <- ldist
+        to_keep <- (!names(out$log) %in% names(log))
+        out@log <- c(out$log[to_keep], out@log)
+        out@cl2dir <- cl2dir
+
+    }
 
     return(out)
 }

@@ -283,9 +283,11 @@ merge_clusters <- function(caobj,
         directions[s, ] <- new_dir
         directions <- directions[-cds, , drop = FALSE]
 
+
         cadir@cell_clusters <- clusters
         cadir@directions <- directions
         cadir@distances <- matrix(0, 0, 0) # dists not true anymore.
+        cadir@cl2dir[[cl2nm(s)]] <- s # ensure dict is up to date.
 
         cadir <- rename_clusters(cadir = cadir)
 
@@ -395,22 +397,16 @@ dirclust_splitmerge <- function(caobj,
                         cadir = out,
                         name = paste0("split_", iter_nm))
 
-        plots <- out@plots
-
-        parameters <- out@parameters
         out <- dirclust(
             points = caobj@prin_coords_cols,
             k = ncol(out@directions),
-            lines = out@directions,
             epochs = 5,
-            log = FALSE
+            log = FALSE,
+            cadir = out
         )
 
         out <- rename_clusters(out)
 
-        out@plots <- plots
-        out@parameters <- parameters
-        out@log$last_rep <- i
 
         log <- log_iter(log = log,
                         cadir = out,
@@ -431,21 +427,14 @@ dirclust_splitmerge <- function(caobj,
                         cadir = out,
                         name = paste0("merge_", iter_nm))
 
-        plots <- out@plots
-        parameters <- out@parameters
-
         out <- dirclust(
             points = caobj@prin_coords_cols,
             k = ncol(out@directions),
-            lines = out@directions,
             epochs = 5,
-            log = FALSE
+            log = FALSE,
+            cadir = out
         )
         out <- rename_clusters(out)
-
-        out@plots <- plots
-        out@parameters <- parameters
-        out@log$last_rep <- i
 
         log <- log_iter(log = log,
                         cadir = out,
@@ -466,7 +455,9 @@ dirclust_splitmerge <- function(caobj,
                     cadir = out,
                     name = paste0("end", iter_nm))
 
-    out@log <- log
+
+    to_keep <- (!names(out$log) %in% names(log))
+    out@log <- c(out@log[to_keep], log)
     out@parameters$qcutoff <- qcutoff
     out@parameters$call <- fun_args
 
