@@ -165,11 +165,12 @@ dirclust <- function(
         # update lines
         lines <- update_line(points, clusters, lines, k)
 
-        cd <- check_directionality(clusters = clusters,
-                                   points = points,
-                                   lines = lines)
-        clusters <- cd$clusters
-        lines <- cd$lines
+        # This would create more clusters than we asked for!!
+        # cd <- check_directionality(clusters = clusters,
+        #                            points = points,
+        #                            lines = lines)
+        # clusters <- cd$clusters
+        # lines <- cd$lines
 
         if (isTRUE(log)) {
             dir_log[[as.character(i)]] <- lines
@@ -249,27 +250,27 @@ sign_flip <- function(points, line) {
 }
 
 
-split_dir <- function(x, line) {
-    proj <- x %*% line # no need to normalize here
-    neg_idx <- which(proj < 0)
-    return(neg_idx)
-}
-
-check_directionality <- function(clusters, points, lines) {
-    stopifnot(is.numeric(clusters))
-
-    uncls <- unique(clusters)
-
-    for (c in seq_len(length(uncls))) {
-        n_dirs <- nrow(lines)
-        neg_idx <- split_dir(x = points[clusters == c, ],
-                             line = lines[c, ])
-
-        if (length(neg_idx > 0)) {
-            lines[n_dirs + 1, ] <- line[c, ] * (-1)
-            clusters[neg_idx] <- (n_dirs + 1)
-        }
-    }
-
-    return(list("clusters" = clusters, "lines" = lines))
-}
+# split_dir <- function(x, line) {
+#     proj <- x %*% line # no need to normalize here
+#     neg_idx <- which(proj < 0)
+#     return(neg_idx)
+# }
+#
+# check_directionality <- function(clusters, points, lines) {
+#     stopifnot(is.numeric(clusters))
+#
+#     uncls <- unique(clusters)
+#
+#     for (c in seq_len(length(uncls))) {
+#         n_dirs <- nrow(lines)
+#         neg_idx <- split_dir(x = points[clusters == c, ],
+#                              line = lines[c, ])
+#
+#         if (length(neg_idx > 0)) {
+#             lines[n_dirs + 1, ] <- line[c, ] * (-1)
+#             clusters[neg_idx] <- (n_dirs + 1)
+#         }
+#     }
+#
+#     return(list("clusters" = clusters, "lines" = lines))
+# }
