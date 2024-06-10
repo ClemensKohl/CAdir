@@ -1,3 +1,67 @@
+
+#' Create a model to project points into an Association Plot
+#' @param caobj A cacomp object.
+#' @param direction Normed direction vector of the APL plot.
+#' @param group A vector of indices which indicate the points
+#' that belong to the cluster. Only needed here to orient the plot.
+#' @returns
+#' A model that can be used to project new points onto the APL plot.
+#' @export
+apl_model <- function(
+    caobj,
+    direction,
+    group = NULL) {
+    stopifnot(methods::is(caobj, "cacomp"))
+
+    cent <- caobj@prin_coords_cols
+
+    avg_group_coords <- direction
+    length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
+
+    # The line sometimes point into the "wrong" direction.
+    # We can determine the cosine, if its negative we flip the x coords.
+
+    cosangle <- 1
+
+    if (!is.null(group)) {
+        subgroup <- cent[group, ]
+
+        if (length(group) == 1) {
+            group_mean <- subgroup # single sample
+        } else {
+            group_mean <- colMeans(subgroup) # centroid vector.
+        }
+
+        cosangle <- cosine(a = group_mean, b = direction)
+
+        # group_norm <- row_norm(group_mean)
+        # gx <- drop(group_mean %*% avg_group_coords) / group_norm
+        #
+        # if (sign(gx) == -1) {
+        #     avg_group_coords <- -avg_group_coords
+        # }
+
+        if (cosangle < 0) {
+            avg_group_coords <- -avg_group_coords
+        }
+    }
+
+
+    model <- function(vec) {
+        length_vector <- row_norm(vec)
+        cordx <- drop(vec %*% avg_group_coords) / length_vector_group
+        cordy <- suppressWarnings(sqrt(length_vector^2 - cordx^2))
+
+        cordx[is.na(cordx)] <- 0
+        cordy[is.na(cordy)] <- 0
+
+        return(cbind("x" = cordx, "y" = cordy))
+    }
+
+    return(model)
+}
+
+
 #' Random direction association plot coordinates
 #'
 #' @description
