@@ -16,3 +16,7 @@ The package is fully functioning, but it is still work in progress and edge case
 - [ ] Add kernel CA as a non-linear alternative. (Prototype exists on branch kernel_svd)
 - [ ] Write vignette.
 - [ ] Reduce dependencies and insure that all packages are available on CRAN/Bioconductor. -> ggsankey!
+
+## Dir splitting TODO
+
+- [ ] Test new algorithm.
