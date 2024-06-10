@@ -47,6 +47,9 @@ dist_to_line <- function(points, lines, pnorm) {
     dist[dist < 0] <- 0
     dist <- sqrt(dist)
 
+    # Ensure that we only look at positive directions
+    dist[proj < 0] <- NA
+
     return(dist)
 }
 
@@ -62,6 +65,14 @@ total_least_squares <- function(points) {
         suppressWarnings({
             reg_line <- irlba::irlba(points, nv = 1, right_only = TRUE)$v
         })
+
+        is_flipped <- sign_flip(points = points, line = reg_line)
+
+        # Ensure that line is pointing towards the majority of points.
+        # TODO: Could this fail in an extreme case?
+        if (isTRUE(is_flipped)) {
+            reg_line <- reg_line * (-1)
+        }
     }
 
     return(reg_line)
@@ -148,10 +159,17 @@ dirclust <- function(
         ldist <- dist_to_line(points, lines, pnorm)
 
         # find closest line
+        # FIXME: This step needs to take the direction into account
         clusters <- apply(ldist, 1, which.min)
 
         # update lines
         lines <- update_line(points, clusters, lines, k)
+
+        cd <- check_directionality(clusters = clusters,
+                                   points = points,
+                                   lines = lines)
+        clusters <- cd$clusters
+        lines <- cd$lines
 
         if (isTRUE(log)) {
             dir_log[[as.character(i)]] <- lines
@@ -221,4 +239,37 @@ assign_cells <- function(cells, directions) {
     }
 
     return(clusters)
+}
+
+#' Determine sign for SVD singular vectors.
+#' https://www.osti.gov/servlets/purl/920802
+sign_flip <- function(points, line) {
+    s <- sum(sign(t(line) %*% points)(t(line) %*% points)**2)
+    return(s < 0)
+}
+
+
+split_dir <- function(x, line) {
+    proj <- x %*% line # no need to normalize here
+    neg_idx <- which(proj < 0)
+    return(neg_idx)
+}
+
+check_directionality <- function(clusters, points, lines) {
+    stopifnot(is.numeric(clusters))
+
+    uncls <- unique(clusters)
+
+    for (c in seq_len(length(uncls))) {
+        n_dirs <- nrow(lines)
+        neg_idx <- split_dir(x = points[clusters == c, ],
+                             line = lines[c, ])
+
+        if (length(neg_idx > 0)) {
+            lines[n_dirs + 1, ] <- line[c, ] * (-1)
+            clusters[neg_idx] <- (n_dirs + 1)
+        }
+    }
+
+    return(list("clusters" = clusters, "lines" = lines))
 }
