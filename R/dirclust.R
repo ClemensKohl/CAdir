@@ -21,7 +21,14 @@ kmeanspp_init <- function(points, k) {
 
     for (ii in 2:k) {
         lines <- points[center_ids, ] / pnorm[center_ids]
-        ldist <- dist_to_line(points, lines, pnorm)
+        #FIXME: This takes also distances with neg. proj. into account.
+        #This is not optimal, but we need to come up
+        ldist <- dist_to_line(
+            points = points,
+            lines = lines,
+            pnorm = pnorm,
+            pos_only = FALSE
+        )
 
         probs <- apply(ldist, 1, min)
         probs[center_ids] <- 0
@@ -38,7 +45,10 @@ kmeanspp_init <- function(points, k) {
 #' @param pnorm Vector of the norm of the points.
 #' @returns
 #' Matrix of distances of points to the directions.
-dist_to_line <- function(points, lines, pnorm) {
+dist_to_line <- function(points,
+                         lines,
+                         pnorm,
+                         pos_only = TRUE) {
     if (is.matrix(lines)) {
         lines <- t(lines)
     }
@@ -48,7 +58,7 @@ dist_to_line <- function(points, lines, pnorm) {
     dist <- sqrt(dist)
 
     # Ensure that we only look at positive directions
-    dist[proj < 0] <- NA
+    if (pos_only) dist[proj < 0] <- Inf
 
     return(dist)
 }
@@ -156,10 +166,14 @@ dirclust <- function(
 
     for (i in seq_len(epochs)) {
         # calculate distance to line.
-        ldist <- dist_to_line(points, lines, pnorm)
+        ldist <- dist_to_line(
+            points = points,
+            lines = lines,
+            pnorm = pnorm,
+            pos_only = TRUE
+        )
 
         # find closest line
-        # FIXME: This step needs to take the direction into account
         clusters <- apply(ldist, 1, which.min)
 
         # update lines
@@ -245,7 +259,7 @@ assign_cells <- function(cells, directions) {
 #' Determine sign for SVD singular vectors.
 #' https://www.osti.gov/servlets/purl/920802
 sign_flip <- function(points, line) {
-    s <- sum(sign(t(line) %*% points)(t(line) %*% points)**2)
+    s <- sum(sign(points %*% line)*(points %*% line)**2)
     return(s < 0)
 }
 
