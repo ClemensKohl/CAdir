@@ -339,3 +339,7 @@ log_iter <- function(log, cadir, name) {
 cl2nm <- function(i) {
     paste0("cluster_", i)
 }
+
+set_clusters <- function(clusters, directions, dict) {
+
+}

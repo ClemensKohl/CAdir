@@ -267,7 +267,9 @@ assign_cells <- function(cells, directions) {
     clusters <- apply(ldist, 1, which.min)
 
     dir_nms <- rownames(directions)
-    std_nm <- grepl("line[[:digit:]]+$", dir_nms)
+
+    #FIXME:
+    std_nm <- grepl("cluster_[[:digit:]]+$", dir_nms)
     if (all(std_nm)) {
         clusters <- rownames(directions)[clusters]
     }
@@ -275,7 +277,7 @@ assign_cells <- function(cells, directions) {
     return(clusters)
 }
 
-#' Determine sign for SVD singular vectors.
+#' DETERMINE SIGN FOR SVD SINGULAR VECTORS.
 #' https://www.osti.gov/servlets/purl/920802
 sign_flip <- function(points, line) {
     s <- sum(sign(t(line) %*% points)(t(line) %*% points)**2)
