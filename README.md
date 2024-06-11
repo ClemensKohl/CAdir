@@ -12,6 +12,7 @@ The package is fully functioning, but it is still work in progress and edge case
 - [x] Enable labeling of genes in cluster_apl
 - [x] **Split anti-correlated clusters!**
 - [ ] **Fix naming of directions. Should be coherent with cluster names at all times!**
+- [ ] Make a verbose toggle.
 - [ ] Add missing documentation to functions.
 - [ ] Add kernel CA as a non-linear alternative. (Prototype exists on branch kernel_svd)
 - [ ] Write vignette.
@@ -19,8 +20,8 @@ The package is fully functioning, but it is still work in progress and edge case
 
 ## Name fixing TODO
 
-- [ ] Fix dirclust function.
-- [ ] Fix splitmerge function.
+- [x] Fix dirclust function.
+- [x] Fix splitmerge function.
 - [ ] Fix rename_clusters function.
 - [ ] Fix plotting functions.
 - [ ] Fix gene assignment functions.

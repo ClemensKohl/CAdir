@@ -276,18 +276,17 @@ assign_cells <- function(cells, directions) {
     pnorm <- row_norm(cells)
 
     # calculate distance to line.
-    ldist <- dist_to_line(cells, cells, pnorm)
+    ldist <- dist_to_line(cells, directions, pnorm, pos_only = TRUE)
 
     # find closest line
     clusters <- apply(ldist, 1, which.min)
+    clusters <- rownames(directions)[clusters]
 
-    dir_nms <- rownames(directions)
-
-    #FIXME:
-    std_nm <- grepl("cluster_[[:digit:]]+$", dir_nms)
-    if (all(std_nm)) {
-        clusters <- rownames(directions)[clusters]
-    }
+    # dir_nms <- rownames(directions)
+    # std_nm <- grepl("cluster_[[:digit:]]+$", dir_nms)
+    # if (all(std_nm)) {
+    #     clusters <- rownames(directions)[clusters]
+    # }
 
     return(clusters)
 }

@@ -20,6 +20,12 @@ rename_clusters <- function(cadir) {
     #FIXME: Likely fails with annotated dataset.
     #FIXME: Change line to cl2dir mechanism or cluster_
 
+    # NOTE: Plan: Check in the dictionary if there are "empty" spots.
+    # Then, don't change cluster names that follow some custom format.
+    # The "cluster_x" clusters are renamed according to their position in the directions,
+    # so, we can use the number saved in dict.
+    # Just write another function that ensures that the dict doesn't have duplicates.
+
     uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
     cell_nms <- names(cadir@cell_clusters)
     gene_nms <- names(cadir@gene_clusters)
@@ -124,8 +130,15 @@ setMethod(
 #' @param f A vector of factors.
 #' @returns
 #' The factors converted to numbers.
-f2n <- function(f) {
+fc2n <- function(f) {
     n <- as.numeric(as.character(f))
+    stopifnot(is.numeric(n))
+
+    return(n)
+}
+
+f2n <- function(f) {
+    n <- as.numeric(f)
     stopifnot(is.numeric(n))
 
     return(n)
@@ -340,6 +353,6 @@ cl2nm <- function(i) {
     paste0("cluster_", i)
 }
 
-set_clusters <- function(clusters, directions, dict) {
-
+search_dict <- function(dict, query) {
+    names(dict)[dict %in% query]
 }
