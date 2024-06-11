@@ -10,7 +10,7 @@ The package is fully functioning, but it is still work in progress and edge case
 - [x] "Prettify" plotting functions. -> Colors for APL plots!
 - [x] Add Salpha scoring to rank the genes.
 - [x] Enable labeling of genes in cluster_apl
-- [ ] **Split anti-correlated clusters!**
+- [x] **Split anti-correlated clusters!**
 - [ ] **Fix naming of directions. Should be coherent with cluster names at all times!**
 - [ ] Add missing documentation to functions.
 - [ ] Add kernel CA as a non-linear alternative. (Prototype exists on branch kernel_svd)
