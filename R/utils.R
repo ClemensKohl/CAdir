@@ -356,3 +356,91 @@ cl2nm <- function(i) {
 search_dict <- function(dict, query) {
     names(dict)[dict %in% query]
 }
+
+is_std_name <- function(nm) {
+    grepl("cluster_[[:digit:]]+$", nm)
+}
+
+get_std_num <- function(nm) {
+    as.numeric(gsub("^cluster_", "", nm))
+}
+
+
+rename_clusters2  <- function(cadir) {
+
+    cc_nms <- levels(cadir@cell_clusters)
+    gc_nms <- levels(cadir@gene_clusters)
+    all_nms <- unique(cc_nms, gc_nms)
+
+    dir_nms <- rownames(cadir@directions)
+
+    # Remove directions without any points clustered.
+    have_smpls <- which(dir_nms %in% all_nms)
+    cadir@directions <- cadir@directions[have_smpls, , drop = FALSE]
+    dir_nms <- rownames(cadir@directions)
+
+    # NOTE: We first fix the names of the directions.
+    # Then we can use those to fix the cell/gene cluster names.
+    # Also, we want to fix the dict around this time too.
+
+    # 1) Rename the directions according to the overall ordering
+    # But leave none-standard cluster names alone.
+
+    # Get the positions of dir cluster names in dict.
+    dict_pos <- match(dir_nms, names(cadir@cl2dir))
+
+    # Find directions that are standard naming.
+    is_std_dir <- is_std_name(dir_nms)
+
+    # Change to name based on position in matrix
+    old_dir_nms <- dir_nms
+    dir_nms[is_std_dir] <- cl2nm(which(is_std_dir))
+    rownames(cadir@directions) <- dir_nms
+
+    # 2) Change cluster names corresponding to dir in dict.
+    names(cadir@cl2dir)[dict_pos] <- dir_nms
+    names(cadir@cl2dir)[dir_nms] <- seq_len(length(dir_nms))
+
+    # 3) Change cell cluster names
+    new_cls_nms <- dir_nms[match(cadir@cell_clusters, old_dir_nms)]
+    cadir@cell_clusters <- stats::setNames(
+        factor(new_cls_nms, levels = dir_nms),
+        names(cadir@cell_clusters)
+    )
+
+    # 4) Change gene cluster names
+    if (!is.empty(cadir@gene_clusters)) {
+        new_cls_nms <- dir_nms[match(cadir@gene_clusters, old_dir_nms)]
+        genes <- names()
+        cadir@gene_clusters <- stats::setNames(
+            factor(new_cls_nms, levels = dir_nms),
+            names(cadir@gene_clusters)
+        )
+    }
+
+    # 5) Change distances
+    if (!is.empty(cadir@distances)) {
+        cadir@distances <- cadir@distances[, have_smpls, drop = FALSE]
+        colnames(cadir@distances) <- dir_nms
+    }
+
+    # Double Check that the dict is correct!
+    #TODO: Actually implement
+    if (isFALSE(check_dict(cadir))) {
+        cadir <- correct_dict(cadir)
+    }
+    stopifnot(!any(is.na(cadir@cell_clusters)))
+    stopifnot(!any(is.na(cadir@gene_clusters)))
+
+    return(cadir)
+}
+
+check_dict <- function(cadir) {
+# TODO: WIP
+stop()
+}
+
+correct_dict <- function(cadir) {
+# TODO: WIP
+stop()
+}
