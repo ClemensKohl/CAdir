@@ -138,12 +138,11 @@ dirclust <- function(
 
     if (!is.null(cadir)) {
         stopifnot(is(cadir, "cadir"))
-        lines <- cadir@directions
-
         if (!is.null(lines)){
             warning("You overspecified the init. directions with 'lines' and 'cadir'.",
                     "Picking directions from 'cadir'.")
         }
+        lines <- cadir@directions
     }
 
     pnorm <- row_norm(points)
@@ -235,8 +234,8 @@ dirclust <- function(
     clusters <- factor(clusters, levels = sort(unique(clusters)))
     names(clusters) <- cnms
 
-    cl2dir <- as.list(seq_len(nrow(lines)))
-    names(cl2dir) <- rownames(lines)
+    dict <- as.list(seq_len(nrow(lines)))
+    names(dict) <- rownames(lines)
 
     if (is.null(cadir)) {
 
@@ -251,7 +250,7 @@ dirclust <- function(
                 "log" = log
             ),
             log = log_list,
-            cl2dir = cl2dir
+            dict = dict
         )
 
     } else {
@@ -260,9 +259,9 @@ dirclust <- function(
         out@cell_clusters <- clusters
         out@directions <- lines
         out@distances <- ldist
-        to_keep <- (!names(out$log) %in% names(log))
-        out@log <- c(out$log[to_keep], out@log)
-        out@cl2dir <- cl2dir
+        to_keep <- (!names(out@log) %in% names(log))
+        out@log <- c(out@log[to_keep], out@log)
+        out@dict <- dict
 
     }
 

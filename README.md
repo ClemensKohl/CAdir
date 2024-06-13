@@ -22,9 +22,9 @@ The package is fully functioning, but it is still work in progress and edge case
 
 - [x] Fix dirclust function.
 - [x] Fix splitmerge function.
-- [ ] Fix rename_clusters function.
+- [x] Fix rename_clusters function.
 - [ ] Fix plotting functions.
-- [ ] Fix gene assignment functions.
+- [x] Fix gene assignment functions.
 - [ ] Fix apl functions.
 - [ ] Ensure everything works with annotated cadir obj.
 - [ ] Update documentation.

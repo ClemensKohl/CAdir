@@ -91,7 +91,7 @@ split_clusters <- function(
                 cadir = sres,
                 caobj = caobj,
                 # apl_dir = cadir@directions[f2n(i), ],
-                apl_dir = cadir@directions[cadir@cl2dir[[f2c(i)]], ],
+                apl_dir = cadir@directions[cadir@dict[[f2c(i)]], ],
                 group = grp_idx
             )
 
@@ -136,7 +136,7 @@ split_clusters <- function(
                     caobj = caobj,
                     cadir = sres,
                     # direction = cadir@directions[f2n(i), ],
-                    direction = cadir@directions[cadir@cl2dir[[f2c(i)]], ],
+                    direction = cadir@directions[cadir@dict[[f2c(i)]], ],
                     group = which(cadir@cell_clusters == i),
                     cluster = NULL
                 )
@@ -154,20 +154,21 @@ split_clusters <- function(
                 cadir@plots$splits[[rep]][[nm]] <- p
             }
 
-            #FIXME: new dir naming scheme!
-
             # Update the clustering results and add the new directions.
             new_cl <- sort(unique(sres@cell_clusters))
-            lvls <- as.numeric(as.character(levels(cadir@cell_clusters)))
-            extra <- max(lvls) + 1
 
             lvls <- levels(cadir@cell_clusters)
             extra_nr <- length(lvls) + 1
             extra <- cl2nm(extra_nr)
 
+            if (extra %in% lvls) {
+                extra_nr <- max(get_std_num(lvls[is_std_name(lvls)]))
+                extra <- cl2nm(extra_nr + 1)
+            }
+
             # Just making sure that we arent overwriting an existing cluster.
             # Should not be possible though.
-            stopifnot(!extra_nm %in% lvls)
+            stopifnot(!extra %in% lvls)
 
             sel <- which(cadir@cell_clusters == i)
             cl1 <- sres@cell_clusters == new_cl[1]
@@ -178,29 +179,29 @@ split_clusters <- function(
 
             # Update the changed clusters in original cadir:
             # 1) update the factor levels
-            new_lvls <- c(lvls, extra_nm)
+            new_lvls <- c(lvls, extra)
             levels(sres@cell_clusters) <- new_lvls
             levels(cadir@cell_clusters) <- new_lvls
 
             # 2) Update the cluster assignments
             sres@cell_clusters[cl1] <- i
-            sres@cell_clusters[cl2] <- extra_nm
+            sres@cell_clusters[cl2] <- extra
             cadir@cell_clusters[sel] <- sres@cell_clusters
 
             # 3) Update the directions
-            rownames(sres@directions) <- c(i, extra_nm)
+            rownames(sres@directions) <- c(i, extra)
             cadir@directions[i, ] <- sres@directions[i, ]
 
             rn <- rownames(cadir@directions)
             cadir@directions <- rbind(
                 cadir@directions,
-                sres@directions[extra_nm, ]
+                sres@directions[extra, ]
             )
 
             rownames(cadir@directions) <- c(rn, extra)
 
             # 4) Add new cluster to dict.
-            cadir@cl2dir[[extra]] <- extra_nr
+            cadir@dict[[extra]] <- extra_nr
 
             # 5) distances are wrong. reset.
             cadir@distances <- matrix(0, 0, 0)
@@ -239,7 +240,7 @@ merge_clusters <- function(caobj,
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
-    dict <- cadir@cl2dir
+    dict <- cadir@dict
 
     if (is.null(cutoff)) {
         candidates <- get_apl_mergers(cadir = cadir,
@@ -257,7 +258,7 @@ merge_clusters <- function(caobj,
         sim <- get_ang_sim(directions, directions)
         # Set the lower diagonal to 0
         sim[lower.tri(sim, diag = TRUE)] <- 0
-        candidates <- apply(sim, 1, function(x) which(x >= asim_cutoff))
+        candidates <- apply(sim, 1, function(x) which(x >= asim_cutoff), simplify = FALSE)
     }
 
     sel <- which(lengths(candidates) > 0)
@@ -267,9 +268,11 @@ merge_clusters <- function(caobj,
         merge_parent <- search_dict(dict, s)
 
         cds <- candidates[[s]]
+        cds_nms <- colnames(sim)[cds]
         merger_idxs <- c(s, cds)
 
         # get the names of the mergers
+        # FIXME: DICT HAS REDUNDANT ENTRIES!!!!
         mergers <- search_dict(dict, merger_idxs)
 
         message(paste0("\tMerging cluster ", s, " with ", cds))
@@ -279,8 +282,22 @@ merge_clusters <- function(caobj,
 
 
         if (length(cls) == 0) next
+        if (length(unique(clusters[cls])) == 1) next
 
         new_dir <- drop(total_least_squares(samples[cls, , drop = FALSE]))
+
+        #FIXME: REMOVE DEBUGGING ONLY
+        if (length(unique(clusters[cls])) != length(mergers)) {
+            saveRDS(list("mergers" = mergers,
+                "cadir" = cadir,
+                "clusters" = clusters,
+                "cls" = cls,
+                "sel" = sel,
+                "candidates"=candidates,
+                "s" = s,
+                "sim" = sim
+            ), "debug.rds")
+        }
 
         if (isTRUE(make_plots)) {
 
@@ -323,7 +340,6 @@ merge_clusters <- function(caobj,
         cadir@cell_clusters <- clusters
 
         # 2) Update directions
-        # FIXME: Check if the rowname stays the same!!
         directions[s, ] <- new_dir
         directions <- directions[-cds, , drop = FALSE]
         cadir@directions <- directions
@@ -332,7 +348,8 @@ merge_clusters <- function(caobj,
         cadir@distances <- matrix(0, 0, 0) # dists not true anymore.
 
         # 4) Ensure dict is up to date
-        cadir@cl2dir[[merge_parent]] <- s
+        cadir@dict[[merge_parent]] <- s
+        cadir@dict[!names(cadir@dict) %in% cds_nms]
 
         # 5) Ensure coherent naming.
         cadir <- rename_clusters(cadir = cadir)
@@ -503,7 +520,7 @@ dirclust_splitmerge <- function(caobj,
                     name = paste0("end", iter_nm))
 
 
-    to_keep <- (!names(out$log) %in% names(log))
+    to_keep <- (!names(out@log) %in% names(log))
     out@log <- c(out@log[to_keep], log)
     out@parameters$qcutoff <- qcutoff
     out@parameters$call <- fun_args

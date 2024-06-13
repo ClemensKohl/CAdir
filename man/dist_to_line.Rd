@@ -4,7 +4,7 @@
 \alias{dist_to_line}
 \title{Calculate the distance of points to the directions}
 \usage{
-dist_to_line(points, lines, pnorm)
+dist_to_line(points, lines, pnorm, pos_only = TRUE)
 }
 \arguments{
 \item{points}{Row-wise matrix of points.}

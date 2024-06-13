@@ -47,10 +47,10 @@ assign_genes <- function(caobj,
     # find closest line
     clusters <- apply(ldist, 1, which.min)
 
-    cell_lvls <- as.numeric(as.character(levels(cadir@cell_clusters)))
-    lvls <- sort(unique(c(unique(clusters), cell_lvls)))
+    cell_lvls <- levels(cadir@cell_clusters)
+    lvls <- unique(c(cell_lvls, cl2nm(unique(clusters))))
 
-    clusters <- factor(clusters, levels = lvls)
+    clusters <- factor(cl2nm(clusters), levels = lvls)
     names(clusters) <- gene_nms
 
     return(clusters)
@@ -65,8 +65,9 @@ rank_genes <- function(cadir, caobj) {
 
     # Step 2: Get APL coordinates of co-clustered genes
     # for the cluster direction.
-    gcs <- sort(unique(cadir@gene_clusters))
-    gcs_lvls <- as.numeric(gcs)
+    # gcs <- sort(unique(cadir@gene_clusters)
+    # gcs_lvls <- as.numeric(gcs)
+    gcs_lvls <- levels(cadir@gene_clusters)
 
     all_ranks <- list()
     for (c in gcs_lvls) {
@@ -75,7 +76,7 @@ rank_genes <- function(cadir, caobj) {
             alpha <- get_apl_cutoff(
                 caobj = caobj,
                 method = "random",
-                group = which(cadir@cell_clusters == gcs[c]),
+                group = which(cadir@cell_clusters == c),
                 quant = 0.99,
                 apl_cutoff_reps = 100
             )
@@ -86,14 +87,14 @@ rank_genes <- function(cadir, caobj) {
         model <- apl_model(
             caobj = caobj,
             direction = direction,
-            group = which(cadir@cell_clusters == gcs[c])
+            group = which(cadir@cell_clusters == c)
         )
 
         gene_coords <- model(caobj@prin_coords_rows)
 
         # subset genes to cluster genes
         gene_coords <- gene_coords[
-            which(cadir@gene_clusters == gcs[c]), ,
+            which(cadir@gene_clusters == c), ,
             drop = FALSE
         ]
 
@@ -104,14 +105,13 @@ rank_genes <- function(cadir, caobj) {
             "Rowname" = rownames(gene_coords),
             "Score" = score,
             "Row_num" = seq_len(nrow(gene_coords)),
-            "cluster" = gcs[c]
+            "cluster" = c
         )
 
         ranking <- ranking[order(ranking$Score, decreasing = TRUE), ]
         ranking$Rank <- seq_len(nrow(ranking))
 
-        all_ranks[[as.character(gcs[c])]] <- ranking
-        # all_ranks[[paste0("cluster_", c)]] <- ranking
+        all_ranks[[c]] <- ranking
     }
     # Step 4: Store results is new slot (needs to be created)
     cadir@gene_ranks <- all_ranks
@@ -124,6 +124,7 @@ rank_genes <- function(cadir, caobj) {
 top_genes <- function(cadir, cutoff = 0) {
     top_list <- list()
     gene_ranks <- cadir@gene_ranks
+
     for (i in seq_len(length(gene_ranks))) {
         relevant_genes <- gene_ranks[[i]][gene_ranks[[i]]$Score > cutoff, ]
         del <- which(colnames(relevant_genes) == "Rank")
