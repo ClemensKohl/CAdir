@@ -148,7 +148,7 @@ f2c <- function(f) {
 
 # TODO: Add documentation
 #' Convert a numeric (or character) to a factor
-n2f <- function(n, lvls) {
+x2f <- function(n, lvls) {
     f <- factor(n, levels = lvls)
     return(f)
 }
@@ -320,12 +320,13 @@ is_stored <- function(cadir, fun_args) {
         identical(fun_args$method, cadir@parameters$call$method)
 }
 
+#TODO: Add documentation
 log_iter <- function(log, cadir, name) {
 
     log$clusters <- cbind(
         log$clusters,
         stats::setNames(
-            data.frame(f2n(cadir@cell_clusters)),
+            data.frame(cadir@cell_clusters),
             name
         )
     )
@@ -429,6 +430,10 @@ rename_clusters  <- function(cadir) {
     if (isFALSE(check_dict(cadir))) {
         cadir <- correct_dict(cadir)
     }
+
+    cadir@cell_clusters <- droplevels(cadir@cell_clusters)
+    cadir@gene_clusters <- droplevels(cadir@gene_clusters)
+
     stopifnot(!any(is.na(cadir@cell_clusters)))
     stopifnot(!any(is.na(cadir@gene_clusters)))
 

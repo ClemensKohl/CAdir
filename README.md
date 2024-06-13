@@ -23,8 +23,9 @@ The package is fully functioning, but it is still work in progress and edge case
 - [x] Fix dirclust function.
 - [x] Fix splitmerge function.
 - [x] Fix rename_clusters function.
-- [ ] Fix plotting functions.
+- [x] Fix plotting functions.
 - [x] Fix gene assignment functions.
 - [ ] Fix apl functions.
 - [ ] Ensure everything works with annotated cadir obj.
+- [ ] Test plotting functions rigorously!
 - [ ] Update documentation.

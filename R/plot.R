@@ -40,14 +40,16 @@ cluster_apl <- function(caobj,
         sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
     )
 
+    all_cls <- c(levels(cadir@cell_clusters), levels(cadir@gene_clusters))
+
     if (!is.null(cluster) && (!cluster %in% all_cls)) cluster <- NULL
     if (is.null(cluster)) {
         # Kinda redundant. placeholder if I want to do deal with special case.
         cell_grp <- seq_len(length(cadir@cell_clusters))
         gene_grp <- seq_len(length(cadir@gene_clusters))
     } else {
-        cell_grp <- which(f2c(cadir@cell_clusters) == cluster)
-        gene_grp <- which(f2c(cadir@gene_clusters) == cluster)
+        cell_grp <- which(cadir@cell_clusters == cluster)
+        gene_grp <- which(cadir@gene_clusters == cluster)
     }
 
     # ensure that clusters and directions are coherent
@@ -67,6 +69,7 @@ cluster_apl <- function(caobj,
     )
 
     dapl <- model(cadir@directions)
+    dapl_nms <- rownames(dapl)
 
     if (show_cells && !show_genes) {
         capl <- model(caobj@prin_coords_cols)
@@ -101,7 +104,7 @@ cluster_apl <- function(caobj,
     # we flip the line.
     for (d in seq_len(nrow(dapl))) {
         sel <- match(
-            names(cadir@cell_clusters)[as.numeric(cadir@cell_clusters) == d],
+            names(cadir@cell_clusters)[cadir@cell_clusters == dapl_nms[d]],
             rownames(caobj@prin_coords_cols)
         )
 
@@ -296,7 +299,7 @@ plot_results <- function(cadir,
     #FIXME: Doesnt work with annotated data.
     size <- 1
     pls <- list()
-    cls <- sort(unique(cadir@cell_clusters))
+    cls <- levels(cadir@cell_clusters)
     anno_dirs <- all(rownames(cadir@directions) %in% cls)
 
     for (i in seq_along(cls)) {
@@ -309,8 +312,8 @@ plot_results <- function(cadir,
                 sel_dir <- which(rownames(cadir@directions) %in% unique(c(cls[i], cls[j])))
                 dir_idx <- which(rownames(cadir@directions) == cls[i])
             } else {
-                sel_dir <- unique(c(f2n(cls[i]), f2n(cls[j])))
-                dir_idx <- f2n(cls[i])
+                sel_dir <- search_dict(cadir@dict, c(cls[i], cls[j]))
+                dir_idx <- search_dict(cadir@dict, cls[i])
             }
 
             sub_cak <- methods::new("cadir",
@@ -332,7 +335,7 @@ plot_results <- function(cadir,
                 highlight_cluster = highlight_cluster,
                 colour_by_group = TRUE
             ) +
-                ggplot2::ggtitle(ifelse(i == j, paste0("Cluster: ", cls[i]) , "")) +
+                ggplot2::ggtitle(ifelse(i == j, paste0("Cluster: ", cls[i]), "")) +
                 ggplot2::theme(
                     legend.position = "none",
                     axis.title.x = ggplot2::element_blank(),
@@ -377,13 +380,13 @@ plot_clusters <- function(cadir,
                           ntop = 5,
                           text_size = 16) {
     pls <- list()
-    cls <- sort(unique(cadir@cell_clusters))
+    cls <- levels(cadir@cell_clusters)
 
     for (i in seq_along(cls)) {
         p <- cluster_apl(
             caobj = caobj,
             cadir = cadir,
-            direction = cadir@directions[as.numeric(cls[i]), ],
+            direction = cadir@directions[cls[i], ],
             cluster = as.character(cls[i]),
             group = which(cadir@cell_clusters == cls[i]),
             show_cells = TRUE,
@@ -624,7 +627,7 @@ sm_plot <- function(cadir,
         if (name_elems[1] == "root") next
 
         iter_nm <- name_elems[1]
-        cluster <- as.numeric(name_elems[2])
+        cluster <- name_elems[2]
 
         grp_idx <- which(cls[, iter_nm] == cluster)
 
@@ -638,7 +641,7 @@ sm_plot <- function(cadir,
         dir <- tmp_dirs[cluster, ]
 
         if (iter_nm != old_iter_nm) {
-            tmp_ccs <- n2f(cls[, iter_nm])
+            tmp_ccs <- x2f(cls[, iter_nm])
             names(tmp_ccs) <- rownames(caobj@prin_coords_cols)
 
             tmp_cadir <- methods::new(
@@ -668,27 +671,28 @@ sm_plot <- function(cadir,
                         max_size = 500
                     )
                 })
-            } else {
-                #FIXME: After fixing direction naming, this should be redundant.
-                tmp_cadir@cell_clusters <- factor(
-                    paste0("cluster_", f2c(tmp_cadir@cell_clusters)),
-                    levels = paste0("cluster_", levels(tmp_cadir@cell_clusters))
-                )
-                names(tmp_cadir@cell_clusters) <- names(tmp_ccs)
-
-                gnms <- names(cadir@gene_clusters)
-                tmp_cadir@gene_clusters <- factor(
-                    paste0("cluster_", f2c(tmp_cadir@gene_clusters)),
-                    levels = paste0("cluster_", levels(tmp_cadir@gene_clusters))
-                )
-                names(tmp_cadir@gene_clusters) <- gnms
-
-                rownames(tmp_cadir@directions) <- gsub(
-                    pattern = "line",
-                    replacement = "cluster_",
-                    x = rownames(tmp_cadir@directions)
-                )
             }
+            # else {
+            #     #FIXME: After fixing direction naming, this should be redundant.
+            #     tmp_cadir@cell_clusters <- factor(
+            #         paste0("cluster_", f2c(tmp_cadir@cell_clusters)),
+            #         levels = paste0("cluster_", levels(tmp_cadir@cell_clusters))
+            #     )
+            #     names(tmp_cadir@cell_clusters) <- names(tmp_ccs)
+            #
+            #     gnms <- names(cadir@gene_clusters)
+            #     tmp_cadir@gene_clusters <- factor(
+            #         paste0("cluster_", f2c(tmp_cadir@gene_clusters)),
+            #         levels = paste0("cluster_", levels(tmp_cadir@gene_clusters))
+            #     )
+            #     names(tmp_cadir@gene_clusters) <- gnms
+            #
+            #     rownames(tmp_cadir@directions) <- gsub(
+            #         pattern = "line",
+            #         replacement = "cluster_",
+            #         x = rownames(tmp_cadir@directions)
+            #     )
+            # }
 
             old_iter_nm <- iter_nm
         }
