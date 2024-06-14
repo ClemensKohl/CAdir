@@ -1,6 +1,6 @@
 Package: CAdir
 Title: What the Package Does (One Line, Title Case)
-Version: 0.1.0
+Version: 0.0.99
 Authors@R:
   c(person(given = "Clemens",
            family = "Kohl",
@@ -31,7 +31,7 @@ Imports:
     ggsankey
 Remotes:
     davidsjoberg/ggsankey
-Collate: 
+Collate:
     'apl.R'
     'classes.R'
     'celltype_anno.R'
