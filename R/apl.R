@@ -1,3 +1,66 @@
+#' Create a model to project points into an Association Plot
+#' @param caobj A cacomp object.
+#' @param direction Normed direction vector of the APL plot.
+#' @param group A vector of indices which indicate the points
+#' that belong to the cluster. Only needed here to orient the plot.
+#' @returns
+#' A model that can be used to project new points onto the APL plot.
+#' @export
+apl_model <- function(
+    caobj,
+    direction,
+    group = NULL) {
+    stopifnot(methods::is(caobj, "cacomp"))
+
+    cent <- caobj@prin_coords_cols
+
+    avg_group_coords <- direction
+    length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
+
+    # The line sometimes point into the "wrong" direction.
+    # We can determine the cosine, if its negative we flip the x coords.
+
+    cosangle <- 1
+
+    if (!is.null(group)) {
+        subgroup <- cent[group, ]
+
+        if (length(group) == 1) {
+            group_mean <- subgroup # single sample
+        } else {
+            group_mean <- colMeans(subgroup) # centroid vector.
+        }
+
+        cosangle <- cosine(a = group_mean, b = direction)
+
+        # group_norm <- row_norm(group_mean)
+        # gx <- drop(group_mean %*% avg_group_coords) / group_norm
+        #
+        # if (sign(gx) == -1) {
+        #     avg_group_coords <- -avg_group_coords
+        # }
+
+        if (cosangle < 0) {
+            avg_group_coords <- -avg_group_coords
+        }
+    }
+
+
+    model <- function(vec) {
+        length_vector <- row_norm(vec)
+        cordx <- drop(vec %*% avg_group_coords) / length_vector_group
+        cordy <- suppressWarnings(sqrt(length_vector^2 - cordx^2))
+
+        cordx[is.na(cordx)] <- 0
+        cordy[is.na(cordy)] <- 0
+
+        return(cbind("x" = cordx, "y" = cordy))
+    }
+
+    return(model)
+}
+
+
 #' Random direction association plot coordinates
 #'
 #' @description
@@ -128,7 +191,6 @@ permutation_cutoff <- function(caobj,
     return(apl_perm)
 }
 
-# FIXME: Clean up function from commented out parts.
 
 #' Calculates the S_alpha cutoff based on random directions or permutations of the data
 #'
@@ -212,10 +274,9 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
 
     apl_cols <- model(caobj@prin_coords_cols)
     apl_dirs <- model(cadir@directions)
-
     for (r in seq_len(nrow(apl_dirs))) {
         sel <- match(
-            names(cadir@cell_clusters)[cadir@cell_clusters == r],
+            names(cadir@cell_clusters)[cadir@cell_clusters == rownames(apl_dirs)[r]],
             rownames(caobj@prin_coords_cols)
         )
 
@@ -253,9 +314,9 @@ get_apl_mergers <- function(cadir,
         nrow = nrow(cadir@directions),
         ncol = nrow(cadir@directions)
     )
-
+    dir_nms <- rownames(cadir@directions)
     for (d in seq_len(nrow(cadir@directions))) {
-        grp_idx <- which(f2n(cadir@cell_clusters) == d)
+        grp_idx <- which(cadir@cell_clusters == dir_nms[d])
 
         if (length(grp_idx) == 0) next
 
