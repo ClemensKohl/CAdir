@@ -12,11 +12,21 @@ The package is fully functioning, but it is still work in progress and edge case
 - [x] Enable labeling of genes in cluster_apl
 - [x] **Split anti-correlated clusters!**
 - [ ] **Fix naming of directions. Should be coherent with cluster names at all times!**
+- [ ] Make a verbose toggle.
 - [ ] Add missing documentation to functions.
 - [ ] Add kernel CA as a non-linear alternative. (Prototype exists on branch kernel_svd)
 - [ ] Write vignette.
 - [ ] Reduce dependencies and insure that all packages are available on CRAN/Bioconductor. -> ggsankey!
 
-## Dir splitting TODO
+## Name fixing TODO
 
-- [ ] Test new algorithm.
+- [x] Fix dirclust function.
+- [x] Fix splitmerge function.
+- [x] Fix rename_clusters function.
+- [x] Fix plotting functions.
+- [x] Fix gene assignment functions.
+- [x] Fix apl functions.
+- [ ] Fix annotation script.
+- [ ] Ensure everything works with annotated cadir obj.
+- [ ] Test plotting functions rigorously!
+- [ ] Update documentation.

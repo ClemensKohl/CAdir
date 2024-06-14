@@ -87,7 +87,8 @@ setClass("cadir",
         log = "list",
         parameters = "list",
         plots = "list",
-        gene_ranks = "list"
+        gene_ranks = "list",
+        dict = "list"
     ),
     prototype(
         cell_clusters = factor(),
@@ -101,7 +102,8 @@ setClass("cadir",
             "merges" = list(),
             "clusters" = list()
         ),
-        gene_ranks = list()
+        gene_ranks = list(),
+        dict = list()
     ),
     validity = check_cadir
 )

@@ -3,7 +3,7 @@
 #' @importFrom CAbiNet annotate_by_goa
 NULL
 
-# FIXME: Add documentation
+# TODO: Add documentation
 setMethod(
     f = "annotate_by_goa",
     signature = (object <- "cadir"),
@@ -15,15 +15,15 @@ setMethod(
         # cell clusters
         ccs <- cell_clusters(obj)
         ccs_nm <- names(ccs)
-        unccs <- sort(unique(ccs))
+        unccs <- levels(ccs)
 
         # gene clusters
         gcs <- gene_clusters(obj)
         gcs_nm <- names(gcs)
-        ungcs <- sort(unique(gcs))
+        ungcs <- levels(gcs)
 
         # Combine clusters
-        allcs <- sort(unique(c(unccs, ungcs)))
+        allcs <- unique(c(unccs, ungcs))
 
         # Convert to character
         ccs <- as.character(ccs)
@@ -49,7 +49,7 @@ setMethod(
 
         # Rename clusters based on GSE.
         for (c in seq_len(length(allcs))) {
-            noanno <- paste0("cluster", allcs[c])
+            noanno <- allcs[c]
 
             if (!allcs[c] %in% cluster_anno$cluster) {
                 ct <- noanno

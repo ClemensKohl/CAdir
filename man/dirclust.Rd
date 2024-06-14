@@ -4,7 +4,15 @@
 \alias{dirclust}
 \title{Basic clustering by directions in CA space}
 \usage{
-dirclust(points, k, epochs = 10, init = "kmeanspp", lines = NULL, log = FALSE)
+dirclust(
+  points,
+  k,
+  epochs = 10,
+  init = "kmeanspp",
+  lines = NULL,
+  log = FALSE,
+  cadir = NULL
+)
 }
 \arguments{
 \item{points}{Matrix of points to be clustered.

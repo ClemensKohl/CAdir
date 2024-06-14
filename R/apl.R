@@ -1,4 +1,3 @@
-
 #' Create a model to project points into an Association Plot
 #' @param caobj A cacomp object.
 #' @param direction Normed direction vector of the APL plot.
@@ -192,7 +191,6 @@ permutation_cutoff <- function(caobj,
     return(apl_perm)
 }
 
-# FIXME: Clean up function from commented out parts.
 
 #' Calculates the S_alpha cutoff based on random directions or permutations of the data
 #'
@@ -276,10 +274,9 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
 
     apl_cols <- model(caobj@prin_coords_cols)
     apl_dirs <- model(cadir@directions)
-
     for (r in seq_len(nrow(apl_dirs))) {
         sel <- match(
-            names(cadir@cell_clusters)[cadir@cell_clusters == r],
+            names(cadir@cell_clusters)[cadir@cell_clusters == rownames(apl_dirs)[r]],
             rownames(caobj@prin_coords_cols)
         )
 
@@ -317,9 +314,9 @@ get_apl_mergers <- function(cadir,
         nrow = nrow(cadir@directions),
         ncol = nrow(cadir@directions)
     )
-
+    dir_nms <- rownames(cadir@directions)
     for (d in seq_len(nrow(cadir@directions))) {
-        grp_idx <- which(f2n(cadir@cell_clusters) == d)
+        grp_idx <- which(cadir@cell_clusters == dir_nms[d])
 
         if (length(grp_idx) == 0) next
 

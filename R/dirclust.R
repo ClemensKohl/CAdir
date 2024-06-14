@@ -1,11 +1,3 @@
-# ** Plan: **
-# There is one main function that performs clustering by direction.
-# Depending on the choice of a paremter we branch into Salpha clustering or
-# regular splitmerging (e.g. setting cutoff = auto or similar)
-#
-
-#FIXME: Change the naming scheme of the directions.
-# -> Also change `assign_cells() if you do!
 
 #' Initialize directions by kmeans++ method
 #' @param points Row-wise matrix of points to be clustered.
@@ -21,6 +13,7 @@ kmeanspp_init <- function(points, k) {
 
     for (ii in 2:k) {
         lines <- points[center_ids, ] / pnorm[center_ids]
+
         #FIXME: This takes also distances with neg. proj. into account.
         #This is not optimal, but we need to come up
         ldist <- dist_to_line(
@@ -132,8 +125,18 @@ dirclust <- function(
     epochs = 10,
     init = "kmeanspp",
     lines = NULL,
-    log = FALSE
+    log = FALSE,
+    cadir = NULL
 ) {
+
+    if (!is.null(cadir)) {
+        stopifnot(is(cadir, "cadir"))
+        if (!is.null(lines)){
+            warning("You overspecified the init. directions with 'lines' and 'cadir'.",
+                    "Picking directions from 'cadir'.")
+        }
+        lines <- cadir@directions
+    }
 
     pnorm <- row_norm(points)
 
@@ -154,7 +157,7 @@ dirclust <- function(
         lines <- lines / row_norm(lines)
     }
 
-    rownames(lines) <- paste0("line", seq_len(nrow(lines)))
+    rownames(lines) <- paste0("cluster_", seq_len(nrow(lines)))
 
     if (isTRUE(log)) {
         dist_log <- vector(mode = "list", length = epochs)
@@ -218,19 +221,42 @@ dirclust <- function(
         ldist <- ldist[, uni_clust, drop = FALSE]
     }
 
-    out <- methods::new("cadir",
-        cell_clusters = factor(clusters),
-        directions = lines,
-        distances = ldist,
-        parameters = list(
-            "k" = k,
-            "epochs" = epochs,
-            "init" = init,
-            "log" = log
-        ),
-        log = log_list
-    )
 
+    cnms <- names(clusters)
+    clusters <- paste0("cluster_", clusters)
+    clusters <- factor(clusters, levels = sort(unique(clusters)))
+    names(clusters) <- cnms
+
+    dict <- as.list(seq_len(nrow(lines)))
+    names(dict) <- rownames(lines)
+
+    if (is.null(cadir)) {
+
+        out <- methods::new("cadir",
+            cell_clusters = clusters,
+            directions = lines,
+            distances = ldist,
+            parameters = list(
+                "k" = k,
+                "epochs" = epochs,
+                "init" = init,
+                "log" = log
+            ),
+            log = log_list,
+            dict = dict
+        )
+
+    } else {
+
+        out <- cadir
+        out@cell_clusters <- clusters
+        out@directions <- lines
+        out@distances <- ldist
+        to_keep <- (!names(out@log) %in% names(log))
+        out@log <- c(out@log[to_keep], out@log)
+        out@dict <- dict
+
+    }
 
     return(out)
 }
@@ -242,21 +268,22 @@ assign_cells <- function(cells, directions) {
     pnorm <- row_norm(cells)
 
     # calculate distance to line.
-    ldist <- dist_to_line(cells, cells, pnorm)
+    ldist <- dist_to_line(cells, directions, pnorm, pos_only = TRUE)
 
     # find closest line
     clusters <- apply(ldist, 1, which.min)
+    clusters <- rownames(directions)[clusters]
 
-    dir_nms <- rownames(directions)
-    std_nm <- grepl("line[[:digit:]]+$", dir_nms)
-    if (all(std_nm)) {
-        clusters <- rownames(directions)[clusters]
-    }
+    # dir_nms <- rownames(directions)
+    # std_nm <- grepl("cluster_[[:digit:]]+$", dir_nms)
+    # if (all(std_nm)) {
+    #     clusters <- rownames(directions)[clusters]
+    # }
 
     return(clusters)
 }
 
-#' Determine sign for SVD singular vectors.
+#' DETERMINE SIGN FOR SVD SINGULAR VECTORS.
 #' https://www.osti.gov/servlets/purl/920802
 sign_flip <- function(points, line) {
     s <- sum(sign(points %*% line)*(points %*% line)**2)
