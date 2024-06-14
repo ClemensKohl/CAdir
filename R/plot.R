@@ -25,11 +25,12 @@ cluster_apl <- function(caobj,
                         show_genes = FALSE,
                         show_lines = TRUE,
                         highlight_cluster = TRUE,
-                        colour_by_group = FALSE,
+                        # colour_by_group = FALSE,
                         label_genes = FALSE,
                         point_size = 1.5,
                         size_factor = 2,
                         ntop = 15) {
+
     # TODO: Check if you can simplify the cluster/group assignments.
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
@@ -122,9 +123,9 @@ cluster_apl <- function(caobj,
     }
 
     if (isTRUE(highlight_cluster) && (show_cells || show_genes)) {
-        if (isTRUE(colour_by_group)) {
-            sel <- group
-        } else {
+        # if (isTRUE(colour_by_group)) {
+        #     sel <- group
+        # } else {
             sel <- c()
             if (show_cells) {
                 sel_cells <- match(
@@ -140,7 +141,7 @@ cluster_apl <- function(caobj,
                 )
                 sel <- c(sel, sel_genes)
             }
-        }
+        # }
         sel <- na.omit(sel)
 
         df$cluster <- "other"
@@ -307,7 +308,6 @@ plot_results <- function(cadir,
             sel <- which(cadir@cell_clusters == cls[i] |
                          cadir@cell_clusters == cls[j])
 
-            # FIXME: Rework below when changing dirnames.
             if (anno_dirs) {
                 sel_dir <- which(rownames(cadir@directions) %in% unique(c(cls[i], cls[j])))
                 dir_idx <- which(rownames(cadir@directions) == cls[i])
@@ -333,7 +333,7 @@ plot_results <- function(cadir,
                 show_genes = sg,
                 show_lines = i != j,
                 highlight_cluster = highlight_cluster,
-                colour_by_group = TRUE
+                # colour_by_group = TRUE
             ) +
                 ggplot2::ggtitle(ifelse(i == j, paste0("Cluster: ", cls[i]), "")) +
                 ggplot2::theme(
@@ -393,7 +393,7 @@ plot_clusters <- function(cadir,
             show_genes = show_genes,
             show_lines = FALSE,
             highlight_cluster = TRUE,
-            colour_by_group = FALSE,
+            # colour_by_group = FALSE,
             label_genes = label_genes,
             point_size = point_size,
             size_factor = size_factor,
@@ -596,6 +596,7 @@ sm_plot <- function(cadir,
                     annotate_clusters = FALSE,
                     org = "mm",
                     keep_end = TRUE) {
+
     # FIXME: Genes are basically impossible to tell from cells
     graph <- build_graph(
         cadir = cadir,
@@ -629,7 +630,7 @@ sm_plot <- function(cadir,
         iter_nm <- name_elems[1]
         cluster <- name_elems[2]
 
-        grp_idx <- which(cls[, iter_nm] == cluster)
+        grp_idx <- base::which(cls[, iter_nm] == cluster)
 
         is_iter_dirs <- dirs$iter == iter_nm
         coord_column <- !colnames(dirs) %in% c("iter", "dirname")
@@ -637,8 +638,8 @@ sm_plot <- function(cadir,
         tmp_dirs <- dirs[is_iter_dirs, coord_column]
         rownames(tmp_dirs) <- dirs[is_iter_dirs, "dirname"]
 
-        # FIXME: this is not reliable. Maybe add the cluster to the logging info.
-        dir <- tmp_dirs[cluster, ]
+        cluster_idx <- base::which(rownames(tmp_dirs) == cluster)
+        dir <- tmp_dirs[cluster_idx, ]
 
         if (iter_nm != old_iter_nm) {
             tmp_ccs <- x2f(cls[, iter_nm])
@@ -697,12 +698,10 @@ sm_plot <- function(cadir,
             old_iter_nm <- iter_nm
         }
 
-        cluster <- rownames(tmp_cadir@directions)[cluster]
-        # cluster <- gsub("line", "cluster_", cluster)
+        cluster <- rownames(tmp_cadir@directions)[cluster_idx]
         rownames(dir) <- cluster
-        # cluster <- cell_type
 
-        colour_by_group <- !highlight_cluster
+        # colour_by_group <- !highlight_cluster
 
         p <- cluster_apl(
             caobj = caobj,
@@ -713,7 +712,7 @@ sm_plot <- function(cadir,
             show_cells = show_cells,
             show_genes = show_genes,
             highlight_cluster = highlight_cluster,
-            colour_by_group = colour_by_group,
+            # colour_by_group = colour_by_group,
             show_lines = FALSE,
             point_size = 0.3
         )

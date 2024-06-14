@@ -64,7 +64,7 @@ split_clusters <- function(
 ) {
 
     fun_args <- match.call()
-    cls <- sort(unique(cadir@cell_clusters))
+    cls <- levels(cadir@cell_clusters)
 
     for (i in cls) {
         stopifnot(i %in% levels(cadir@cell_clusters))
@@ -135,10 +135,12 @@ split_clusters <- function(
                 p <- cluster_apl(
                     caobj = caobj,
                     cadir = sres,
-                    # direction = cadir@directions[f2n(i), ],
                     direction = cadir@directions[cadir@dict[[f2c(i)]], ],
                     group = which(cadir@cell_clusters == i),
-                    cluster = NULL
+                    cluster = NULL,
+                    # colour_by_group = FALSE,
+                    highlight_cluster = FALSE,
+                    show_genes = FALSE
                 )
 
                 rep <- paste0("rep_", cadir@log$last_rep)
@@ -241,6 +243,7 @@ merge_clusters <- function(caobj,
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
     dict <- cadir@dict
+    dir_nms <- rownames(directions)
 
     if (is.null(cutoff)) {
         candidates <- get_apl_mergers(cadir = cadir,
@@ -268,11 +271,10 @@ merge_clusters <- function(caobj,
         merge_parent <- search_dict(dict, s)
 
         cds <- candidates[[s]]
-        cds_nms <- colnames(sim)[cds]
+        cds_nms <- colnames(dir_nms)[cds]
         merger_idxs <- c(s, cds)
 
         # get the names of the mergers
-        # FIXME: DICT HAS REDUNDANT ENTRIES!!!!
         mergers <- search_dict(dict, merger_idxs)
 
         message(paste0("\tMerging cluster ", s, " with ", cds))
@@ -286,18 +288,18 @@ merge_clusters <- function(caobj,
 
         new_dir <- drop(total_least_squares(samples[cls, , drop = FALSE]))
 
-        #FIXME: REMOVE DEBUGGING ONLY
-        if (length(unique(clusters[cls])) != length(mergers)) {
-            saveRDS(list("mergers" = mergers,
-                "cadir" = cadir,
-                "clusters" = clusters,
-                "cls" = cls,
-                "sel" = sel,
-                "candidates"=candidates,
-                "s" = s,
-                "sim" = sim
-            ), "debug.rds")
-        }
+        ##FIXME: REMOVE DEBUGGING ONLY
+        #if (length(unique(clusters[cls])) != length(mergers)) {
+        #    saveRDS(list("mergers" = mergers,
+        #        "cadir" = cadir,
+        #        "clusters" = clusters,
+        #        "cls" = cls,
+        #        "sel" = sel,
+        #        "candidates"=candidates,
+        #        "s" = s,
+        #        "sim" = sim
+        #    ), "debug.rds")
+        #}
 
         if (isTRUE(make_plots)) {
 
@@ -315,7 +317,9 @@ merge_clusters <- function(caobj,
                 cadir = sres,
                 direction = new_dir,
                 group = cls,
-                cluster = s
+                cluster = s,
+                highlight_cluster = FALSE,
+                show_genes = FALSE
             )
 
             nms_rep <- names(cadir@plots$merges[[rep]])

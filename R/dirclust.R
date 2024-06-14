@@ -1,11 +1,3 @@
-# ** Plan: **
-# There is one main function that performs clustering by direction.
-# Depending on the choice of a paremter we branch into Salpha clustering or
-# regular splitmerging (e.g. setting cutoff = auto or similar)
-#
-
-#FIXME: Change the naming scheme of the directions.
-# -> Also change `assign_cells() if you do!
 
 #' Initialize directions by kmeans++ method
 #' @param points Row-wise matrix of points to be clustered.
@@ -21,6 +13,7 @@ kmeanspp_init <- function(points, k) {
 
     for (ii in 2:k) {
         lines <- points[center_ids, ] / pnorm[center_ids]
+
         #FIXME: This takes also distances with neg. proj. into account.
         #This is not optimal, but we need to come up
         ldist <- dist_to_line(

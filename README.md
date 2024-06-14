@@ -25,7 +25,8 @@ The package is fully functioning, but it is still work in progress and edge case
 - [x] Fix rename_clusters function.
 - [x] Fix plotting functions.
 - [x] Fix gene assignment functions.
-- [ ] Fix apl functions.
+- [x] Fix apl functions.
+- [ ] Fix annotation script.
 - [ ] Ensure everything works with annotated cadir obj.
 - [ ] Test plotting functions rigorously!
 - [ ] Update documentation.
