@@ -16,7 +16,7 @@
 #' @returns
 #' An APL plot (ggplot2 object).
 #' @export
-cluster_apl <- function(caobj,
+cluster_apl_old <- function(caobj,
                         cadir,
                         cluster = NULL,
                         direction,

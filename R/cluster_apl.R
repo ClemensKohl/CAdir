@@ -1,0 +1,384 @@
+cluster_apl <- function(caobj,
+                        cadir,
+                        cluster = NULL,
+                        direction,
+                        group,
+                        show_cells = TRUE,
+                        show_genes = FALSE,
+                        show_lines = TRUE,
+                        highlight_cluster = TRUE,
+                        label_genes = FALSE,
+                        point_size = 1.5,
+                        size_factor = 2,
+                        ntop = 15) {
+    stopifnot(methods::is(caobj, "cacomp"))
+    stopifnot(methods::is(cadir, "cadir"))
+
+
+    all_cls <- unique(c(
+        levels(cadir@cell_clusters),
+        levels(cadir@gene_clusters)
+    ))
+
+    if (!is.null(cluster)) {
+        cluster <- as.character(cluster)
+        if (!cluster %in% all_cls) cluster <- NULL
+    }
+
+
+    # Calculate angle if only two directions, NA otherwise
+    ang <- .get_plot_angle(directions = cadir@directions)
+
+    model <- apl_model(
+        caobj = caobj,
+        direction = direction,
+        group = group
+    )
+
+    dapl <- model(cadir@directions)
+    dapl <- .toggle_dir(
+        apl_dirs = dapl,
+        caobj = caobj,
+        cadir = cadir,
+        model = model
+    )
+    # dapl_nms <- rownames(dapl)
+
+    bool_sum <- show_cells + show_genes + show_cells
+    coords <- list(NULL, "prin_coords_cols", "std_coords_cols")
+
+    df <- .construct_df(
+        cells = slot(caobj, name = coords[[bool_sum]]),
+        genes = ifelse(show_genes, yes = caobj@prin_coords_rows, no = NULL),
+        model = model
+    )
+
+    df <- .add_cluster_info(
+        plot_df = df,
+        cadir = cadir,
+        cluster = cluster,
+        highlight_cluster = highlight_cluster
+    )
+
+    ############
+    ### Plot ###
+    ############
+
+    p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
+
+    p <- .cluster_apl_colors(
+        ggplt = p,
+        plot_df = df,
+        point_size = point_size,
+        size_factor = size_factor,
+        highlight_cluster = highlight_cluster,
+        label_genes = label_genes
+    )
+
+    if (isTRUE(show_lines)) {
+        p <- .add_lines(
+            ggplt = p,
+            apl_dir = dapl,
+            highlight_cluster = highlight_cluster
+        )
+    }
+
+    p <- p +
+    ggplot2::ggtitle(paste0(
+        "Cluster: ",
+        as.character(cluster),
+        ", CA-angle: ",
+        round(ang, 2)
+    )) +
+    ggplot2::theme_bw()
+
+    return(p)
+}
+
+
+
+.construct_df <- function(cells = NULL, genes = NULL, model = NULL) {
+    incl_cells <- !is.null(cells)
+    incl_genes <- !is.null(genes)
+
+    if (incl_cells && !incl_genes) {
+        capl <- model(cells)
+        df <- as.data.frame(capl)
+        df$sample <- rownames(df)
+        df$type <- "cell"
+    } else if (incl_cells && incl_genes) {
+        capl <- model(cells)
+        gapl <- model(genes)
+        df <- as.data.frame(capl)
+        df$sample <- rownames(df)
+        df$type <- "cell"
+
+        dfg <- as.data.frame(gapl)
+        dfg$sample <- rownames(dfg)
+        dfg$type <- "gene"
+
+        df <- rbind(df, dfg)
+    } else if (!incl_cells && incl_genes) {
+        gapl <- model(genes)
+        df <- as.data.frame(gapl)
+        df$sample <- rownames(df)
+        df$type <- "gene"
+    } else {
+        df <- data.frame(
+            "sample" = c(),
+            "type" = c()
+        )
+    }
+
+    return(df)
+}
+
+.get_plot_angle <- function(directions) {
+    if (nrow(directions) == 2) {
+        ang <- min(
+            rad2deg(get_angle(directions[1, ], directions[2, ])),
+            rad2deg(get_angle(-directions[1, ], directions[2, ]))
+        )
+    } else {
+        ang <- NA_real_
+    }
+
+    return(ang)
+}
+
+.toggle_dir <- function(apl_dirs, caobj, cadir, model) {
+    # If the line points into the opposite direction of points
+    # we flip the line.
+    dapl_nms <- rownames(apl_dirs)
+    for (d in seq_len(nrow(apl_dirs))) {
+        sel <- match(
+            names(cadir@cell_clusters)[cadir@cell_clusters == dapl_nms[d]],
+            rownames(caobj@prin_coords_cols)
+        )
+
+        if (length(sel) == 0) next
+
+        cell_coords <- model(caobj@prin_coords_cols)[sel, ]
+
+        if (length(sel) > 1) {
+            grp_mean <- colMeans(cell_coords)
+        } else {
+            grp_mean <- cell_coords
+        }
+
+        if (sign(grp_mean[1]) != sign(apl_dirs[d, 1])) {
+            apl_dirs[d, ] <- c(-1, 1) * apl_dirs[d, ]
+        }
+    }
+
+    return(apl_dirs)
+}
+
+.add_cluster_info <- function(
+    plot_df,
+    cadir,
+    cluster = NULL,
+    highlight_cluster = FALSE) {
+    show_genes <- any("gene" %in% plot_df$type)
+    show_cells <- any("cell" %in% plot_df$type)
+
+    if (!any(c(show_genes, show_cells))) {
+        return(plot_df)
+    }
+
+    if (is.null(cluster)) {
+        cell_cl <- seq_len(length(cadir@cell_clusters))
+        gene_cl <- seq_len(length(cadir@gene_clusters))
+    } else {
+        cell_cl <- which(cadir@cell_clusters == cluster)
+        gene_cl <- which(cadir@gene_clusters == cluster)
+    }
+
+    sel_cells <- match(names(cadir@cell_clusters)[cell_cl], plot_df$sample)
+    sel_cells <- na.omit(sel_cells)
+    sel_genes <- match(names(cadir@gene_clusters)[gene_cl], plot_df$sample)
+    sel_genes <- na.omit(sel_genes)
+
+
+    if (isTRUE(highlight_cluster)) {
+        sel <- c() # empty in case we only want to plot lines.
+        sel <- c(sel, sel_cells, sel_genes)
+        sel <- na.omit(sel)
+
+        plot_df$cluster <- "other"
+        plot_df$cluster[sel] <- "cluster"
+        plot_df$cluster <- factor(plot_df$cluster,
+            levels = c("other", "cluster")
+        )
+
+        ord <- order(plot_df$cluster)
+        plot_df <- plot_df[ord, ]
+
+        # if conditions, conc. type and cluster.
+        if (show_cells && show_genes) {
+            plot_df$cluster <- paste0(plot_df$type, "_", plot_df$cluster)
+        }
+    } else {
+        plot_df$cluster <- 0
+
+        plot_df$cluster[sel_cells] <- cadir@cell_clusters
+        plot_df$cluster[sel_genes] <- cadir@gene_clusters
+
+        plot_df$cluster <- factor(plot_df$cluster,
+            levels = sort(unique(c(
+                0,
+                cadir@cell_clusters,
+                cadir@gene_clusters
+            )))
+        )
+    }
+
+    return(plot_df)
+}
+
+.cluster_apl_colors <- function(
+    ggplt,
+    plot_df,
+    point_size = 1.5,
+    size_factor = 1,
+    highlight_cluster = FALSE,
+    label_genes = FALSE) {
+    show_genes <- any("gene" %in% plot_df$type)
+    show_cells <- any("cell" %in% plot_df$type)
+
+    if (isTRUE(show_cells) || isTRUE(show_genes)) {
+        ggplt <- .add_colors(
+            ggplt = ggplt,
+            point_size = point_size,
+            size_factor = size_factor
+        )
+
+        if (isTRUE(highlight_cluster)) {
+            ggplt <- .highlight_cluster(
+                ggplt = ggplt,
+                both = (show_cells && show_genes)
+            )
+
+            if (isTRUE(label_genes)) {
+                ggplt <- .label_genes(
+                    ggplt = ggplt,
+                    plot_df = plot_df,
+                    ntop = ntop
+                )
+            }
+        }
+    }
+
+    return(ggplt)
+}
+
+.add_colors <- function(ggplt, point_size = 1.5, size_factor = 2) {
+    ggplt <- ggplt +
+        ggplot2::geom_point(ggplot2::aes(shape = type, size = type, alpha = cluster)) +
+        ggplot2::scale_size_manual(values = c(
+            "cell" = point_size,
+            "gene" = point_size * size_factor
+        )) +
+        ggplot2::scale_shape_manual(values = c(
+            "cell" = 19,
+            "gene" = 8
+        )) +
+        ggplot2::scale_alpha_manual(values = c(
+            "cluster" = 1,
+            "other" = 0.7,
+            "cell_cluster" = 1,
+            "gene_cluster" = 1,
+            "cell_other" = 0.7,
+            "gene_other" = 0.3
+        ))
+
+    return(ggplt)
+}
+
+.highlight_cluster <- function(ggplt, both = FALSE) {
+    if (isTRUE(both)) {
+        ggplt <- ggplt + ggplot2::scale_color_manual(values = c(
+            "cell_cluster" = "#c6d325",
+            "gene_cluster" = "#ef7c00",
+            "cell_other" = "#006c66",
+            "gene_other" = "#777777"
+        ))
+    } else {
+        ggplt <- ggplt + ggplot2::scale_color_manual(values = c(
+            "cluster" = "#c6d325",
+            "other" = "#006c66"
+        ))
+    }
+
+    return(ggplt)
+}
+
+
+.label_genes <- function(ggplt, plot_df, ntop = 15) {
+    to_highlight <- (plot_df$cluster == "gene_cluster")
+
+    dfh <- plot_df[to_highlight, ]
+    dfh <- head(dfh[order(dfh$x, decreasing = TRUE), ], ntop)
+    ggplt <- ggplt + ggrepel::geom_label_repel(
+        data = dfh,
+        ggplot2::aes(
+            x = x,
+            y = y,
+            label = sample
+        ),
+        max.overlaps = Inf
+    )
+
+    return(ggplt)
+}
+
+.add_lines <- function(ggplt, apl_dir, highlight_cluster = FALSE) {
+
+    for (d in seq_len(nrow(apl_dir))) {
+        is_x <- is_xaxis(apl_dir[d, ])
+
+        if (is_x) {
+            lcolor <- "black"
+            ltype <- "solid"
+        } else {
+            lcolor <- "red"
+            ltype <- "dashed"
+            if (isTRUE(highlight_cluster)) {
+                lcolor <- "#006c66"
+            }
+        }
+
+        ggplt <- ggplt + ggplot2::geom_abline(
+            intercept = 0,
+            slope = slope(lines = apl_dir[d, ], dims = 1:2),
+            color = lcolor,
+            linetype = ltype,
+            size = 1
+        ) +
+        ggplot2::geom_point(
+            data = data.frame(x = 0, y = 0),
+            ggplot2::aes(x, y),
+            color = lcolor
+        )
+    }
+
+    return(ggplt)
+}
+
+is_xaxis <- function(apl_dir) {
+    pos_xaxis <- all.equal(
+        apl_dir,
+        c(1, 0),
+        tolerance = 1e-4,
+        check.attributes = FALSE
+    )
+
+    neg_xaxis <- all.equal(
+        apl_dir,
+        c(-1, 0),
+        tolerance = 1e-4,
+        check.attributes = FALSE
+    ))
+
+    return(isTRUE(pos_xaxis) || isTRUE(neg_xaxis))
+}
