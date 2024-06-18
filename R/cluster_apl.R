@@ -1,4 +1,4 @@
-#TODO: Update documentation.
+# TODO: Update documentation.
 #' Plot a cluster with the respective direction/line in an APL.
 #' @inheritParams apl_model
 #' @param cadir A cadir object for which to compute the APL
@@ -31,6 +31,13 @@ cluster_apl <- function(caobj,
                         ntop = 15) {
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
+
+    if (is.null(cluster) && isTRUE(highlight_cluster)) {
+        warning(paste0("Turning `highlight_cluster off,",
+                       "because no `cluster` was specified"))
+
+        highlight_cluster <- FALSE
+    }
 
     all_cls <- unique(c(
         levels(cadir@cell_clusters),
@@ -86,9 +93,10 @@ cluster_apl <- function(caobj,
     ### Plot ###
     ############
 
+    # browser()
     p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
 
-    p <- .cluster_apl_colors(
+    p <- .cluster_apl_points(
         ggplt = p,
         plot_df = df,
         point_size = point_size,
@@ -246,25 +254,27 @@ cluster_apl <- function(caobj,
             plot_df$cluster <- paste0(plot_df$type, "_", plot_df$cluster)
         }
     } else {
-        plot_df$cluster <- 0
+        no_cluster <- "N/A"
+        plot_df$cluster <- no_cluster
 
-        plot_df$cluster[sel_cells] <- cadir@cell_clusters
-        plot_df$cluster[sel_genes] <- cadir@gene_clusters
+        plot_df$cluster[sel_cells] <- f2c(cadir@cell_clusters)
+        plot_df$cluster[sel_genes] <- f2c(cadir@gene_clusters)
 
         plot_df$cluster <- factor(plot_df$cluster,
             levels = sort(unique(c(
-                0,
-                cadir@cell_clusters,
-                cadir@gene_clusters
+                no_cluster,
+                f2c(cadir@cell_clusters),
+                f2c(cadir@gene_clusters)
             )))
         )
+        # browser()
     }
 
     return(plot_df)
 }
 
 # TODO: Add documentation.
-.cluster_apl_colors <- function(
+.cluster_apl_points <- function(
     ggplt,
     plot_df,
     point_size = 1.5,
@@ -275,7 +285,14 @@ cluster_apl <- function(caobj,
     show_genes <- any("gene" %in% plot_df$type)
     show_cells <- any("cell" %in% plot_df$type)
 
+
     if (isTRUE(show_cells) || isTRUE(show_genes)) {
+        ggplt <- ggplt +
+            ggplot2::geom_point(ggplot2::aes(
+                shape = type,
+                size = type,
+            ), alpha = 0.7)
+
         ggplt <- .add_colors(
             ggplt = ggplt,
             point_size = point_size,
@@ -304,9 +321,6 @@ cluster_apl <- function(caobj,
 # TODO: Add documentation.
 .add_colors <- function(ggplt, point_size = 1.5, size_factor = 2) {
     ggplt <- ggplt +
-        ggplot2::geom_point(ggplot2::aes(shape = type,
-                                         size = type,
-                                         alpha = cluster)) +
         ggplot2::scale_size_manual(values = c(
             "cell" = point_size,
             "gene" = point_size * size_factor
@@ -314,16 +328,7 @@ cluster_apl <- function(caobj,
         ggplot2::scale_shape_manual(values = c(
             "cell" = 19,
             "gene" = 8
-        )) +
-        ggplot2::scale_alpha_manual(values = c(
-            "cluster" = 1,
-            "other" = 0.7,
-            "cell_cluster" = 1,
-            "gene_cluster" = 1,
-            "cell_other" = 0.7,
-            "gene_other" = 0.3
         ))
-
     return(ggplt)
 }
 
@@ -342,6 +347,17 @@ cluster_apl <- function(caobj,
             "other" = "#006c66"
         ))
     }
+
+    ggplt <- ggplt +
+        # ggplot2::aes(alpha = cluster) +
+        ggplot2::scale_alpha_manual(values = c(
+            "cluster" = 1,
+            "other" = 0.7,
+            "cell_cluster" = 1,
+            "gene_cluster" = 1,
+            "cell_other" = 0.7,
+            "gene_other" = 0.3
+        ))
 
     return(ggplt)
 }

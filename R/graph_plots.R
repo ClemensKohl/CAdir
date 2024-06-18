@@ -1,4 +1,5 @@
 # FIXME: Prevent opening plot when calling it! ggplotGrob
+#
 #' Get relative x and y values in relation to the plotting panel from a ggplot.
 #' Solution adapted from Anwer by Allan Cameron at:
 #' https://stackoverflow.com/a/60857307/1376616
@@ -252,13 +253,16 @@ sm_plot <- function(cadir,
             point_size = 0.3
         )
         if (isTRUE(annotate_clusters)) {
-            p <- p + ggplot2::ggtitle(cluster) +
+            p <- p +
+                ggplot2::ggtitle(cluster) +
                 theme_blank(
-                    title = ggplot2::element_text(color = "black", size = 10, face = "bold"),
+                    title = ggplot2::element_text(color = "black",
+                                                  size = 10, face = "bold"),
                     text = ggplot2::element_text()
                 )
         } else {
-            # scale_color_mpimg(name = "mpimg") + #FIXME: We need to pick a color palette for a large number of clusters
+            #TODO: We need to pick a color palette for a large number of clusters
+            # scale_color_mpimg(name = "mpimg") +
             p <- p + theme_blank()
         }
 

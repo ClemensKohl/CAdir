@@ -87,10 +87,10 @@ split_clusters <- function(
         if (is.null(cutoff)) {
 
             grp_idx <- which(cadir@cell_clusters == i)
+
             aplcds <- apl_dir_coords(
                 cadir = sres,
                 caobj = caobj,
-                # apl_dir = cadir@directions[f2n(i), ],
                 apl_dir = cadir@directions[cadir@dict[[f2c(i)]], ],
                 group = grp_idx
             )
@@ -138,14 +138,12 @@ split_clusters <- function(
                     direction = cadir@directions[cadir@dict[[f2c(i)]], ],
                     group = which(cadir@cell_clusters == i),
                     cluster = NULL,
-                    # colour_by_group = FALSE,
                     highlight_cluster = FALSE,
                     show_genes = FALSE
                 )
 
                 rep <- paste0("rep_", cadir@log$last_rep)
                 nms_rep <- names(cadir@plots$splits[[rep]])
-                # nm <- paste("cluster", f2n(i), collapse = "_", sep = "")
                 nm <- f2c(i)
 
                 if (nm %in% names(nms_rep)) {
@@ -287,19 +285,6 @@ merge_clusters <- function(caobj,
 
         new_dir <- drop(total_least_squares(samples[cls, , drop = FALSE]))
 
-        ##FIXME: REMOVE DEBUGGING ONLY
-        # if (length(unique(clusters[cls])) != length(mergers)) {
-        saveRDS(list("mergers" = mergers,
-            "cadir" = cadir,
-            "clusters" = clusters,
-            "cls" = cls,
-            "sel" = sel,
-            "candidates"=candidates,
-            "s" = s
-            # "sim" = sim
-        ), "/project/kohl_analysis/analysis/CAdir/exploration/debugging/debug.rds")
-        # }
-
         if (isTRUE(make_plots)) {
 
             rep <- paste0("rep_", cadir@log$last_rep)
@@ -411,7 +396,10 @@ dirclust_splitmerge <- function(caobj,
     if (!is.null(cutoff)) cutoff <- deg2rad(cutoff)
     fun_args <- match.call()
 
-    # Set up logging.
+    #########
+    # Setup #
+    #########
+
     log <- list()
     log$clusters <- as.data.frame(matrix(0,
                                     ncol = 1,
@@ -428,7 +416,10 @@ dirclust_splitmerge <- function(caobj,
                             dirname = "root",
                             log$directions)
 
-    # Initial CAdir clustering.
+    ######################
+    # Initial clustering #
+    ######################
+
     out <- dirclust(
         points = caobj@prin_coords_cols,
         k = k,
@@ -449,6 +440,10 @@ dirclust_splitmerge <- function(caobj,
 
         iter_nm <- paste0("iter_", i)
         out@log$last_rep <- i
+
+        ##################
+        # Split clusters #
+        ##################
 
         out <- split_clusters(
             cadir = out,
@@ -480,6 +475,10 @@ dirclust_splitmerge <- function(caobj,
                         cadir = out,
                         name = paste0("interS_", iter_nm))
 
+        ##################
+        # Merge clusters #
+        ##################
+
         out <- merge_clusters(
             caobj = caobj,
             cadir = out,
@@ -510,6 +509,10 @@ dirclust_splitmerge <- function(caobj,
 
     }
 
+    ################
+    # Assign genes #
+    ################
+
     out@gene_clusters <- assign_genes(
         caobj = caobj,
         cadir = out,
@@ -523,6 +526,9 @@ dirclust_splitmerge <- function(caobj,
                     cadir = out,
                     name = paste0("end", iter_nm))
 
+    ################
+    # add log info #
+    ################
 
     to_keep <- (!names(out@log) %in% names(log))
     out@log <- c(out@log[to_keep], log)

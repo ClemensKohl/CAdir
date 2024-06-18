@@ -155,9 +155,8 @@ is_stored <- function(cadir, fun_args) {
         identical(fun_args$method, cadir@parameters$call$method)
 }
 
-#TODO: Add documentation
+# TODO: Add documentation
 log_iter <- function(log, cadir, name) {
-
     log$clusters <- cbind(
         log$clusters,
         stats::setNames(
@@ -179,7 +178,7 @@ log_iter <- function(log, cadir, name) {
     return(log)
 }
 
-#TODO: Add Documentation
+# TODO: Add Documentation
 cl2nm <- function(i) {
     paste0("cluster_", i)
 }
@@ -199,4 +198,10 @@ get_std_num <- function(nm) {
     as.numeric(gsub("^cluster_", "", nm))
 }
 
+#TODO: Add documentaiton
+#Possibly delete
+get_cluster_idxs <- function(cadir, cluster) {
+    stopifnot(is.character(cluster))
+    which(cadir@cell_clusters == cluster)
+}
 
