@@ -9,65 +9,6 @@ rand_idx <- function(points, k) {
 }
 
 
-#' Rename clusters and directions so that they match.
-#' @param cadir A cadir object.
-#' @details
-#' rename_clusters takes a cadir object and renames the clusters and directions
-#' such that they are again coherent (e.g. from 1:5).
-#' @returns
-#' A cadir object with renamed clusters and directions.
-rename_clusters_old <- function(cadir) {
-    #FIXME: REMOVE REMOVE REMOVE
-
-    uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
-    cell_nms <- names(cadir@cell_clusters)
-    gene_nms <- names(cadir@gene_clusters)
-
-    dir_num <- as.numeric(gsub("line", "", rownames(cadir@directions)))
-
-    # Remove directions without any points clustered.
-    have_smpls <- which(dir_num %in% uni_clust)
-    dir_num <- dir_num[have_smpls]
-    cadir@directions <- cadir@directions[have_smpls, , drop = FALSE]
-
-    # Rename the directions according to the cluster numbers.
-    new_dir_num <- match(dir_num, uni_clust)
-    rownames(cadir@directions) <- paste0("line", new_dir_num)
-
-    if (!is.empty(cadir@distances)) {
-        cadir@distances <- cadir@distances[, have_smpls, drop = FALSE]
-        colnames(cadir@distances) <- paste0("line", new_dir_num)
-    }
-
-    # Rename the clusters according to the order of their direction.
-    tmp_cells <- match(cadir@cell_clusters, uni_clust)
-    new_lvls <- sort(unique(tmp_cells))
-
-
-    if (!is.empty(cadir@gene_clusters)) {
-        tmp_genes <- match(cadir@gene_clusters, uni_clust)
-
-        new_lvls <- sort(unique(c(tmp_cells, tmp_genes)))
-
-        cadir@gene_clusters <- factor(
-            tmp_genes,
-            levels = new_lvls
-        )
-        stopifnot(!any(is.na(cadir@gene_clusters)))
-        names(cadir@gene_clusters) <- gene_nms
-    }
-
-    cadir@cell_clusters <- factor(
-        tmp_cells,
-        levels = new_lvls
-    )
-
-
-    stopifnot(!any(is.na(cadir@cell_clusters)))
-    names(cadir@cell_clusters) <- cell_nms
-
-    return(cadir)
-}
 
 #' Check if a variable is empty (length = 0 but not NULL)
 #' @param x variable to check
@@ -153,111 +94,6 @@ x2f <- function(n, lvls) {
     return(f)
 }
 
-#' Build a sub-graph that can be joined to a larger graph.
-#' By itself it is a valid graph too.
-#' @param before A vector (optimally of factors) with all cluster/node assignments.
-#' @param after A vector of same length and order as `before`,
-#' with cluster/node assignments after some change.
-#' @param before_nm The name of the node before the change.
-#' @param after_nm The name of the node after the change.
-#' @returns
-#' A data.frame with two columns ("from", "to") representing the edges in the graph.
-#' The data frame can be used to generate a graph.
-build_sub_graph <- function(before,
-                            after,
-                            before_nm = "start",
-                            after_nm = "end") {
-    graph <- data.frame()
-    node <- unique(before)
-
-    for (n in node) {
-        n_nm <- paste0(before_nm, "-", n)
-        cluster <- which(before == n)
-        new_clusters <- unique(after[cluster])
-
-        for (nn in new_clusters) {
-            nn_nm <- paste0(after_nm, "-", nn)
-            graph <- rbind(graph, data.frame(from = n_nm, to = nn_nm))
-        }
-    }
-    return(graph)
-}
-
-#' Build igraph from a cadir results.
-#' @param cadir A cadir object with valid clustering results.
-#' @param rm_redund If TRUE, removes all clustering iterations where nothing changed (no splits/merges).
-#' @returns
-#' A directed igraph object with all splits and merges.
-build_graph <- function(cadir, rm_redund = FALSE, keep_end = TRUE) {
-    graph_list <- list()
-    cls <- cadir@log$clusters
-
-    cls_nodes <- colnames(cls)
-    node_pattern <- c("iter_0|split|merge|end")
-    sel <- which(grepl(node_pattern, cls_nodes))
-
-    # We loop through all the nodes that contain the pattern in their name and
-    # compare the new clusters to the ones from the intermediate dirclust calls.
-    # This way we only record in the graph what actually changes during the
-    # split/merge,
-    # not the arbitrary shifting during the cluster refinement. However,
-    # we need to change the name of the previous graph node to that of the
-    # last split/merge in order to make
-    # a coherent graph.
-    for (i in seq_len(length(sel))) {
-        bef_cls <- cls[, sel[i] - 1]
-        aft_cls <- cls[, sel[i]]
-
-        is_end <- (i == length(sel) && keep_end)
-        if (!is_end &&
-            all(f2c(bef_cls) == f2c(aft_cls)) &&
-            isTRUE(rm_redund)) next
-
-        graph_list[[i]] <- build_sub_graph(
-            before = bef_cls,
-            after = aft_cls,
-            before_nm = ifelse(i == 1, "root", cls_nodes[sel[last_i]]),
-            after_nm = cls_nodes[sel[i]]
-        )
-        last_i <- i
-    }
-
-    graph <- do.call(rbind, graph_list)
-    rownames(graph) <- NULL
-    graph <- igraph::graph_from_data_frame(graph, directed = TRUE)
-
-    return(graph)
-}
-
-# FIXME: Prevent opening plot when calling it! ggplotGrob
-
-#' Get relative x and y values in relation to the plotting panel from a ggplot.
-#' Solution adapted from Anwer by Allan Cameron at:
-#' https://stackoverflow.com/a/60857307/1376616
-#' @param gg_plot A ggplot object.
-#' @returns
-#' dataframe with x and y values relative to the plotting panel.
-get_x_y_values <- function(gg_plot) {
-    img_dim <- grDevices::dev.size("cm") * 10
-    gt <- ggplot2::ggplotGrob(gg_plot)
-    to_mm <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
-    n_panel <- which(gt$layout$name == "panel")
-    panel_pos <- gt$layout[n_panel, ]
-    panel_kids <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
-    point_grobs <- panel_kids[[grep("point", names(panel_kids))]]
-    from_top <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
-    from_left <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
-    from_right <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
-    from_bottom <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
-    panel_height <- img_dim[2] - from_top - from_bottom
-    panel_width <- img_dim[1] - from_left - from_right
-    xvals <- as.numeric(point_grobs$x)
-    yvals <- as.numeric(point_grobs$y)
-    yvals <- yvals * panel_height + from_bottom
-    xvals <- xvals * panel_width + from_left
-    data.frame(x = xvals / img_dim[1], y = yvals / img_dim[2])
-}
-
 
 
 #' Converts a `cadir` object to `Biclust` object
@@ -319,9 +155,8 @@ is_stored <- function(cadir, fun_args) {
         identical(fun_args$method, cadir@parameters$call$method)
 }
 
-#TODO: Add documentation
+# TODO: Add documentation
 log_iter <- function(log, cadir, name) {
-
     log$clusters <- cbind(
         log$clusters,
         stats::setNames(
@@ -343,157 +178,30 @@ log_iter <- function(log, cadir, name) {
     return(log)
 }
 
+# TODO: Add Documentation
 cl2nm <- function(i) {
     paste0("cluster_", i)
 }
 
+# TODO: Add documentation.
 search_dict <- function(dict, query) {
     names(dict)[dict %in% query]
 }
 
+# TODO: Add documentation.
 is_std_name <- function(nm) {
     grepl("cluster_[[:digit:]]+$", nm)
 }
 
+# TODO: Add documentation.
 get_std_num <- function(nm) {
     as.numeric(gsub("^cluster_", "", nm))
 }
 
-
-rename_clusters  <- function(cadir) {
-
-    cc_nms <- levels(cadir@cell_clusters)
-    gc_nms <- levels(cadir@gene_clusters)
-    # all_nms <- unique(cc_nms, gc_nms)
-
-    dir_nms <- rownames(cadir@directions)
-
-    dict <- cadir@dict
-
-    # Remove directions without any CELLS clustered.
-    # There might be directions that only have genes,
-    # but we remove it nevertheless.
-    have_smpls <- which(dir_nms %in% cc_nms)
-    cadir@directions <- cadir@directions[have_smpls, , drop = FALSE]
-    dir_nms <- rownames(cadir@directions)
-
-    # NOTE: We first fix the names of the directions.
-    # Then we can use those to fix the cell/gene cluster names.
-    # Also, we want to fix the dict around this time too.
-
-    # 1) Rename the directions according to the overall ordering
-    # But leave none-standard cluster names alone.
-
-    # Subset dict to entries for which directions exist.
-    # Get the positions of dir cluster names in dict.
-    dict <- dict[names(dict) %in% dir_nms]
-    dict <- dict[!duplicated(names(dict))]
-    dict_pos <- match(dir_nms, names(dict))
-
-    # Find directions that are standard naming.
-    is_std_dir <- is_std_name(dir_nms)
-
-    # Change to name based on position in matrix
-    old_dir_nms <- dir_nms
-    dir_nms[is_std_dir] <- cl2nm(which(is_std_dir))
-    rownames(cadir@directions) <- dir_nms
-
-    # 2) Change cluster names corresponding to dir in dict.
-    names(dict)[dict_pos] <- dir_nms
-    dict[dir_nms] <- seq_len(length(dir_nms))
-    cadir@dict <- dict
-
-    # 3) Change cell cluster names
-    new_cls_nms <- dir_nms[match(cadir@cell_clusters, old_dir_nms)]
-    cadir@cell_clusters <- stats::setNames(
-        factor(new_cls_nms, levels = dir_nms),
-        names(cadir@cell_clusters)
-    )
-
-    # 4) Change gene cluster names
-    if (!is.empty(cadir@gene_clusters)) {
-        new_cls_nms <- dir_nms[match(cadir@gene_clusters, old_dir_nms)]
-        cadir@gene_clusters <- stats::setNames(
-            factor(new_cls_nms, levels = dir_nms),
-            names(cadir@gene_clusters)
-        )
-    }
-
-    # 5) Change distances
-    if (!is.empty(cadir@distances)) {
-        cadir@distances <- cadir@distances[, have_smpls, drop = FALSE]
-        colnames(cadir@distances) <- dir_nms
-    }
-
-    # Double Check that the dict is correct!
-    if (isFALSE(check_dict(cadir))) {
-        cadir <- correct_dict(cadir)
-    }
-
-    cadir@cell_clusters <- droplevels(cadir@cell_clusters)
-    cadir@gene_clusters <- droplevels(cadir@gene_clusters)
-
-    stopifnot(!any(is.na(cadir@cell_clusters)))
-    stopifnot(!any(is.na(cadir@gene_clusters)))
-
-    return(cadir)
+#TODO: Add documentaiton
+#Possibly delete
+get_cluster_idxs <- function(cadir, cluster) {
+    stopifnot(is.character(cluster))
+    which(cadir@cell_clusters == cluster)
 }
 
-#TODO: Add documentation
-check_dict <- function(cadir) {
-
-    ord <- match(rownames(cadir@directions), names(cadir@dict))
-    correct_order <- all(
-        unlist(cadir@dict[ord]) == seq_len(nrow(cadir@directions))
-    )
-
-    all_ccs <- all(unique(cadir@cell_clusters %in% names(cadir@dict)))
-    all_gcs <- all(unique(cadir@gene_clusters %in% names(cadir@dict)))
-
-    no_extra <- all(names(cadir@dict) %in% rownames(cadir@directions))
-    no_missing <- all(rownames(cadir@directions) %in% names(cadir@dict))
-    no_dupl <- anyDuplicated(names(cadir@dict))
-
-    all_correct <- correct_order &&
-        all_ccs &&
-        all_gcs &&
-        no_extra &&
-        no_missing &&
-        no_dupl
-
-    return(all_correct)
-}
-
-# TODO: Add doocumentation.
-correct_dict <- function(cadir) {
-
-    dict <- cadir@dict
-
-    # Make unique
-    dict <- dict[!duplicated(names(dict))]
-
-    # Check for dict entries that dont exist
-    to_keep <- which(names(dict) %in% rownames(cadir@directions))
-    dict <- dict[to_keep]
-
-    # Check for dict entries that are missing
-    to_add <- which(!rownames(cadir@directions) %in% names(dict))
-    names(to_add) <- rownames(cadir@directions)[to_add]
-
-    dict <- c(
-        dict,
-        as.list(to_add)
-    )
-
-    # Order the dict.
-    ord <- match(rownames(cadir@directions), names(cadir@dict))
-    dict <- dict[ord]
-
-    # Some extra checks
-    stopifnot(all(unique(cadir@cell_clusters %in% names(dict))))
-    stopifnot(all(unique(cadir@gene_clusters %in% names(dict))))
-
-    cadir@dict <- dict
-    return(cadir)
-
-}

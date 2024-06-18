@@ -18,15 +18,3 @@ The package is fully functioning, but it is still work in progress and edge case
 - [ ] Write vignette.
 - [ ] Reduce dependencies and insure that all packages are available on CRAN/Bioconductor. -> ggsankey!
 
-## Name fixing TODO
-
-- [x] Fix dirclust function.
-- [x] Fix splitmerge function.
-- [x] Fix rename_clusters function.
-- [x] Fix plotting functions.
-- [x] Fix gene assignment functions.
-- [x] Fix apl functions.
-- [x] Fix annotation script.
-- [x] Ensure everything works with annotated cadir obj.
-- [x] Test plotting functions rigorously!
-- [ ] Update documentation.

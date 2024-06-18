@@ -112,6 +112,8 @@ update_line <- function(points, clusters, lines, k) {
 #' 'kmeanspp'.
 #' @param lines Optional. Row-wise matrix of lines.
 #'  If not NULL, then the provided lines are used for initialization.
+#' @param cadir If a cadir object is provided, uses this instead of `lines` to
+#' initialize the clustering.
 #' @param log Logical. If TRUE, then the function returns a list with
 #' the computed distances and directions at each step.
 #'
@@ -181,13 +183,6 @@ dirclust <- function(
 
         # update lines
         lines <- update_line(points, clusters, lines, k)
-
-        # This would create more clusters than we asked for!!
-        # cd <- check_directionality(clusters = clusters,
-        #                            points = points,
-        #                            lines = lines)
-        # clusters <- cd$clusters
-        # lines <- cd$lines
 
         if (isTRUE(log)) {
             dir_log[[as.character(i)]] <- lines
@@ -274,15 +269,11 @@ assign_cells <- function(cells, directions) {
     clusters <- apply(ldist, 1, which.min)
     clusters <- rownames(directions)[clusters]
 
-    # dir_nms <- rownames(directions)
-    # std_nm <- grepl("cluster_[[:digit:]]+$", dir_nms)
-    # if (all(std_nm)) {
-    #     clusters <- rownames(directions)[clusters]
-    # }
-
     return(clusters)
 }
 
+
+# TODO: Add documentation.
 #' DETERMINE SIGN FOR SVD SINGULAR VECTORS.
 #' https://www.osti.gov/servlets/purl/920802
 sign_flip <- function(points, line) {
@@ -290,28 +281,3 @@ sign_flip <- function(points, line) {
     return(s < 0)
 }
 
-
-# split_dir <- function(x, line) {
-#     proj <- x %*% line # no need to normalize here
-#     neg_idx <- which(proj < 0)
-#     return(neg_idx)
-# }
-#
-# check_directionality <- function(clusters, points, lines) {
-#     stopifnot(is.numeric(clusters))
-#
-#     uncls <- unique(clusters)
-#
-#     for (c in seq_len(length(uncls))) {
-#         n_dirs <- nrow(lines)
-#         neg_idx <- split_dir(x = points[clusters == c, ],
-#                              line = lines[c, ])
-#
-#         if (length(neg_idx > 0)) {
-#             lines[n_dirs + 1, ] <- line[c, ] * (-1)
-#             clusters[neg_idx] <- (n_dirs + 1)
-#         }
-#     }
-#
-#     return(list("clusters" = clusters, "lines" = lines))
-# }
