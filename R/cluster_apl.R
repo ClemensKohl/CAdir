@@ -1,3 +1,21 @@
+#TODO: Update documentation.
+#' Plot a cluster with the respective direction/line in an APL.
+#' @inheritParams apl_model
+#' @param cadir A cadir object for which to compute the APL
+#' @param direction Direction of the APL plot.
+#' @param cluster The cluster (if any) to highlight cells and genes by.
+#' @param group Group to determine the correct direction of the APL plot.
+#' Can be the same as the cluster.
+#' @param show_cells If TRUE, points (cells) are plotted.
+#' @param show_genes If TRUE, genes are plotted.
+#' @param show_lines If TRUE, the directions in cadir are plotted.
+#' @param highlight_cluster If TRUE, highlights the points in belonging to
+#'  `cluster`, unless colour_by_group is TRUE.
+#' @param colour_by_group If TRUE highlights cells that belong to `group`.
+#' @param point_size Size of the points (cells).
+#' @returns
+#' An APL plot (ggplot2 object).
+#' @export
 cluster_apl <- function(caobj,
                         cadir,
                         cluster = NULL,
@@ -13,7 +31,6 @@ cluster_apl <- function(caobj,
                         ntop = 15) {
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
-
 
     all_cls <- unique(c(
         levels(cadir@cell_clusters),
@@ -42,14 +59,19 @@ cluster_apl <- function(caobj,
         cadir = cadir,
         model = model
     )
-    # dapl_nms <- rownames(dapl)
 
-    bool_sum <- show_cells + show_genes + show_cells
-    coords <- list(NULL, "prin_coords_cols", "std_coords_cols")
+    bool_sum <- show_cells + show_genes
+    coords <- list("prin_coords_cols", "std_coords_cols")
+
+    c_coords <- if (isTRUE(show_cells)) {
+        slot(caobj, name = coords[[bool_sum]])
+    } else {
+        NULL
+    }
 
     df <- .construct_df(
-        cells = slot(caobj, name = coords[[bool_sum]]),
-        genes = ifelse(show_genes, yes = caobj@prin_coords_rows, no = NULL),
+        cells = c_coords,
+        genes = if (isTRUE(show_genes)) caobj@prin_coords_rows else NULL,
         model = model
     )
 
@@ -72,7 +94,8 @@ cluster_apl <- function(caobj,
         point_size = point_size,
         size_factor = size_factor,
         highlight_cluster = highlight_cluster,
-        label_genes = label_genes
+        label_genes = label_genes,
+        ntop = ntop
     )
 
     if (isTRUE(show_lines)) {
@@ -84,19 +107,19 @@ cluster_apl <- function(caobj,
     }
 
     p <- p +
-    ggplot2::ggtitle(paste0(
-        "Cluster: ",
-        as.character(cluster),
-        ", CA-angle: ",
-        round(ang, 2)
-    )) +
-    ggplot2::theme_bw()
+        ggplot2::ggtitle(paste0(
+            "Cluster: ",
+            as.character(cluster),
+            ", CA-angle: ",
+            round(ang, 2)
+        )) +
+        ggplot2::theme_bw()
 
     return(p)
 }
 
 
-
+# TODO: Add documentation
 .construct_df <- function(cells = NULL, genes = NULL, model = NULL) {
     incl_cells <- !is.null(cells)
     incl_genes <- !is.null(genes)
@@ -133,6 +156,7 @@ cluster_apl <- function(caobj,
     return(df)
 }
 
+# TODO: Add documentation.
 .get_plot_angle <- function(directions) {
     if (nrow(directions) == 2) {
         ang <- min(
@@ -146,6 +170,7 @@ cluster_apl <- function(caobj,
     return(ang)
 }
 
+# TODO: Add documentation.
 .toggle_dir <- function(apl_dirs, caobj, cadir, model) {
     # If the line points into the opposite direction of points
     # we flip the line.
@@ -174,6 +199,7 @@ cluster_apl <- function(caobj,
     return(apl_dirs)
 }
 
+# TODO: Add documentation.
 .add_cluster_info <- function(
     plot_df,
     cadir,
@@ -186,12 +212,13 @@ cluster_apl <- function(caobj,
         return(plot_df)
     }
 
-    if (is.null(cluster)) {
-        cell_cl <- seq_len(length(cadir@cell_clusters))
-        gene_cl <- seq_len(length(cadir@gene_clusters))
-    } else {
+    highlight_cluster <- !is.null(cluster) && isTRUE(highlight_cluster)
+    if (isTRUE(highlight_cluster)) {
         cell_cl <- which(cadir@cell_clusters == cluster)
         gene_cl <- which(cadir@gene_clusters == cluster)
+    } else {
+        cell_cl <- seq_len(length(cadir@cell_clusters))
+        gene_cl <- seq_len(length(cadir@gene_clusters))
     }
 
     sel_cells <- match(names(cadir@cell_clusters)[cell_cl], plot_df$sample)
@@ -236,13 +263,15 @@ cluster_apl <- function(caobj,
     return(plot_df)
 }
 
+# TODO: Add documentation.
 .cluster_apl_colors <- function(
     ggplt,
     plot_df,
     point_size = 1.5,
     size_factor = 1,
     highlight_cluster = FALSE,
-    label_genes = FALSE) {
+    label_genes = FALSE,
+    ntop = 15) {
     show_genes <- any("gene" %in% plot_df$type)
     show_cells <- any("cell" %in% plot_df$type)
 
@@ -272,9 +301,12 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
+# TODO: Add documentation.
 .add_colors <- function(ggplt, point_size = 1.5, size_factor = 2) {
     ggplt <- ggplt +
-        ggplot2::geom_point(ggplot2::aes(shape = type, size = type, alpha = cluster)) +
+        ggplot2::geom_point(ggplot2::aes(shape = type,
+                                         size = type,
+                                         alpha = cluster)) +
         ggplot2::scale_size_manual(values = c(
             "cell" = point_size,
             "gene" = point_size * size_factor
@@ -295,6 +327,7 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
+# TODO: Add documentation.
 .highlight_cluster <- function(ggplt, both = FALSE) {
     if (isTRUE(both)) {
         ggplt <- ggplt + ggplot2::scale_color_manual(values = c(
@@ -314,6 +347,7 @@ cluster_apl <- function(caobj,
 }
 
 
+# TODO: Add documentation.
 .label_genes <- function(ggplt, plot_df, ntop = 15) {
     to_highlight <- (plot_df$cluster == "gene_cluster")
 
@@ -332,8 +366,8 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
+# TODO: Add documentation.
 .add_lines <- function(ggplt, apl_dir, highlight_cluster = FALSE) {
-
     for (d in seq_len(nrow(apl_dir))) {
         is_x <- is_xaxis(apl_dir[d, ])
 
@@ -355,16 +389,17 @@ cluster_apl <- function(caobj,
             linetype = ltype,
             size = 1
         ) +
-        ggplot2::geom_point(
-            data = data.frame(x = 0, y = 0),
-            ggplot2::aes(x, y),
-            color = lcolor
-        )
+            ggplot2::geom_point(
+                data = data.frame(x = 0, y = 0),
+                ggplot2::aes(x, y),
+                color = lcolor
+            )
     }
 
     return(ggplt)
 }
 
+# TODO: Add documentation.
 is_xaxis <- function(apl_dir) {
     pos_xaxis <- all.equal(
         apl_dir,
@@ -378,7 +413,7 @@ is_xaxis <- function(apl_dir) {
         c(-1, 0),
         tolerance = 1e-4,
         check.attributes = FALSE
-    ))
+    )
 
     return(isTRUE(pos_xaxis) || isTRUE(neg_xaxis))
 }

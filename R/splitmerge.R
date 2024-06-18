@@ -242,7 +242,6 @@ merge_clusters <- function(caobj,
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
-    dict <- cadir@dict
     dir_nms <- rownames(directions)
 
     if (is.null(cutoff)) {
@@ -268,16 +267,16 @@ merge_clusters <- function(caobj,
 
     for (s in sel) {
 
-        merge_parent <- search_dict(dict, s)
+        merge_parent <- search_dict(cadir@dict, s)
 
         cds <- candidates[[s]]
-        cds_nms <- colnames(dir_nms)[cds]
+        cds_nms <- dir_nms[cds]
         merger_idxs <- c(s, cds)
 
         # get the names of the mergers
-        mergers <- search_dict(dict, merger_idxs)
+        mergers <- search_dict(cadir@dict, merger_idxs)
 
-        message(paste0("\tMerging cluster ", s, " with ", cds))
+        message(paste0("\tMerging ", merge_parent, " with ", cds_nms))
 
         # clusters that have to be changed.
         cls <- which(clusters %in% mergers)
@@ -289,24 +288,24 @@ merge_clusters <- function(caobj,
         new_dir <- drop(total_least_squares(samples[cls, , drop = FALSE]))
 
         ##FIXME: REMOVE DEBUGGING ONLY
-        #if (length(unique(clusters[cls])) != length(mergers)) {
-        #    saveRDS(list("mergers" = mergers,
-        #        "cadir" = cadir,
-        #        "clusters" = clusters,
-        #        "cls" = cls,
-        #        "sel" = sel,
-        #        "candidates"=candidates,
-        #        "s" = s,
-        #        "sim" = sim
-        #    ), "debug.rds")
-        #}
+        # if (length(unique(clusters[cls])) != length(mergers)) {
+        saveRDS(list("mergers" = mergers,
+            "cadir" = cadir,
+            "clusters" = clusters,
+            "cls" = cls,
+            "sel" = sel,
+            "candidates"=candidates,
+            "s" = s
+            # "sim" = sim
+        ), "/project/kohl_analysis/analysis/CAdir/exploration/debugging/debug.rds")
+        # }
 
         if (isTRUE(make_plots)) {
 
             rep <- paste0("rep_", cadir@log$last_rep)
 
             sres <- methods::new("cadir",
-                cell_clusters = clusters[cls],
+                cell_clusters = droplevels(clusters[cls]),
                 directions = directions[mergers, ]
             )
 
@@ -317,8 +316,9 @@ merge_clusters <- function(caobj,
                 cadir = sres,
                 direction = new_dir,
                 group = cls,
-                cluster = s,
+                cluster = merge_parent,
                 highlight_cluster = FALSE,
+                show_cells = TRUE,
                 show_genes = FALSE
             )
 
