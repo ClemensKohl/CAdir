@@ -93,7 +93,6 @@ cluster_apl <- function(caobj,
     ### Plot ###
     ############
 
-    # browser()
     p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
 
     p <- .cluster_apl_points(
@@ -267,7 +266,6 @@ cluster_apl <- function(caobj,
                 f2c(cadir@gene_clusters)
             )))
         )
-        # browser()
     }
 
     return(plot_df)
