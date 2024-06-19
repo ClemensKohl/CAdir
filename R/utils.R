@@ -87,8 +87,9 @@ f2c <- function(f) {
     return(c)
 }
 
-# TODO: Add documentation
 #' Convert a numeric (or character) to a factor
+#' @param n Numeric or character vector.
+#' @param lvls The levels for the new factor vector.
 x2f <- function(n, lvls) {
     f <- factor(n, levels = lvls)
     return(f)

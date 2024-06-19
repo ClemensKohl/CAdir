@@ -3,7 +3,26 @@
 #' @importFrom CAbiNet annotate_by_goa
 NULL
 
-# TODO: Add documentation
+#' Annotate CAbiNet results by gene overrepresentation
+#'  analysis results.
+#'
+#' @description
+#' `annotate_by_goa` takes a biclustering results such as outputted by `caclust`
+#' and annotates it with the gene overrepresentation analysis results (goa).
+#'
+#' @inheritParams CAbiNet::annotate_by_goa
+#' @param obj `cadir` object with biclustering results. Alternatively could be
+#' a caclust object.
+#'
+#' @description
+#' Conflicts between clusters that have the
+#'  same highest ranking gene set are solved
+#'  with the Hungarian/Munkres algorithm.
+#'
+#' @returns
+#' Object of the same type as `obj`.
+#'
+#' @export
 setMethod(
     f = "annotate_by_goa",
     signature = (object <- "cadir"),
@@ -103,8 +122,11 @@ setMethod(
 )
 
 
-# TODO: Add documentation
 #' Annotate the biclustering
+#' @inheritParams CAbiNet::annotate_biclustering
+#' @param obj A cadir object, or,
+#' alternatively a `caclust` or `SingleCellExperiment` object with biclustering
+#' information.
 #' @rdname annotate_biclustering
 #' @export
 setMethod(

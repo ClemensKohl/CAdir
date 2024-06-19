@@ -41,9 +41,15 @@ Can be the same as the cluster.}
 \item{highlight_cluster}{If TRUE, highlights the points in belonging to
 \code{cluster}, unless colour_by_group is TRUE.}
 
+\item{label_genes}{If TRUE, adds text labels for the
+\code{ntop} genes per cluster.}
+
 \item{point_size}{Size of the points (cells).}
 
-\item{colour_by_group}{If TRUE highlights cells that belong to \code{group}.}
+\item{size_factor}{Factor by which the genes are
+larger/smaller than \code{point_size}.}
+
+\item{ntop}{Number of genes to label if \code{label_genes = TRUE}.}
 }
 \value{
 An APL plot (ggplot2 object).

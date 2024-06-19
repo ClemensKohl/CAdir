@@ -36,6 +36,8 @@ kmeanspp_init <- function(points, k) {
 #' @param points Row-wise matrix of points.
 #' @param lines Row-wise matrix of lines/directions.
 #' @param pnorm Vector of the norm of the points.
+#' @param pos_only If TRUE only considers points with a
+#' positive projection onto the line.
 #' @returns
 #' Matrix of distances of points to the directions.
 dist_to_line <- function(points,
@@ -273,9 +275,18 @@ assign_cells <- function(cells, directions) {
 }
 
 
-# TODO: Add documentation.
-#' DETERMINE SIGN FOR SVD SINGULAR VECTORS.
-#' https://www.osti.gov/servlets/purl/920802
+#' Determine sign for SVD singular vectors.
+#'
+#' @param points Points/Cells for which to check the directionality of the line.
+#' @param line Line/direction whose directionality needs to be determined.
+#'
+#' @references
+#' Bro, Rasmus, Acar, Evrim, and Kolda, Tamara Gibson.
+#' Resolving the sign ambiguity in the singular value decomposition.
+#' United States: N. p., 2007. Web. doi:10.2172/920802.
+#'
+#' @returns
+#' TRUE if the sign of the direction needs to be flipped, FALSE otherwise.
 sign_flip <- function(points, line) {
     s <- sum(sign(points %*% line)*(points %*% line)**2)
     return(s < 0)

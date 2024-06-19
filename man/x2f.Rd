@@ -6,6 +6,11 @@
 \usage{
 x2f(n, lvls)
 }
+\arguments{
+\item{n}{Numeric or character vector.}
+
+\item{lvls}{The levels for the new factor vector.}
+}
 \description{
 Convert a numeric (or character) to a factor
 }

@@ -133,12 +133,16 @@ plot_sm_graph <- function(cadir,
     return(p)
 }
 
-# TODO: Simplify function.
 #' Plots the graph of the clustering splits and merges
 #' and overlays APL plots over the nodes.
-#' @inheritParams plot_sm_graph
 #' @inheritParams cluster_apl
+#' @inheritParams plot_sm_graph
+#' @inheritParams build_graph
 #' @param caobj A cacomp object.
+#' @param org Organisme to use for the automatic annotation.
+#' Either "mm" for mouse or "hs" for human.
+#' @param annotate_clusters If TRUE uses automatic cell type annotation via
+#' `annotate_biclustering` to annotate the clusters in each level.
 #' @returns
 #' A ggplot object showing the split-merge graph and APL plots for each cluster.
 #' @export
@@ -151,6 +155,7 @@ sm_plot <- function(cadir,
                     annotate_clusters = FALSE,
                     org = "mm",
                     keep_end = TRUE) {
+    # TODO: Simplify function.
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)
@@ -213,7 +218,7 @@ sm_plot <- function(cadir,
                 cadir@parameters$qcutoff <- 0.8
             }
 
-            tmp_cadir@gene_clusters <- CAdir:::assign_genes(
+            tmp_cadir@gene_clusters <- assign_genes(
                 caobj = caobj,
                 cadir = tmp_cadir,
                 qcutoff = cadir@parameters$qcutoff
@@ -221,7 +226,7 @@ sm_plot <- function(cadir,
 
             if (isTRUE(annotate_clusters)) {
                 suppressWarnings({
-                    tmp_cadir <- CAdir::annotate_biclustering(
+                    tmp_cadir <- annotate_biclustering(
                         obj = tmp_cadir,
                         universe = rownames(caobj@std_coords_rows),
                         org = org,

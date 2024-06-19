@@ -86,6 +86,7 @@ plot_results <- function(cadir,
 #' @param cadir A cadir object with valid cell clustering results.
 #' @param caobj A cacomp object.
 #' @param point_size Size of the points (cells).
+#' @param text_size Size of the text in the plot.
 #' @inheritParams cluster_apl
 #' @returns A plot that summarizes the cell clustering results.
 #' @export

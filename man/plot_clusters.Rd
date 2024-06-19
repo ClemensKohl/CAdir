@@ -22,7 +22,17 @@ plot_clusters(
 
 \item{point_size}{Size of the points (cells).}
 
+\item{size_factor}{Factor by which the genes are
+larger/smaller than \code{point_size}.}
+
 \item{show_genes}{If TRUE, genes are plotted.}
+
+\item{label_genes}{If TRUE, adds text labels for the
+\code{ntop} genes per cluster.}
+
+\item{ntop}{Number of genes to label if \code{label_genes = TRUE}.}
+
+\item{text_size}{Size of the text in the plot.}
 }
 \value{
 A plot that summarizes the cell clustering results.

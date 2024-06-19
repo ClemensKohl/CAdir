@@ -20,6 +20,7 @@ Imports:
     APL,
     irlba,
     ggplot2,
+    ggrepel,
     igraph,
     ggraph,
     patchwork,
@@ -38,7 +39,9 @@ Collate:
     'cluster_apl.R'
     'dirclust.R'
     'genes.R'
+    'graph_plots.R'
     'plot.R'
+    'rename_clusters.R'
     'splitmerge.R'
     'utils.R'
     'vector_utils.R'

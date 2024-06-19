@@ -1,4 +1,3 @@
-# TODO: Update documentation.
 #' Plot a cluster with the respective direction/line in an APL.
 #' @inheritParams apl_model
 #' @param cadir A cadir object for which to compute the APL
@@ -11,8 +10,12 @@
 #' @param show_lines If TRUE, the directions in cadir are plotted.
 #' @param highlight_cluster If TRUE, highlights the points in belonging to
 #'  `cluster`, unless colour_by_group is TRUE.
-#' @param colour_by_group If TRUE highlights cells that belong to `group`.
 #' @param point_size Size of the points (cells).
+#' @param size_factor Factor by which the genes are
+#' larger/smaller than `point_size`.
+#' @param label_genes If TRUE, adds text labels for the
+#' `ntop` genes per cluster.
+#' @param ntop Number of genes to label if `label_genes = TRUE`.
 #' @returns
 #' An APL plot (ggplot2 object).
 #' @export

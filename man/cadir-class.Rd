@@ -15,10 +15,12 @@ jaccard similarity.}
 
 \item{\code{eigen}}{matrix, Slot for storing eigenvectors from spectral clustering}
 
-\item{\code{cell_prob}}{matrix. Matrix that stores the probabilities that a cell belongs
-to a cluster. Only filled when running spectral clustering with GMM.}
+\item{\code{cell_prob}}{matrix. Matrix that stores the probabilities that
+a cell belongs to a cluster. Only filled when running spectral clustering
+with GMM.}
 
-\item{\code{gene_prob}}{matrix. Matrix that stores the probabilities that a gene belongs
+\item{\code{gene_prob}}{matrix. Matrix that stores the probabilities that
+a gene belongs
 to a cluster. Only filled when running spectral clustering with GMM.}
 
 \item{\code{cell_idxs}}{integer. Indices of the cells in the SNN adjacency matrix.}
@@ -40,11 +42,16 @@ the names attribute.}
 
 \item{\code{parameters}}{List of used parameters and function name with which results}
 
-\item{\code{log}}{This slot saves information during the clustering process, such as the clusters at each iteration.}
+\item{\code{log}}{This slot saves information during the clustering process,
+such as the clusters at each iteration.}
 
-\item{\code{plots}}{This slot saves the plots generated during the clustering process.
+\item{\code{plots}}{This slot saves the plots generated during
+the clustering process.
 were generated.}
 
 \item{\code{gene_ranks}}{Ranks for all co-clustered genes.}
+
+\item{\code{dict}}{A list that maps cluster names to the row of the corresponding
+direction in @directions.}
 }}
 

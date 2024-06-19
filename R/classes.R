@@ -57,9 +57,11 @@ check_cadir <- function(object) {
 #' @slot SNN sparse shared nearest neighbours matrix. Values indicate the
 #' jaccard similarity.
 #' @slot eigen matrix, Slot for storing eigenvectors from spectral clustering
-#' @slot cell_prob matrix. Matrix that stores the probabilities that a cell belongs
-#' to a cluster. Only filled when running spectral clustering with GMM.
-#' @slot gene_prob matrix. Matrix that stores the probabilities that a gene belongs
+#' @slot cell_prob matrix. Matrix that stores the probabilities that
+#' a cell belongs to a cluster. Only filled when running spectral clustering
+#' with GMM.
+#' @slot gene_prob matrix. Matrix that stores the probabilities that
+#' a gene belongs
 #' to a cluster. Only filled when running spectral clustering with GMM.
 #' @slot cell_idxs integer. Indices of the cells in the SNN adjacency matrix.
 #' @slot gene_idxs integer. Indices of the genes in the SNN adjacency matrix.
@@ -72,10 +74,14 @@ check_cadir <- function(object) {
 #' @slot directions Matrix of directions by which the data was clustered.
 #' @slot distances Matrix of distances of points to the respective directions.
 #' @slot parameters List of used parameters and function name with which results
-#' @slot log This slot saves information during the clustering process, such as the clusters at each iteration.
-#' @slot plots This slot saves the plots generated during the clustering process.
+#' @slot log This slot saves information during the clustering process,
+#' such as the clusters at each iteration.
+#' @slot plots This slot saves the plots generated during
+#' the clustering process.
 #' were generated.
 #' @slot gene_ranks Ranks for all co-clustered genes.
+#' @slot dict A list that maps cluster names to the row of the corresponding
+#' direction in @directions.
 #' @export
 setClass("cadir",
     contains = "caclust",

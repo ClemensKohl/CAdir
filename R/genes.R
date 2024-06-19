@@ -56,7 +56,11 @@ assign_genes <- function(caobj,
     return(clusters)
 }
 
-# TODO: Add documentation
+#' Rank genes based on the S-alpha score.
+#' @param cadir A cadir object.
+#' @param caobj A cacomp object.
+#' @returns A modified cadir object with the gene ranking
+#' in the 'gene_ranks' slot.
 #' @export
 rank_genes <- function(cadir, caobj) {
 
@@ -119,7 +123,14 @@ rank_genes <- function(cadir, caobj) {
     return(cadir)
 }
 
-#TODO: Add documentation
+#' Determines the genes above with a S-alpha score above 'cutoff'.
+#' Requires a previous call of `rank_genes()`.
+#' @param cadir A cadir object.
+#' @param cutoff Cutoff for the S-alpha score.
+#' @details
+#' Previously ranked genes with an S-alpha score above `cutoff` are retained.
+#' @returns
+#' A data frame containing the top genes for each cluster in the cadir object.
 #' @export
 top_genes <- function(cadir, cutoff = 0) {
     top_list <- list()
