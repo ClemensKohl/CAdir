@@ -428,16 +428,19 @@ mpimg_pal <- function() {
 mpi_pal <- function() {
     # mpi colors extended.
     mpimg_colors <- c(
-        "#006C66",
-        "#29485D",
-        "#009ACD",
-        "#777777",
-        "#C6D325",
-        "#21AE2D",
-        "#EF7C00",
-        "#F5B742",
-        "#57219D",
-        "#950980"
+        "#006c66", # MPG-CD-Grün
+        "#c6d325", # MPG Hellgrün
+        "#ef7c00", # MPG Orange
+        "#29485d", # MPG Dunkelblau
+        "#00b1ea", # MPG Hellblau
+        "#777777", # MPG-Dunkelgrau
+        # "#a7a7a8", # MPG-Grau
+        "#d44a3d", # Warm Red
+        "#8c5fa8", # Soft Purple
+        "#f4c542", # Golden Yellow
+        "#d95276", # Rich Pink
+        "#a25b43", # Warm Brown
+        "#00CED1"  # Soft Cyan
     )
 
     scales::manual_pal(values = mpimg_colors)
