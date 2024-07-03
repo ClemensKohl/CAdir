@@ -253,7 +253,6 @@ sm_plot <- function(cadir,
             show_cells = show_cells,
             show_genes = show_genes,
             highlight_cluster = highlight_cluster,
-            # colour_by_group = colour_by_group,
             show_lines = FALSE,
             point_size = 0.3
         )

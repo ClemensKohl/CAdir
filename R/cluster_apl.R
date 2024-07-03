@@ -341,24 +341,27 @@ cluster_apl <- function(caobj,
             "gene_cluster" = "#ef7c00",
             "cell_other" = "#006c66",
             "gene_other" = "#777777"
-        ))
+        )) # +
+        # ggplot2::aes(alpha = cluster) +
+        # ggplot2::scale_alpha_manual(values = c(
+        #     "cell_cluster" = 1,
+        #     "gene_cluster" = 1,
+        #     "cell_other" = 0.7,
+        #     "gene_other" = 0.3
+        # ))
     } else {
-        ggplt <- ggplt + ggplot2::scale_color_manual(values = c(
+        ggplt <- ggplt +
+          ggplot2::scale_color_manual(values = c(
             "cluster" = "#c6d325",
             "other" = "#006c66"
-        ))
+            ))
+            # +
+            # ggplot2::aes(alpha = cluster) +
+            # ggplot2::scale_alpha_manual(values = c(
+            #     "cluster" = 1,
+            #     "other" = 0.7,
+            # ))
     }
-
-    ggplt <- ggplt +
-        # ggplot2::aes(alpha = cluster) +
-        ggplot2::scale_alpha_manual(values = c(
-            "cluster" = 1,
-            "other" = 0.7,
-            "cell_cluster" = 1,
-            "gene_cluster" = 1,
-            "cell_other" = 0.7,
-            "gene_other" = 0.3
-        ))
 
     return(ggplt)
 }
