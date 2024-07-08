@@ -373,11 +373,11 @@ scale_color_mpimg <- function(name = "mpimg", ...) {
             palette = mpimg_pal(),
             ...
         )
-    } else if (name == "mpi") {
+    } else if (name == "mpi_extend") {
         ggplot2::discrete_scale(
-            scale_name = "mpi",
+            scale_name = "mpi_extend",
             aesthetics = "color",
-            palette = mpi_pal(),
+            palette = mpi_extend_pal(),
             ...
         )
     }
@@ -395,11 +395,11 @@ scale_fill_mpimg <- function(name = "mpimg", ...) {
             palette = mpimg_pal(),
             ...
         )
-    } else if (name == "mpi") {
+    } else if (name == "mpi_extend") {
         ggplot2::discrete_scale(
-            scale_name = "mpi",
+            scale_name = "mpi_extend",
             aesthetics = "fill",
-            palette = mpi_pal(),
+            palette = mpi_extend_pal(),
             ...
         )
     }
@@ -425,23 +425,23 @@ mpimg_pal <- function() {
 #' MPI color palette
 #' @returns A function that can be used to generate colors.
 #' @export
-mpi_pal <- function() {
+mpi_extend_pal <- function() {
     # mpi colors extended.
-    mpimg_colors <- c(
+    mpi_extend_colors <- c(
         "#006c66", # MPG-CD-Grün
         "#c6d325", # MPG Hellgrün
         "#ef7c00", # MPG Orange
         "#29485d", # MPG Dunkelblau
         "#00b1ea", # MPG Hellblau
         "#777777", # MPG-Dunkelgrau
-        # "#a7a7a8", # MPG-Grau
         "#d44a3d", # Warm Red
         "#8c5fa8", # Soft Purple
+        "#a7a7a8", # MPG-Grau
         "#f4c542", # Golden Yellow
         "#d95276", # Rich Pink
         "#a25b43", # Warm Brown
         "#00CED1"  # Soft Cyan
     )
 
-    scales::manual_pal(values = mpimg_colors)
+    scales::manual_pal(values = mpi_extend_colors)
 }
