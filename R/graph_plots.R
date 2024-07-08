@@ -126,8 +126,8 @@ plot_sm_graph <- function(cadir,
 
     ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
     p <- ggraph::ggraph(lgraph) +
-        ggraph::geom_edge_link(color = mpi_pal()(2)[2]) +
-        ggraph::geom_node_point(size = size, alpha = alpha, color = mpi_pal()(1)) +
+        ggraph::geom_edge_link(color = mpi_extend_pal()(2)[2]) +
+        ggraph::geom_node_point(size = size, alpha = alpha, color = mpi_extend_pal()(1)) +
         ggraph::theme_graph()
 
     return(p)
