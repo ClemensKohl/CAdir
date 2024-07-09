@@ -186,7 +186,8 @@ cl2nm <- function(i) {
 
 # TODO: Add documentation.
 search_dict <- function(dict, query) {
-    names(dict)[dict %in% query]
+    # names(dict)[dict %in% query]
+    names(dict)[base::match(query, dict)]
 }
 
 # TODO: Add documentation.

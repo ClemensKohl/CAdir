@@ -3,6 +3,8 @@
 #' @importFrom CAbiNet annotate_by_goa
 NULL
 
+#FIXME: Update dict!
+
 #' Annotate CAbiNet results by gene overrepresentation
 #'  analysis results.
 #'
@@ -30,6 +32,9 @@ setMethod(
              goa_res,
              alpha = 0.05) {
         stopifnot(is(obj, "cadir"))
+
+        # dictionary
+        dict <- obj@dict
 
         # cell clusters
         ccs <- cell_clusters(obj)
@@ -103,6 +108,11 @@ setMethod(
                     rownames(dirs)[c] <- noanno
                 } else {
                     rownames(dirs)[c] <- ct
+
+                    # Update name and entry in the dictionary
+                    dict_idx <- which(names(dict) == search_dict(dict, c))
+                    names(dict)[dict_idx] <- ct
+                    dict[[ct]] <- c
                 }
             }
         }
@@ -115,12 +125,12 @@ setMethod(
         obj@cell_clusters <- factor(ccs, levels = lvls)
         obj@gene_clusters <- factor(gcs, levels = lvls)
         obj@directions <- dirs
+        obj@dict <- dict
 
         stopifnot(validObject(obj))
         return(obj)
     }
 )
-
 
 #' Annotate the biclustering
 #' @inheritParams CAbiNet::annotate_biclustering

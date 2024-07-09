@@ -46,11 +46,14 @@ assign_genes <- function(caobj,
     ldist <- dist_to_line(X, cadir@directions, row_norm(X))
     # find closest line
     clusters <- apply(ldist, 1, which.min)
+    clusters <- rownames(cadir@directions)[clusters]
+
+    if(anyNA(clusters)) stop()
 
     cell_lvls <- levels(cadir@cell_clusters)
-    lvls <- unique(c(cell_lvls, cl2nm(unique(clusters))))
+    lvls <- unique(c(cell_lvls, unique(clusters)))
 
-    clusters <- factor(cl2nm(clusters), levels = lvls)
+    clusters <- factor(clusters, levels = lvls)
     names(clusters) <- gene_nms
 
     return(clusters)
@@ -95,10 +98,10 @@ rank_genes <- function(cadir, caobj) {
         )
 
         gene_coords <- model(caobj@prin_coords_rows)
-
+        cluster_genes <- names(cadir@gene_clusters)[which(cadir@gene_clusters == c)]
         # subset genes to cluster genes
         gene_coords <- gene_coords[
-            which(cadir@gene_clusters == c), ,
+            which(rownames(gene_coords) %in% cluster_genes), ,
             drop = FALSE
         ]
 
@@ -109,7 +112,7 @@ rank_genes <- function(cadir, caobj) {
             "Rowname" = rownames(gene_coords),
             "Score" = score,
             "Row_num" = seq_len(nrow(gene_coords)),
-            "cluster" = c
+            "Cluster" = c
         )
 
         ranking <- ranking[order(ranking$Score, decreasing = TRUE), ]
