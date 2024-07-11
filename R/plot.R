@@ -97,7 +97,8 @@ plot_clusters <- function(cadir,
                           show_genes = FALSE,
                           label_genes = FALSE,
                           ntop = 5,
-                          text_size = 16) {
+                          text_size = 16,
+                          title_prefix = "Cluster: ") {
     pls <- list()
     cls <- levels(cadir@cell_clusters)
 
@@ -118,7 +119,7 @@ plot_clusters <- function(cadir,
             size_factor = size_factor,
             ntop = ntop
         ) +
-            ggplot2::ggtitle(paste0("Cluster: ", cls[i])) +
+            ggplot2::ggtitle(paste0(title_prefix, cls[i])) +
             ggplot2::theme(
                 legend.position = "none",
                 axis.title.x = ggplot2::element_blank(),
@@ -402,6 +403,23 @@ scale_fill_mpimg <- function(name = "mpimg", ...) {
             palette = mpi_extend_pal(),
             ...
         )
+    }
+}
+
+
+scale_fill_gradient_mpimg <- function(name = "orange", ...) {
+    if (name == "orange") {
+        scale_fill_gradientn(
+            colours = c("#29485d", "#006c66", "#c6d325", "#ef7c00"),
+            ...
+        )
+    } else if (name == "green") {
+        scale_fill_gradientn(
+            colours = c("#29485d", "#006c66", "#c6d325"),
+            ...
+        )
+    } else {
+        stop("Pick a correct name!")
     }
 }
 
