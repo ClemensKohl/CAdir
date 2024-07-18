@@ -271,12 +271,29 @@ sm_plot <- function(cadir,
             p <- p + theme_blank()
         }
 
+        # Ensure that we dont plot outside of the window:
+        lradj <- tbadj <- 0
+        mid_length <- inlet_side/2
+        if (bg_coords[i, 1] < mid_length) {
+            lradj <- mid_length - bg_coords[i, 1]
+        }
+        if ((bg_coords[i, 1] + mid_length) > 1) {
+            lradj <- 1 - (mid_length + bg_coords[i, 1])
+        }
+        if (bg_coords[i, 2] < mid_length) {
+            tbadj <- mid_length - bg_coords[i, 2]
+        }
+        if ((bg_coords[i, 2] + mid_length) > 1) {
+            tbadj <- 1 - (mid_length + bg_coords[i, 2])
+        }
+
+
         bg <- bg +
             patchwork::inset_element(p,
-                left = bg_coords[i, 1] - inlet_side/2,
-                right = bg_coords[i, 1] + inlet_side/2,
-                top = bg_coords[i, 2] + inlet_side/2,
-                bottom = bg_coords[i, 2] - inlet_side/2,
+                left = bg_coords[i, 1] - mid_length + lradj,
+                right = bg_coords[i, 1] + mid_length + lradj,
+                top = bg_coords[i, 2] + mid_length + tbadj,
+                bottom = bg_coords[i, 2] - mid_length + tbadj,
                 align_to = "panel"
             )
     }
