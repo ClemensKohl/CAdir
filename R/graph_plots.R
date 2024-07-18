@@ -154,7 +154,8 @@ sm_plot <- function(cadir,
                     highlight_cluster = FALSE,
                     annotate_clusters = FALSE,
                     org = "mm",
-                    keep_end = TRUE) {
+                    keep_end = TRUE,
+                    inlet_side = 0.08) {
     # TODO: Simplify function.
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
@@ -272,10 +273,10 @@ sm_plot <- function(cadir,
 
         bg <- bg +
             patchwork::inset_element(p,
-                left = bg_coords[i, 1] - 0.04,
-                right = bg_coords[i, 1] + 0.038,
-                top = bg_coords[i, 2] + 0.04,
-                bottom = bg_coords[i, 2] - 0.04,
+                left = bg_coords[i, 1] - inlet_side/2,
+                right = bg_coords[i, 1] + inlet_side/2,
+                top = bg_coords[i, 2] + inlet_side/2,
+                bottom = bg_coords[i, 2] - inlet_side/2,
                 align_to = "panel"
             )
     }

@@ -1,4 +1,3 @@
-
 #' Plot for the clustering results wich shows the
 #' relationship between the clusters. In the diagonal
 #' an APL plot for the respective cluster is shown.
@@ -12,7 +11,8 @@ plot_results <- function(cadir,
                          caobj,
                          highlight_cluster = TRUE,
                          show_cells = TRUE,
-                         show_genes = FALSE) {
+                         show_genes = FALSE
+                         ) {
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)
@@ -98,7 +98,9 @@ plot_clusters <- function(cadir,
                           label_genes = FALSE,
                           ntop = 5,
                           text_size = 16,
-                          title_prefix = "Cluster: ") {
+                          title_prefix = "Cluster: ",
+                          ggncol = NULL,
+                          ggnrow = NULL) {
     pls <- list()
     cls <- levels(cadir@cell_clusters)
 
@@ -138,8 +140,12 @@ plot_clusters <- function(cadir,
 
     fig <- ggpubr::ggarrange(
         plotlist = pls,
-        nrow = ceiling(sqrt(length(cls))),
-        ncol = ceiling(sqrt(length(cls)))
+        nrow = ifelse(test = is.null(ggnrow),
+                      yes = ceiling(sqrt(length(cls))),
+                      no = ggnrow),
+        ncol = ifelse(test = is.null(ggncol),
+                      yes = ceiling(sqrt(length(cls))),
+                      no = ggncol)
     )
     return(suppressWarnings(fig))
 }
@@ -458,7 +464,7 @@ mpi_extend_pal <- function() {
         "#f4c542", # Golden Yellow
         "#d95276", # Rich Pink
         "#a25b43", # Warm Brown
-        "#00CED1"  # Soft Cyan
+        "#00CED1" # Soft Cyan
     )
 
     scales::manual_pal(values = mpi_extend_colors)
