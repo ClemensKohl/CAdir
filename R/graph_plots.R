@@ -155,12 +155,21 @@ sm_plot <- function(cadir,
                     annotate_clusters = FALSE,
                     org = "mm",
                     keep_end = TRUE,
-                    inlet_side = 0.08) {
+                    inlet_side = 0.08,
+                    title_size = 10,
+                    show_axis = TRUE,
+                    n_wrap = Inf) {
     # TODO: Simplify function.
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)
     )
+
+    if (isTRUE(show_axis)){
+        plot_theme <- theme_axis_only
+    } else {
+        plot_theme <- theme_blank
+    }
 
     graph <- build_graph(
         cadir = cadir,
@@ -258,17 +267,18 @@ sm_plot <- function(cadir,
             point_size = 0.3
         )
         if (isTRUE(annotate_clusters)) {
+            cluster_title <- gsub(pattern = "_", replacement = " ", cluster )
             p <- p +
-                ggplot2::ggtitle(cluster) +
-                theme_blank(
+                ggplot2::ggtitle(paste(strwrap(cluster_title, width = n_wrap), collapse = "\n")) +
+                plot_theme(
                     title = ggplot2::element_text(color = "black",
-                                                  size = 10, face = "bold"),
+                                                  size = title_size),
                     text = ggplot2::element_text()
                 )
         } else {
             #TODO: We need to pick a color palette for a large number of clusters
             # scale_color_mpimg(name = "mpimg") +
-            p <- p + theme_blank()
+            p <- p + plot_theme()
         }
 
         # Ensure that we dont plot outside of the window:

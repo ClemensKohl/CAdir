@@ -100,10 +100,30 @@ plot_clusters <- function(cadir,
                           text_size = 16,
                           title_prefix = "Cluster: ",
                           ggncol = NULL,
-                          ggnrow = NULL) {
+                          ggnrow = NULL,
+                          axis = FALSE) {
     pls <- list()
     cls <- levels(cadir@cell_clusters)
 
+    if (isFALSE(axis)) {
+        plot_theme <- ggplot2::theme(
+            legend.position = "none",
+            axis.title.x = ggplot2::element_blank(),
+            axis.text.x = ggplot2::element_blank(),
+            axis.ticks.x = ggplot2::element_blank(),
+            axis.title.y = ggplot2::element_blank(),
+            axis.text.y = ggplot2::element_blank(),
+            axis.ticks.y = ggplot2::element_blank(),
+            plot.title = ggplot2::element_text(size = text_size)
+        )
+    } else {
+        plot_theme <- ggplot2::theme(
+            legend.position = "none",
+            axis.title.x = ggplot2::element_blank(),
+            axis.title.y = ggplot2::element_blank(),
+            plot.title = ggplot2::element_text(size = text_size)
+        )
+    }
     for (i in seq_along(cls)) {
         p <- cluster_apl(
             caobj = caobj,
@@ -122,18 +142,7 @@ plot_clusters <- function(cadir,
             ntop = ntop
         ) +
             ggplot2::ggtitle(paste0(title_prefix, cls[i])) +
-            ggplot2::theme(
-                legend.position = "none",
-                axis.title.x = ggplot2::element_blank(),
-                axis.text.x = ggplot2::element_blank(),
-                axis.ticks.x = ggplot2::element_blank(),
-                axis.title.y = ggplot2::element_blank(),
-                axis.text.y = ggplot2::element_blank(),
-                axis.ticks.y = ggplot2::element_blank(),
-                plot.title = ggplot2::element_text(size = text_size)
-            )
-
-        # p$layers[[1]]$aes_params$size <- point_size
+            plot_theme
 
         pls[[i]] <- p
     }
@@ -365,6 +374,78 @@ theme_blank <- function(title = ggplot2::element_blank(),
         )
 }
 
+#' @importFrom ggplot2 '%+replace%'
+# ggplot2 theme that strips all elements from a plot, but leaves axis ticks and elements.
+theme_axis_only <- function(title = ggplot2::element_blank(),
+                        text = ggplot2::element_blank()) {
+    ggplot2::theme_classic() %+replace%
+        ggplot2::theme(
+            # Elements in this first block aren't used directly, but are inherited
+            # line = ggplot2::element_blank(),
+            rect = ggplot2::element_rect(),
+            text = text,
+            aspect.ratio = 1,
+            axis.line = ggplot2::element_blank(),
+            axis.line.x = NULL,
+            axis.line.y = NULL,
+            axis.title = ggplot2::element_blank(),
+            axis.title.x = NULL,
+            axis.title.x.top = NULL,
+            axis.title.y = NULL,
+            axis.title.y.right = NULL,
+            legend.background = ggplot2::element_blank(),
+            legend.spacing = NULL,
+            legend.spacing.x = NULL,
+            legend.spacing.y = NULL,
+            legend.margin = ggplot2::margin(0, 0, 0, 0),
+            legend.key = ggplot2::element_blank(),
+            legend.key.size = NULL,
+            legend.key.height = NULL,
+            legend.key.width = NULL,
+            legend.text = ggplot2::element_blank(),
+            legend.text.align = NULL,
+            legend.title = ggplot2::element_text(hjust = 0),
+            legend.title.align = NULL,
+            legend.position = "none",
+            legend.direction = NULL,
+            legend.justification = "center",
+            legend.box = NULL,
+            legend.box.margin = ggplot2::margin(0, 0, 0, 0),
+            legend.box.background = ggplot2::element_blank(),
+            legend.box.spacing = ggplot2::unit(0, "pt"),
+            panel.grid = ggplot2::element_blank(),
+            panel.grid.major = NULL,
+            panel.grid.minor = NULL,
+            panel.spacing = ggplot2::unit(0, "pt"),
+            panel.spacing.x = NULL,
+            panel.spacing.y = NULL,
+            panel.ontop = FALSE,
+            strip.background = ggplot2::element_blank(),
+            strip.text = ggplot2::element_blank(),
+            strip.text.x = NULL,
+            strip.text.y = NULL,
+            strip.placement = "inside",
+            strip.placement.x = NULL,
+            strip.placement.y = NULL,
+            strip.switch.pad.grid = ggplot2::unit(0., "cm"),
+            strip.switch.pad.wrap = ggplot2::unit(0., "cm"),
+            plot.background = ggplot2::element_blank(),
+            plot.title = title,
+            plot.subtitle = ggplot2::element_blank(),
+            plot.caption = ggplot2::element_blank(),
+            plot.tag = ggplot2::element_blank(),
+            plot.margin = ggplot2::margin(0, 0, 0, 0),
+            panel.background = ggplot2::element_rect(
+                fill = "#ffffffcc",
+                colour = "#ffffffcc"
+            ),
+            panel.border = ggplot2::element_rect(
+                colour = "black",
+                fill = NA
+            ),
+            complete = TRUE
+        )
+}
 
 # TODO: Improve color palette
 
