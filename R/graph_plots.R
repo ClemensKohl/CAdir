@@ -157,7 +157,7 @@ sm_plot <- function(cadir,
                     keep_end = TRUE,
                     inlet_side = 0.08,
                     title_size = 10,
-                    show_axis = TRUE,
+                    show_axis = FALSE,
                     n_wrap = Inf) {
     # TODO: Simplify function.
     base::stopifnot(
