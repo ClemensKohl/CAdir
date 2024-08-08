@@ -294,67 +294,68 @@ apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
     return(list("apl_cols" = apl_cols, "apl_dirs" = apl_dirs))
 }
 
-#' Checks if two clusters should be merged based on their angle in APL space.
-#' @param cadir A cadir object.
-#' @param caobj A cacomp object.
-#' @param apl_quant The quantile to use for the cutoff.
-#' @inheritParams get_apl_cutoff
-#' @returns
-#' A matrix with TRUE/FALSE values indicating if two clusters should be merged.
-#' Importantly the function returns as soon as a candidate is found,
-#'  the matrix stays the same size however.
-get_apl_mergers <- function(cadir,
-                            caobj,
-                            apl_cutoff_reps = 100,
-                            method = "random",
-                            counts = NULL,
-                            apl_quant = 0.99) {
-    fun_args <- match.call()
-    candidates <- matrix(FALSE,
-        nrow = nrow(cadir@directions),
-        ncol = nrow(cadir@directions)
-    )
-    dir_nms <- rownames(cadir@directions)
-    for (d in seq_len(nrow(cadir@directions))) {
-        grp_idx <- which(cadir@cell_clusters == dir_nms[d])
-
-        if (length(grp_idx) == 0) next
-
-        aplcds <- apl_dir_coords(
-            cadir = cadir,
-            caobj = caobj,
-            apl_dir = cadir@directions[d, ],
-            group = grp_idx
-        )
-
-        cutoff_exists <- is_stored(cadir = cadir, fun_args = fun_args)
-
-        if (isTRUE(cutoff_exists)) {
-            cutoff <- cadir@parameters$sa_cutoff
-        } else {
-            cutoff <- get_apl_cutoff(
-                caobj = caobj,
-                counts = counts,
-                method = method,
-                group = grp_idx,
-                apl_cutoff_reps = apl_cutoff_reps,
-                quant = apl_quant
-            )
-
-            cadir@parameters$sa_cutoff <- cutoff
-        }
-
-        cutoff <- rad_to_ang_sim(cutoff)
-
-        sim <- get_ang_sim(aplcds$apl_dirs[d, ], aplcds$apl_dirs)
-        sim[1, d] <- 0
-
-        candidates[d, ] <- sim > cutoff
-
-        if (any(candidates[d, ])) {
-            return(candidates)
-        }
-    }
-
-    return(candidates)
-}
+# FIXME: DELETE. NOT NEEDED ANYMORE.
+#' #' Checks if two clusters should be merged based on their angle in APL space.
+#' #' @param cadir A cadir object.
+#' #' @param caobj A cacomp object.
+#' #' @param apl_quant The quantile to use for the cutoff.
+#' #' @inheritParams get_apl_cutoff
+#' #' @returns
+#' #' A matrix with TRUE/FALSE values indicating if two clusters should be merged.
+#' #' Importantly the function returns as soon as a candidate is found,
+#' #'  the matrix stays the same size however.
+#' get_apl_mergers <- function(cadir,
+#'                             caobj,
+#'                             apl_cutoff_reps = 100,
+#'                             method = "random",
+#'                             counts = NULL,
+#'                             apl_quant = 0.99) {
+#'     fun_args <- match.call()
+#'     candidates <- matrix(FALSE,
+#'         nrow = nrow(cadir@directions),
+#'         ncol = nrow(cadir@directions)
+#'     )
+#'     dir_nms <- rownames(cadir@directions)
+#'     for (d in seq_len(nrow(cadir@directions))) {
+#'         grp_idx <- which(cadir@cell_clusters == dir_nms[d])
+#'
+#'         if (length(grp_idx) == 0) next
+#'
+#'         aplcds <- apl_dir_coords(
+#'             cadir = cadir,
+#'             caobj = caobj,
+#'             apl_dir = cadir@directions[d, ],
+#'             group = grp_idx
+#'         )
+#'
+#'         cutoff_exists <- is_stored(cadir = cadir, fun_args = fun_args)
+#'
+#'         if (isTRUE(cutoff_exists)) {
+#'             cutoff <- cadir@parameters$sa_cutoff
+#'         } else {
+#'             cutoff <- get_apl_cutoff(
+#'                 caobj = caobj,
+#'                 counts = counts,
+#'                 method = method,
+#'                 group = grp_idx,
+#'                 apl_cutoff_reps = apl_cutoff_reps,
+#'                 quant = apl_quant
+#'             )
+#'
+#'             cadir@parameters$sa_cutoff <- cutoff
+#'         }
+#'
+#'         cutoff <- rad_to_ang_sim(cutoff)
+#'
+#'         sim <- get_ang_sim(aplcds$apl_dirs[d, ], aplcds$apl_dirs)
+#'         sim[1, d] <- 0
+#'
+#'         candidates[d, ] <- sim > cutoff
+#'
+#'         if (any(candidates[d, ])) {
+#'             return(candidates)
+#'         }
+#'     }
+#'
+#'     return(candidates)
+#' }

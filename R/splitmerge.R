@@ -63,7 +63,6 @@ split_clusters <- function(
     apl_quant = 0.99
 ) {
 
-    fun_args <- match.call()
     cls <- levels(cadir@cell_clusters)
 
     for (i in cls) {
@@ -83,49 +82,7 @@ split_clusters <- function(
         elems <- as.numeric(table(sres@cell_clusters))
         if (any(elems < min_cells)) next
 
-        # If the cutoff is set to NULL we computer the S-alpha cutoff.
-        if (is.null(cutoff)) {
-
-            grp_idx <- which(cadir@cell_clusters == i)
-
-            aplcds <- apl_dir_coords(
-                cadir = sres,
-                caobj = caobj,
-                apl_dir = cadir@directions[cadir@dict[[f2c(i)]], ],
-                group = grp_idx
-            )
-
-            if (method == "permutation" && is.null(counts)) {
-                warning(
-                    "No count matrix for permutation supplied.",
-                    "Switching to random directions method."
-                )
-                counts <- NULL
-                method <- "random"
-            }
-
-            cutoff_exists <- is_stored(cadir = cadir, fun_args = fun_args)
-
-            if (isTRUE(cutoff_exists)) {
-                cutoff <- cadir@parameters$sa_cutoff
-            } else {
-                cutoff <- get_apl_cutoff(
-                    caobj = caobj,
-                    counts = counts,
-                    method = method,
-                    group = grp_idx,
-                    quant = apl_quant,
-                    apl_cutoff_reps = apl_cutoff_reps
-                )
-                cadir@parameters$sa_cutoff <- cutoff
-            }
-
-            to_split <- decide_split(aplcds$apl_dirs, cutoff = cutoff)
-
-        } else {
-            to_split <- decide_split(sres@directions, cutoff = cutoff)
-        }
-
+        to_split <- decide_split(sres@directions, cutoff = cutoff)
 
         if (isTRUE(to_split)) {
             message(paste0("\tSplitting cluster ", i))
@@ -237,29 +194,20 @@ merge_clusters <- function(caobj,
                            apl_quant = 0.99,
                            make_plots = FALSE,
                            apl_cutoff_reps = 100) {
+
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
     directions <- cadir@directions
     dir_nms <- rownames(directions)
 
-    if (is.null(cutoff)) {
-        candidates <- get_apl_mergers(cadir = cadir,
-                                      caobj = caobj,
-                                      method = method,
-                                      counts = counts,
-                                      apl_quant = apl_quant,
-                                      apl_cutoff_reps = apl_cutoff_reps)
-
-
-        candidates <- apply(candidates, 1, function(x) which(x))
-
-    } else {
-        asim_cutoff <- 1 - cutoff / pi
-        sim <- get_ang_sim(directions, directions)
-        # Set the lower diagonal to 0
-        sim[lower.tri(sim, diag = TRUE)] <- 0
-        candidates <- apply(sim, 1, function(x) which(x >= asim_cutoff), simplify = FALSE)
-    }
+    asim_cutoff <- 1 - cutoff / pi
+    sim <- get_ang_sim(directions, directions)
+    # Set the lower diagonal to 0
+    sim[lower.tri(sim, diag = TRUE)] <- 0
+    candidates <- apply(X = sim,
+                        MARGIN = 1,
+                        FUN = function(x) which(x >= asim_cutoff),
+                        simplify = FALSE)
 
     sel <- which(lengths(candidates) > 0)
 
@@ -392,9 +340,10 @@ dirclust_splitmerge <- function(caobj,
                                 reps = 5,
                                 apl_cutoff_reps = 100,
                                 make_plots = FALSE) {
+    fun_args <- match.call()
+
     # Convert cutoff to radians
     if (!is.null(cutoff)) cutoff <- deg2rad(cutoff)
-    fun_args <- match.call()
 
     #########
     # Setup #
@@ -434,6 +383,46 @@ dirclust_splitmerge <- function(caobj,
     log <- log_iter(log = log,
                     cadir = out,
                     name = "iter_0")
+
+    ##########
+    # Cutoff #
+    ##########
+
+    # If the cutoff is set to NULL we computer the S-alpha cutoff.
+    if (is.null(cutoff)) {
+        if (method == "permutation" && is.null(counts)) {
+            warning(
+                "No count matrix for permutation supplied.",
+                "Switching to random directions method."
+            )
+            counts <- NULL
+            method <- "random"
+        }
+
+        # HACK: Better way than random sampling?
+        # We need a group for the permutation method.
+        # We just pick a random cluster.
+        grp_idx <- which(
+            out@cell_clusters == base::sample(unique(out@cell_clusters), 1)
+        )
+
+        cutoff <- get_apl_cutoff(
+            caobj = caobj,
+            counts = counts,
+            method = method,
+            group = grp_idx,
+            quant = apl_quant,
+            apl_cutoff_reps = apl_cutoff_reps
+        )
+
+        out@parameters$sa_cutoff <- cutoff
+
+        message(
+            "\nInferred cutoff angle: ",
+            round(rad2deg(cutoff), 2),
+            "\n"
+        )
+    }
 
     for (i in seq_len(reps)) {
         message("Iteration ", i)
