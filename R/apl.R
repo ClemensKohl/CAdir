@@ -253,7 +253,7 @@ get_apl_cutoff <- function(caobj,
     return(alpha)
 }
 
-
+# FIXME: DELETE ONLY USED BY get_apl_mergers
 #' Calculates APL coordinates for points (columns)
 #'  and directions of a cadir object.
 #'  point into a precomputed APL space.
@@ -265,34 +265,34 @@ get_apl_cutoff <- function(caobj,
 #'  (Usually the cluster belonging to `apl_dir`)
 #' @returns
 #' A list with the columns (points) and directions projected into the APL space.
-apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
-    model <- apl_model(
-        caobj = caobj,
-        direction = apl_dir,
-        group = group
-    )
-
-    apl_cols <- model(caobj@prin_coords_cols)
-    apl_dirs <- model(cadir@directions)
-    for (r in seq_len(nrow(apl_dirs))) {
-        sel <- match(
-            names(cadir@cell_clusters)[cadir@cell_clusters == rownames(apl_dirs)[r]],
-            rownames(caobj@prin_coords_cols)
-        )
-
-        if (length(sel) > 1) {
-            grp_mean <- colMeans(apl_cols[sel, ])
-        } else {
-            grp_mean <- apl_cols[sel, ]
-        }
-
-        if (sign(grp_mean[1]) != sign(apl_dirs[r, 1])) {
-            apl_dirs[r, ] <- c(-1, 1) * apl_dirs[r, ]
-        }
-    }
-
-    return(list("apl_cols" = apl_cols, "apl_dirs" = apl_dirs))
-}
+# apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
+#     model <- apl_model(
+#         caobj = caobj,
+#         direction = apl_dir,
+#         group = group
+#     )
+#
+#     apl_cols <- model(caobj@prin_coords_cols)
+#     apl_dirs <- model(cadir@directions)
+#     for (r in seq_len(nrow(apl_dirs))) {
+#         sel <- match(
+#             names(cadir@cell_clusters)[cadir@cell_clusters == rownames(apl_dirs)[r]],
+#             rownames(caobj@prin_coords_cols)
+#         )
+#
+#         if (length(sel) > 1) {
+#             grp_mean <- colMeans(apl_cols[sel, ])
+#         } else {
+#             grp_mean <- apl_cols[sel, ]
+#         }
+#
+#         if (sign(grp_mean[1]) != sign(apl_dirs[r, 1])) {
+#             apl_dirs[r, ] <- c(-1, 1) * apl_dirs[r, ]
+#         }
+#     }
+#
+#     return(list("apl_cols" = apl_cols, "apl_dirs" = apl_dirs))
+# }
 
 # FIXME: DELETE. NOT NEEDED ANYMORE.
 #' #' Checks if two clusters should be merged based on their angle in APL space.

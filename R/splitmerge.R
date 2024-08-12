@@ -55,12 +55,8 @@ split_clusters <- function(
     cadir,
     caobj,
     cutoff = 30,
-    method = "random",
     min_cells = 5,
-    make_plots = FALSE,
-    counts = NULL,
-    apl_cutoff_reps = 100,
-    apl_quant = 0.99
+    make_plots = FALSE
 ) {
 
     cls <- levels(cadir@cell_clusters)
@@ -189,11 +185,7 @@ split_clusters <- function(
 merge_clusters <- function(caobj,
                            cadir,
                            cutoff,
-                           method = "random",
-                           counts = NULL,
-                           apl_quant = 0.99,
-                           make_plots = FALSE,
-                           apl_cutoff_reps = 100) {
+                           make_plots = FALSE) {
 
     samples <- caobj@prin_coords_cols
     clusters <- cadir@cell_clusters
@@ -295,9 +287,6 @@ merge_clusters <- function(caobj,
             caobj = caobj,
             cadir = cadir,
             cutoff = cutoff,
-            method = method,
-            counts = counts,
-            apl_quant = apl_quant,
             make_plots = make_plots
         )
         return(out)
@@ -438,12 +427,8 @@ dirclust_splitmerge <- function(caobj,
             cadir = out,
             caobj = caobj,
             cutoff = cutoff,
-            method = method,
-            counts = counts,
-            apl_quant = apl_quant,
             min_cells = min_cells,
-            make_plots = make_plots,
-            apl_cutoff_reps = apl_cutoff_reps
+            make_plots = make_plots
         )
 
         log <- log_iter(log = log,
@@ -472,11 +457,7 @@ dirclust_splitmerge <- function(caobj,
             caobj = caobj,
             cadir = out,
             cutoff = cutoff,
-            method = method,
-            counts = counts,
-            apl_quant = apl_quant,
-            make_plots = make_plots,
-            apl_cutoff_reps = apl_cutoff_reps
+            make_plots = make_plots
         )
 
         log <- log_iter(log = log,
