@@ -11,7 +11,11 @@ plot_results <- function(cadir,
                          caobj,
                          highlight_cluster = TRUE,
                          show_cells = TRUE,
-                         show_genes = FALSE
+                         show_genes = FALSE,
+                         title_prefix = "Cluster: ",
+                         gsub_title = "",
+                         return_list = FALSE,
+                         ...
                          ) {
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
@@ -24,6 +28,17 @@ plot_results <- function(cadir,
 
     for (i in seq_along(cls)) {
         for (j in seq_along(cls)) {
+
+            if (!is.null(gsub_title)) {
+                cls_title <- gsub(
+                                  pattern = gsub_title,
+                                  replacement = " ",
+                                  x = cls[i]
+                )
+            } else {
+                cls_title <- cls[i]
+            }
+
             sel <- which(cadir@cell_clusters == cls[i] |
                 cadir@cell_clusters == cls[j])
 
@@ -52,8 +67,9 @@ plot_results <- function(cadir,
                 show_genes = sg,
                 show_lines = i != j,
                 highlight_cluster = highlight_cluster,
+                ...
             ) +
-                ggplot2::ggtitle(ifelse(i == j, paste0("Cluster: ", cls[i]), "")) +
+                ggplot2::ggtitle(ifelse(i == j, paste0(title_prefix, cls_title), "")) +
                 ggplot2::theme(
                     legend.position = "none",
                     axis.title.x = ggplot2::element_blank(),
@@ -74,11 +90,17 @@ plot_results <- function(cadir,
         }
     }
 
-    fig <- ggpubr::ggarrange(
-        plotlist = pls,
-        nrow = length(cls),
-        ncol = length(cls)
+    if (isTRUE(return_list)) {
+        fig <- pls
+    } else {
+        fig <- ggpubr::ggarrange(
+            plotlist = pls,
+            nrow = length(cls),
+            ncol = length(cls)
     )
+
+    }
+
     return(fig)
 }
 
