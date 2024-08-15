@@ -247,6 +247,7 @@ get_apl_cutoff <- function(caobj,
 
     cutoff_cotan <- stats::quantile(apl_perm[, 3], quant)
 
+    # tan = 1/cotan
     # angle alpha is in radian.
     alpha <- atan(1 / cutoff_cotan)
 
