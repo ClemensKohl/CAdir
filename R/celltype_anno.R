@@ -3,8 +3,6 @@
 #' @importFrom CAbiNet annotate_by_goa
 NULL
 
-#FIXME: Update dict!
-
 #' Annotate CAbiNet results by gene overrepresentation
 #'  analysis results.
 #'
@@ -127,7 +125,7 @@ setMethod(
         obj@directions <- dirs
         obj@dict <- dict
 
-        stopifnot(validObject(obj))
+        stopifnot(methods::validObject(obj))
         return(obj)
     }
 )
@@ -150,7 +148,7 @@ setMethod(
              min_size = 10,
              max_size = 500,
              ...) {
-        stopifnot(is(obj, "caclust"))
+        stopifnot(methods::is(obj, "caclust"))
 
         goa_res <- CAbiNet::per_cluster_goa(
             cabic = obj,

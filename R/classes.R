@@ -1,6 +1,3 @@
-# TODO: Find out if you can have the class without cabinet package.
-
-
 #' Checks if cadir-class was constructed correctly
 #'
 #' @param object A `cadir` object

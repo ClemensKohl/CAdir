@@ -134,7 +134,7 @@ cadir_to_biclust <- function(cadir) {
     rownames(number_x_col) <- paste0("BC", bitypes)
     colnames(number_x_col) <- names(cell_clusters)
 
-    bic <- new("Biclust",
+    bic <- methods::new("Biclust",
         "Parameters" = params,
         "RowxNumber" = row_x_number,
         "NumberxCol" = number_x_col,

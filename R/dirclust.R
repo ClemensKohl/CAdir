@@ -14,8 +14,6 @@ kmeanspp_init <- function(points, k) {
     for (ii in 2:k) {
         lines <- points[center_ids, ] / pnorm[center_ids]
 
-        #FIXME: This takes also distances with neg. proj. into account.
-        #This is not optimal, but we need to come up
         ldist <- dist_to_line(
             points = points,
             lines = lines,
@@ -134,7 +132,7 @@ dirclust <- function(
 ) {
 
     if (!is.null(cadir)) {
-        stopifnot(is(cadir, "cadir"))
+        stopifnot(methods::is(cadir, "cadir"))
         if (!is.null(lines)){
             warning("You overspecified the init. directions with 'lines' and 'cadir'.",
                     "Picking directions from 'cadir'.")
@@ -258,7 +256,13 @@ dirclust <- function(
     return(out)
 }
 
-#TODO: Document!
+#' Assigns cells to the closest direction.
+#' @param cells Row-wise matrix of cell coordinates.
+#' @param directions Row-wise matrix of directions.
+#' @returns
+#' Vector of same length as nrow(cells) with row-indices of the direction the
+#' cell is assigned to.
+#' @export
 assign_cells <- function(cells, directions) {
 
     # vector norm
@@ -288,7 +292,7 @@ assign_cells <- function(cells, directions) {
 #' @returns
 #' TRUE if the sign of the direction needs to be flipped, FALSE otherwise.
 sign_flip <- function(points, line) {
-    s <- sum(sign(points %*% line)*(points %*% line)**2)
+    s <- sum(sign(points %*% line) * (points %*% line)**2)
     return(s < 0)
 }
 

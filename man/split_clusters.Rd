@@ -4,17 +4,7 @@
 \alias{split_clusters}
 \title{Split clusters based on angle.}
 \usage{
-split_clusters(
-  cadir,
-  caobj,
-  cutoff = 30,
-  method = "random",
-  min_cells = 5,
-  make_plots = FALSE,
-  counts = NULL,
-  apl_cutoff_reps = 100,
-  apl_quant = 0.99
-)
+split_clusters(cadir, caobj, cutoff = 30, min_cells = 5, make_plots = FALSE)
 }
 \arguments{
 \item{cadir}{A \code{cadir} object.}
@@ -25,21 +15,9 @@ split_clusters(
 If \code{NULL} the cutoff angle is calculated based on the cutoff angle based
 on the quantile defined through \code{apl_quant}.}
 
-\item{method}{Method to use for computing the cutoff.
-Either "random" or "permutation".}
-
 \item{min_cells}{Minimum number of cells to form a cluster.}
 
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
-
-\item{counts}{The original count matrix that was used to compute the caobj.}
-
-\item{apl_cutoff_reps}{The number of repetitions to use.
-Should be between 3-10 for permutation, and >=100 for random.}
-
-\item{apl_quant}{The quantile to use for the APL cutoff. Only used
-if cutoff is \code{NULL}.
-split and merge}
 }
 \value{
 A \code{cadir} object with split clusters.

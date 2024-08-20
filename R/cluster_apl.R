@@ -1,5 +1,5 @@
 #' Plot a cluster with the respective direction/line in an APL.
-#' @inheritParams apl_model
+#'@inheritParams apl_model
 #' @param cadir A cadir object for which to compute the APL
 #' @param direction Direction of the APL plot.
 #' @param cluster The cluster (if any) to highlight cells and genes by.
@@ -74,7 +74,7 @@ cluster_apl <- function(caobj,
     coords <- list("prin_coords_cols", "std_coords_cols")
 
     c_coords <- if (isTRUE(show_cells)) {
-        slot(caobj, name = coords[[bool_sum]])
+        methods::slot(caobj, name = coords[[bool_sum]])
     } else {
         NULL
     }
@@ -129,7 +129,13 @@ cluster_apl <- function(caobj,
 }
 
 
-# TODO: Add documentation
+#' Contructs the basic plotting data frame for cluster_apl
+#' @param cells Cell coordinates. If NULL cells will be omitted.
+#' @param genes Gene coordinates. If NULL genes will be omitted.
+#' @param model The APL model to project cells and genes.
+#' @returns
+#' Data frame with plotting coordinates and basic information about type and
+#' name.
 .construct_df <- function(cells = NULL, genes = NULL, model = NULL) {
     incl_cells <- !is.null(cells)
     incl_genes <- !is.null(genes)
@@ -166,7 +172,11 @@ cluster_apl <- function(caobj,
     return(df)
 }
 
-# TODO: Add documentation.
+#' Gets angle between plotting two directions.
+#' Returns NA otherwise.
+#' @param directions Row-wise matrix of directions.
+#' @returns
+#' Angle in degrees or NA if != 2 directions.
 .get_plot_angle <- function(directions) {
     if (nrow(directions) == 2) {
         ang <- min(
@@ -180,7 +190,12 @@ cluster_apl <- function(caobj,
     return(ang)
 }
 
-# TODO: Add documentation.
+#' Flips APL direction if pointing away from majority of points.
+#' @param apl_dirs Row-wise matrix of APL directions.
+#' @param model The APL model to project cells and genes.
+#' @inheritParams cluster_apl
+#' @returns
+#' The (flipped) APL directions.
 .toggle_dir <- function(apl_dirs, caobj, cadir, model) {
     # If the line points into the opposite direction of points
     # we flip the line.
@@ -209,7 +224,11 @@ cluster_apl <- function(caobj,
     return(apl_dirs)
 }
 
-# TODO: Add documentation.
+#' Adds information on the clusters to the plotting data frame.
+#' @inheritParams cluster_apl
+#' @param plot_df The plotting data frame.
+#' @returns
+#' The enhanced plotting data frame.
 .add_cluster_info <- function(
     plot_df,
     cadir,
@@ -232,15 +251,15 @@ cluster_apl <- function(caobj,
     }
 
     sel_cells <- match(names(cadir@cell_clusters)[cell_cl], plot_df$sample)
-    sel_cells <- na.omit(sel_cells)
+    sel_cells <- stats::na.omit(sel_cells)
     sel_genes <- match(names(cadir@gene_clusters)[gene_cl], plot_df$sample)
-    sel_genes <- na.omit(sel_genes)
+    sel_genes <- stats::na.omit(sel_genes)
 
 
     if (isTRUE(highlight_cluster)) {
         sel <- c() # empty in case we only want to plot lines.
         sel <- c(sel, sel_cells, sel_genes)
-        sel <- na.omit(sel)
+        sel <- stats::na.omit(sel)
 
         plot_df$cluster <- "other"
         plot_df$cluster[sel] <- "cluster"
@@ -274,7 +293,13 @@ cluster_apl <- function(caobj,
     return(plot_df)
 }
 
-# TODO: Add documentation.
+#' Creates ggplot for a cluster association plot
+#' @param ggplt A ggplot2 object. It should be the result of ggplot() with
+#' aes() defined but without any geoms_*.
+#' @param plot_df The plotting data frame.
+#' @inheritParams cluster_apl
+#' @returns
+#' A ggplot object. The basic cluster APL plot.
 .cluster_apl_points <- function(
     ggplt,
     plot_df,
@@ -294,7 +319,7 @@ cluster_apl <- function(caobj,
                 size = type,
             ), alpha = 0.7)
 
-        ggplt <- .add_colors(
+        ggplt <- .add_scales(
             ggplt = ggplt,
             point_size = point_size,
             size_factor = size_factor
@@ -319,8 +344,11 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
-# TODO: Add documentation.
-.add_colors <- function(ggplt, point_size = 1.5, size_factor = 2) {
+#' Adds size and shape scales to cluster APL ggplot.
+#' @inheritParams .cluster_apl_points
+#' @returns
+#' ggplot with with size and shape scale added.
+.add_scales <- function(ggplt, point_size = 1.5, size_factor = 2) {
     ggplt <- ggplt +
         ggplot2::scale_size_manual(values = c(
             "cell" = point_size,
@@ -333,7 +361,12 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
-# TODO: Add documentation.
+#' Adds specific color schemes to highlight clusters.
+#' @param ggplt A ggplot with geoms etc. already added.
+#' @param both If TRUE highlights the cluster for both cells and genes,
+#' otherwise cells only.
+#' @returns
+#' ggplot with scale_color added.
 .highlight_cluster <- function(ggplt, both = FALSE) {
     if (isTRUE(both)) {
         ggplt <- ggplt + ggplot2::scale_color_manual(values = c(
@@ -366,13 +399,15 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
-
-# TODO: Add documentation.
+#' Helper function to label the top `ntop` genes of a cluster in the APL.
+#' @inheritParams .cluster_apl_points
+#' @returns
+#' ggplot object with labels added.
 .label_genes <- function(ggplt, plot_df, ntop = 15) {
     to_highlight <- (plot_df$cluster == "gene_cluster")
 
     dfh <- plot_df[to_highlight, ]
-    dfh <- head(dfh[order(dfh$x, decreasing = TRUE), ], ntop)
+    dfh <- utils::head(dfh[order(dfh$x, decreasing = TRUE), ], ntop)
     ggplt <- ggplt + ggrepel::geom_label_repel(
         data = dfh,
         ggplot2::aes(
@@ -386,7 +421,12 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
-# TODO: Add documentation.
+#' Adds lines of other clusters to the APL.
+#' @inheritParams cluster_apl
+#' @param ggplt More or less finished ggplot object.
+#' @param apl_dir The cluster directions in APL coordinates.
+#' @returns
+#' ggplot with lines added.
 .add_lines <- function(ggplt, apl_dir, highlight_cluster = FALSE) {
     for (d in seq_len(nrow(apl_dir))) {
         is_x <- is_xaxis(apl_dir[d, ])
@@ -419,7 +459,11 @@ cluster_apl <- function(caobj,
     return(ggplt)
 }
 
-# TODO: Add documentation.
+#' Checks if a direction is the x-axis (is the APL direction)
+#' @param apl_dir A single direction.
+#' @returns
+#' TRUE if apl_dir is equivalent to the x-axis within tolerances,
+#' FALSE otherwise.
 is_xaxis <- function(apl_dir) {
     pos_xaxis <- all.equal(
         apl_dir,

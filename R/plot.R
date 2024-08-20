@@ -4,6 +4,8 @@
 #' @param cadir A cadir object with valid cell clustering results.
 #' @param caobj A cacomp object.
 #' @inheritParams cluster_apl
+#' @inheritParams plot_clusters
+#' @param ... Further arguments forwarded to cluster_apl().
 #' @returns A plot that summarizes the cell clustering results and
 #' how the clusters relate to each other.
 #' @export
@@ -109,6 +111,15 @@ plot_results <- function(cadir,
 #' @param caobj A cacomp object.
 #' @param point_size Size of the points (cells).
 #' @param text_size Size of the text in the plot.
+#' @param title_prefix Prefix to print before cluster name.
+#' @param ggncol Number of columns to arrange plots in.
+#' @param ggnrow Number of rows to arrange plots in.
+#' @param axis Whether to show axis markings or not.
+#' @param gsub_title Character string to substitute with " " in plot titles.
+#' @param legend_pos Where to position the legend.
+#' Normal ggplot positions allowed.
+#' @param return_list If TRUE, instead of a final, arranged panel the plots
+#' are returned as a list.
 #' @inheritParams cluster_apl
 #' @returns A plot that summarizes the cell clustering results.
 #' @export
@@ -535,12 +546,12 @@ scale_fill_mpimg <- function(name = "mpimg", ...) {
 
 scale_fill_gradient_mpimg <- function(name = "orange", ...) {
     if (name == "orange") {
-        scale_fill_gradientn(
+        ggplot2::scale_fill_gradientn(
             colours = c("#29485d", "#006c66", "#c6d325", "#ef7c00"),
             ...
         )
     } else if (name == "green") {
-        scale_fill_gradientn(
+        ggplot2::scale_fill_gradientn(
             colours = c("#29485d", "#006c66", "#c6d325"),
             ...
         )

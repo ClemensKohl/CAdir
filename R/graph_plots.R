@@ -143,6 +143,11 @@ plot_sm_graph <- function(cadir,
 #' Either "mm" for mouse or "hs" for human.
 #' @param annotate_clusters If TRUE uses automatic cell type annotation via
 #' `annotate_biclustering` to annotate the clusters in each level.
+#' @param inlet_side Length of the inlet side. The inlet is a square centered
+#' around the cluster node.
+#' @param title_size Font size of the title.
+#' @param show_axis Whether or not to show axis markings.
+#' @param n_wrap Character length around which to wrap inlet titles.
 #' @returns
 #' A ggplot object showing the split-merge graph and APL plots for each cluster.
 #' @export
@@ -159,7 +164,6 @@ sm_plot <- function(cadir,
                     title_size = 10,
                     show_axis = FALSE,
                     n_wrap = Inf) {
-    # TODO: Simplify function.
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)

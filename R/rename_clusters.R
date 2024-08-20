@@ -81,7 +81,10 @@ rename_clusters  <- function(cadir) {
     return(cadir)
 }
 
-#TODO: Add documentation
+#' Runs an array of quick tests to check if the @dict slot is coherant.
+#' @param cadir A CAdir object with a @dict slot.
+#' @returns
+#' TRUE if everything is correct in the dict.
 .check_dict <- function(cadir) {
 
     ord <- match(rownames(cadir@directions), names(cadir@dict))
@@ -106,7 +109,10 @@ rename_clusters  <- function(cadir) {
     return(all_correct)
 }
 
-# TODO: Add doocumentation.
+#' Attempts to correct a malformed dict slot.
+#' @param cadir A CAdir object with a @dict slot.
+#' @returns
+#' A CAdir object with corrected dict slot.
 .correct_dict <- function(cadir) {
 
     dict <- cadir@dict

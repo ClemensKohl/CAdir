@@ -14,7 +14,11 @@ sm_plot(
   highlight_cluster = FALSE,
   annotate_clusters = FALSE,
   org = "mm",
-  keep_end = TRUE
+  keep_end = TRUE,
+  inlet_side = 0.08,
+  title_size = 10,
+  show_axis = FALSE,
+  n_wrap = Inf
 )
 }
 \arguments{
@@ -38,6 +42,15 @@ sm_plot(
 Either "mm" for mouse or "hs" for human.}
 
 \item{keep_end}{Adds the last iteration, even if no change to previous.}
+
+\item{inlet_side}{Length of the inlet side. The inlet is a square centered
+around the cluster node.}
+
+\item{title_size}{Font size of the title.}
+
+\item{show_axis}{Whether or not to show axis markings.}
+
+\item{n_wrap}{Character length around which to wrap inlet titles.}
 }
 \value{
 A ggplot object showing the split-merge graph and APL plots for each cluster.
