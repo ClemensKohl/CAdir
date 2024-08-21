@@ -13,7 +13,7 @@ sub_cluster <- function(cadir, points, idx) {
     sel <- which(cadir@cell_clusters == idx)
     cl <- points[sel, ]
     if (length(cl) == 0) {
-        stop("No points in cluster")
+        rlang::abort("No points in cluster")
     }
     res <- dirclust(
         points = cl,
@@ -81,7 +81,7 @@ split_clusters <- function(
         to_split <- decide_split(sres@directions, cutoff = cutoff)
 
         if (isTRUE(to_split)) {
-            message(paste0("\tSplitting cluster ", i))
+            rlang::inform(paste0("\tSplitting cluster ", i))
 
             if (isTRUE(make_plots)) {
 
@@ -214,7 +214,7 @@ merge_clusters <- function(caobj,
         # get the names of the mergers
         mergers <- search_dict(cadir@dict, merger_idxs)
 
-        message(paste0("\tMerging ", merge_parent, " with ", cds_nms))
+        rlang::inform(paste0("\tMerging ", merge_parent, " with ", cds_nms))
 
         # clusters that have to be changed.
         cls <- which(clusters %in% mergers)
@@ -380,10 +380,10 @@ dirclust_splitmerge <- function(caobj,
     # If the cutoff is set to NULL we computer the S-alpha cutoff.
     if (is.null(cutoff)) {
         if (method == "permutation" && is.null(counts)) {
-            warning(
-                "No count matrix for permutation supplied.",
+            rlang::warn(paste0(
+                "No count matrix for permutation supplied. ",
                 "Switching to random directions method."
-            )
+            ))
             counts <- NULL
             method <- "random"
         }
@@ -406,15 +406,15 @@ dirclust_splitmerge <- function(caobj,
 
         out@parameters$sa_cutoff <- cutoff
 
-        message(
+        rlang::inform(paste0(
             "\nInferred cutoff angle: ",
             round(rad2deg(cutoff), 2),
             "\n"
-        )
+        ))
     }
 
     for (i in seq_len(reps)) {
-        message("Iteration ", i)
+        rlang::inform(paste0("Iteration ", i))
 
         iter_nm <- paste0("iter_", i)
         out@log$last_rep <- i

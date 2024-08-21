@@ -7,7 +7,7 @@
 cl2nm(i)
 }
 \arguments{
-\item{Cluster}{index.}
+\item{i}{Cluster index.}
 }
 \value{
 Adds prefix "clusters_" to the cluster name.

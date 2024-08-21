@@ -133,8 +133,11 @@ dirclust <- function(
     if (!is.null(cadir)) {
         stopifnot(methods::is(cadir, "cadir"))
         if (!is.null(lines)){
-            warning("You overspecified the init. directions with 'lines' and 'cadir'.",
-                    "Picking directions from 'cadir'.")
+            rlang::warn(paste0(
+                "You overspecified the init. directions ",
+                "with 'lines' and 'cadir'. ",
+                "Picking directions from 'cadir'."
+            ))
         }
         lines <- cadir@directions
     }
@@ -151,7 +154,7 @@ dirclust <- function(
             center_ids <- kmeanspp_init(points = points, k = k)
             lines <- points[center_ids, ]
         } else {
-            stop("Please use init = 'rand' or 'kmeanspp'.")
+            rlang::abort("Please use init = 'rand' or 'kmeanspp'.")
         }
     } else {
         # ensure that they are unit vectors.

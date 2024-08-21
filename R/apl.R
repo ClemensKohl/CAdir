@@ -215,7 +215,7 @@ get_apl_cutoff <- function(caobj,
         if (is.null(apl_cutoff_reps)) {
             apl_cutoff_reps <- 100
         } else if (apl_cutoff_reps < 100) {
-            warning("Number of repetitions should be set >=100.")
+            rlang::warn("Number of repetitions should be set >=100.")
             apl_cutoff_reps <- 100
         }
 
@@ -228,7 +228,7 @@ get_apl_cutoff <- function(caobj,
         if (is.null(apl_cutoff_reps)) {
             apl_cutoff_reps <- 5
         } else if (apl_cutoff_reps > 10) {
-            message("Large number of repetitions might take a long time.")
+            rlang::inform("Large number of repetitions might take a long time.")
         }
 
         apl_perm <- permutation_cutoff(

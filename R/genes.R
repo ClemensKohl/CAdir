@@ -37,7 +37,7 @@ assign_genes <- function(caobj,
     } else if (coords == "std") {
         idx <- ca_sphere_idx(caobj@std_coords_rows, qcutoff = qcutoff)
     } else {
-        stop("Invalid coords argument")
+        rlang::abort("Invalid coords argument")
     }
 
     X <- caobj@std_coords_rows[idx, ]
@@ -48,7 +48,7 @@ assign_genes <- function(caobj,
     clusters <- apply(ldist, 1, which.min)
     clusters <- rownames(cadir@directions)[clusters]
 
-    if(anyNA(clusters)) stop()
+    if(anyNA(clusters)) rlang::abort("NAs in cluster directions.")
 
     cell_lvls <- levels(cadir@cell_clusters)
     lvls <- unique(c(cell_lvls, unique(clusters)))

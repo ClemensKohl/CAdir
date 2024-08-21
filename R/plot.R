@@ -555,7 +555,7 @@ scale_fill_gradient_mpimg <- function(name = "orange", ...) {
             ...
         )
     } else {
-        stop("Pick a correct name!")
+        rlang::abort("Pick a correct name!")
     }
 }
 

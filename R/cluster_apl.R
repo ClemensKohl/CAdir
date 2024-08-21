@@ -36,12 +36,12 @@ cluster_apl <- function(caobj,
     stopifnot(methods::is(cadir, "cadir"))
 
     if (length(group) == 0) {
-        stop("`group` has length 0.")
+        rlang::abort("`group` has length 0.")
     }
 
     if (is.null(cluster) && isTRUE(highlight_cluster)) {
-        warning(paste0("Turning `highlight_cluster off,",
-                       "because no `cluster` was specified"))
+        rlang::warn(paste0("Turning `highlight_cluster off,",
+                           "because no `cluster` was specified"))
 
         highlight_cluster <- FALSE
     }
@@ -55,8 +55,10 @@ cluster_apl <- function(caobj,
         cluster <- as.character(cluster)
         if (!cluster %in% all_cls) {
             cluster <- NULL
-            warning("`cluster` does not correspond to a cluster in cadir.",
-                    " Setting to NULL.")
+            rlang::warn(paste0(
+                "`cluster` does not correspond to a cluster in cadir.",
+                " Setting to NULL."
+            ))
         }
     }
 
