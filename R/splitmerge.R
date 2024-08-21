@@ -1,4 +1,8 @@
-# TODO: make a verbose toggle.
+# NOTE: Verbosity of the messages can be controlled with rlang.
+# To turn all messages off:
+# rlang::local_options(mypackage.verbose = "quiet")
+# To turn them back on:
+# rlang::local_options(mypackage.verbose = "verbose")
 
 #' Split a cluster into 2 sub-clusters.
 #' @inheritParams dirclust
