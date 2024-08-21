@@ -29,7 +29,7 @@ setMethod(
     function(obj,
              goa_res,
              alpha = 0.05) {
-        stopifnot(is(obj, "cadir"))
+        stopifnot(methods::is(obj, "cadir"))
 
         # dictionary
         dict <- obj@dict

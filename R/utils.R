@@ -192,7 +192,7 @@ log_iter <- function(log, cadir, name) {
 }
 
 #' Convert numeric clusters into a cluster name.
-#' @param Cluster index.
+#' @param i Cluster index.
 #' @returns
 #' Adds prefix "clusters_" to the cluster name.
 cl2nm <- function(i) {
