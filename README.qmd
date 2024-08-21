@@ -10,6 +10,7 @@ Unlike most other algorithms it does not require prior knowledge of the number o
 The package can be installed through GitHub:
 
 ```{r}
+#| eval: false
 devtools::install_github("ClemensKohl/CAdir")
 ```
 
@@ -109,8 +110,6 @@ plot_clusters(
   cadir = cadir,
   caobj = ca,
   show_genes = TRUE,
-  label_genes = TRUE,
-  ntop = 5,
   title_prefix = "",
   axis = TRUE
 )

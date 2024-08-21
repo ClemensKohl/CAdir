@@ -13,9 +13,6 @@ can be installed through GitHub:
 devtools::install_github("ClemensKohl/CAdir")
 ```
 
-    Skipping install of 'CAdir' from a github remote, the SHA1 (7528e640) has not changed since last install.
-      Use `force = TRUE` to force installation
-
 Note that currently you have to also install CAbiNet from GitHub for the
 package to function.
 
@@ -24,119 +21,25 @@ package to function.
 Download example data and perform basic preprocessing:
 
 ``` r
-devtools::load_all("~/gits/ClemensKohl/CAdir/")
+suppressPackageStartupMessages({
+  library(CAdir)
+  library(APL)
+
+  # packages for loading the example:
+  library(scRNAseq)
+  library(scran)
+  library(scater)
+  library(scuttle)
+})
 ```
 
-    ℹ Loading CAdir
-
-    Warning: multiple methods tables found for 'acbind'
-
-    Warning: multiple methods tables found for 'arbind'
-
-    Warning: replacing previous import 'utils::findMatches' by
-    'S4Vectors::findMatches' when loading 'AnnotationDbi'
-
-``` r
-library(APL)
-
-# packages for loading the example:
-library(scRNAseq)
-```
-
-    Loading required package: SingleCellExperiment
-    Loading required package: SummarizedExperiment
-    Loading required package: MatrixGenerics
-    Loading required package: matrixStats
-
-    Attaching package: 'MatrixGenerics'
-
-    The following objects are masked from 'package:matrixStats':
-
-        colAlls, colAnyNAs, colAnys, colAvgsPerRowSet, colCollapse,
-        colCounts, colCummaxs, colCummins, colCumprods, colCumsums,
-        colDiffs, colIQRDiffs, colIQRs, colLogSumExps, colMadDiffs,
-        colMads, colMaxs, colMeans2, colMedians, colMins, colOrderStats,
-        colProds, colQuantiles, colRanges, colRanks, colSdDiffs, colSds,
-        colSums2, colTabulates, colVarDiffs, colVars, colWeightedMads,
-        colWeightedMeans, colWeightedMedians, colWeightedSds,
-        colWeightedVars, rowAlls, rowAnyNAs, rowAnys, rowAvgsPerColSet,
-        rowCollapse, rowCounts, rowCummaxs, rowCummins, rowCumprods,
-        rowCumsums, rowDiffs, rowIQRDiffs, rowIQRs, rowLogSumExps,
-        rowMadDiffs, rowMads, rowMaxs, rowMeans2, rowMedians, rowMins,
-        rowOrderStats, rowProds, rowQuantiles, rowRanges, rowRanks,
-        rowSdDiffs, rowSds, rowSums2, rowTabulates, rowVarDiffs, rowVars,
-        rowWeightedMads, rowWeightedMeans, rowWeightedMedians,
-        rowWeightedSds, rowWeightedVars
-
-    Loading required package: GenomicRanges
-    Loading required package: stats4
-    Loading required package: BiocGenerics
-
-    Attaching package: 'BiocGenerics'
-
-    The following objects are masked from 'package:stats':
-
-        IQR, mad, sd, var, xtabs
-
-    The following objects are masked from 'package:base':
-
-        Filter, Find, Map, Position, Reduce, anyDuplicated, aperm, append,
-        as.data.frame, basename, cbind, colnames, dirname, do.call,
-        duplicated, eval, evalq, get, grep, grepl, intersect, is.unsorted,
-        lapply, mapply, match, mget, order, paste, pmax, pmax.int, pmin,
-        pmin.int, rank, rbind, rownames, sapply, setdiff, table, tapply,
-        union, unique, unsplit, which.max, which.min
-
-    Loading required package: S4Vectors
-
-    Attaching package: 'S4Vectors'
-
-    The following object is masked from 'package:utils':
-
-        findMatches
-
-    The following objects are masked from 'package:base':
-
-        I, expand.grid, unname
-
-    Loading required package: IRanges
-    Loading required package: GenomeInfoDb
-    Loading required package: Biobase
-    Welcome to Bioconductor
-
-        Vignettes contain introductory material; view with
-        'browseVignettes()'. To cite Bioconductor, see
-        'citation("Biobase")', and for packages 'citation("pkgname")'.
-
-
-    Attaching package: 'Biobase'
-
-    The following object is masked from 'package:MatrixGenerics':
-
-        rowMedians
-
-    The following objects are masked from 'package:matrixStats':
-
-        anyMissing, rowMedians
+    Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
+    'DelayedArray::makeNindexFromArrayViewport' when loading 'SummarizedExperiment'
 
     Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
     'DelayedArray::makeNindexFromArrayViewport' when loading 'HDF5Array'
 
 ``` r
-library(scran)
-```
-
-    Loading required package: scuttle
-
-``` r
-library(scater)
-```
-
-    Loading required package: ggplot2
-
-``` r
-library(scuttle)
-
 set.seed(2358)
 
 sce <- scRNAseq::ZeiselBrainData()
@@ -268,8 +171,6 @@ plot_clusters(
   cadir = cadir,
   caobj = ca,
   show_genes = TRUE,
-  label_genes = TRUE,
-  ntop = 5,
   title_prefix = "",
   axis = TRUE
 )
