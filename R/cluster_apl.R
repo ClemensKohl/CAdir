@@ -35,6 +35,10 @@ cluster_apl <- function(caobj,
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
 
+    if (length(group) == 0) {
+        stop("`group` has length 0.")
+    }
+
     if (is.null(cluster) && isTRUE(highlight_cluster)) {
         warning(paste0("Turning `highlight_cluster off,",
                        "because no `cluster` was specified"))
@@ -49,7 +53,11 @@ cluster_apl <- function(caobj,
 
     if (!is.null(cluster)) {
         cluster <- as.character(cluster)
-        if (!cluster %in% all_cls) cluster <- NULL
+        if (!cluster %in% all_cls) {
+            cluster <- NULL
+            warning("`cluster` does not correspond to a cluster in cadir.",
+                    " Setting to NULL.")
+        }
     }
 
 
@@ -337,6 +345,15 @@ cluster_apl <- function(caobj,
                     plot_df = plot_df,
                     ntop = ntop
                 )
+            }
+        } else {
+            ncls <- length(levels(plot_df$cluster))
+            if (ncls <= 7) {
+                ggplt <- ggplt +
+                    scale_color_mpimg(name = "mpimg")
+            } else if ( ncls > 7 && ncls <= 13) {
+                ggplt <- ggplt +
+                    scale_color_mpimg(name = "mpi_extend")
             }
         }
     }
