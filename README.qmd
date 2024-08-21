@@ -20,14 +20,16 @@ Note that currently you have to also install CAbiNet from GitHub for the package
 Download example data and perform basic preprocessing:
 
 ```{r}
-devtools::load_all("~/gits/ClemensKohl/CAdir/")
-library(APL)
+suppressPackageStartupMessages({
+  library(CAdir)
+  library(APL)
 
-# packages for loading the example:
-library(scRNAseq)
-library(scran)
-library(scater)
-library(scuttle)
+  # packages for loading the example:
+  library(scRNAseq)
+  library(scran)
+  library(scater)
+  library(scuttle)
+})
 
 set.seed(2358)
 
