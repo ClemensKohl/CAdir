@@ -72,7 +72,6 @@ total_least_squares <- function(points) {
         is_flipped <- sign_flip(points = points, line = reg_line)
 
         # Ensure that line is pointing towards the majority of points.
-        # TODO: Could this fail in an extreme case?
         if (isTRUE(is_flipped)) {
             reg_line <- reg_line * (-1)
         }

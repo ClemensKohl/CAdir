@@ -280,8 +280,6 @@ sm_plot <- function(cadir,
                     text = ggplot2::element_text()
                 )
         } else {
-            #TODO: We need to pick a color palette for a large number of clusters
-            # scale_color_mpimg(name = "mpimg") +
             p <- p + plot_theme()
         }
 

@@ -71,7 +71,10 @@ fc2n <- function(f) {
     return(n)
 }
 
-# TODO: Add documentation
+#' Convert factors to numeric.
+#' @param f factor vector.
+#' @returns
+#' A numeric vector.
 f2n <- function(f) {
     n <- as.numeric(f)
     stopifnot(is.numeric(n))
@@ -79,7 +82,10 @@ f2n <- function(f) {
     return(n)
 }
 
-# TODO: Add documentation.
+#' Convert factors to character vector.
+#' @param f A vector of factors.
+#' @returns
+#' A character vector.
 f2c <- function(f) {
     c <- as.character(f)
     stopifnot(is.character(c))
@@ -145,10 +151,11 @@ cadir_to_biclust <- function(cadir) {
     return(bic)
 }
 
-# TODO: Add documentation
 #' Checks if APL S-alpha cutoff is already calculated.
 #' @param cadir Cadir object
 #' @param fun_args Arguments with which the parent function was called.
+#' @returns
+#' TRUE if S-alpha store is already calculated. FALSE otherwise.
 is_stored <- function(cadir, fun_args) {
     !is.null(cadir@parameters$sa_cutoff) &&
         identical(fun_args$apl_cutoff_reps, cadir@parameters$apl_cutoff_reps) &&
@@ -156,7 +163,12 @@ is_stored <- function(cadir, fun_args) {
         identical(fun_args$method, cadir@parameters$call$method)
 }
 
-# TODO: Add documentation
+#' Log or append cell clusters to the logs.
+#' @param log A (empty) list of previous iterations.
+#' @param cadir A CAdir object with cell clusters.
+#' @param name Name of the iteration
+#' @returns
+#' List of iterations with cell clusters.
 log_iter <- function(log, cadir, name) {
     log$clusters <- cbind(
         log$clusters,
@@ -179,31 +191,46 @@ log_iter <- function(log, cadir, name) {
     return(log)
 }
 
-# TODO: Add Documentation
+#' Convert numeric clusters into a cluster name.
+#' @param Cluster index.
+#' @returns
+#' Adds prefix "clusters_" to the cluster name.
 cl2nm <- function(i) {
     paste0("cluster_", i)
 }
 
-# TODO: Add documentation.
+#' Searches the dict entry for a given cluster index.
+#' @param dict The dictionary (cadir@dict).
+#' @param query A string or index corresponding to the name of the directions.
+#' @returns
+#' The name of the corresponding cluster.
 search_dict <- function(dict, query) {
     # names(dict)[dict %in% query]
     names(dict)[base::match(query, dict)]
 }
 
-# TODO: Add documentation.
+#' Checks if the cluster names confirm to the standard naming.
+#' @param nm The cluster name(s) to check.
+#' @returns
+#' TRUE/FALSE
 is_std_name <- function(nm) {
     grepl("cluster_[[:digit:]]+$", nm)
 }
 
-# TODO: Add documentation.
+#' Extracts the cluster number from standard naming.
+#' @param nm A vector of cluster names starting with "cluster_"
+#' @returns
+#' A vector of cluster numbers.
 get_std_num <- function(nm) {
     as.numeric(gsub("^cluster_", "", nm))
 }
 
-#TODO: Add documentaiton
-#Possibly delete
+#' Get indices of cells belonging to a cluster.
+#' @param cadir A CAdir object.
+#' @param cluster A cluster name.
+#' @returns
+#' Indices of cells that belong to `cluster`.
 get_cluster_idxs <- function(cadir, cluster) {
     stopifnot(is.character(cluster))
     which(cadir@cell_clusters == cluster)
 }
-

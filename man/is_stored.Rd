@@ -11,6 +11,9 @@ is_stored(cadir, fun_args)
 
 \item{fun_args}{Arguments with which the parent function was called.}
 }
+\value{
+TRUE if S-alpha store is already calculated. FALSE otherwise.
+}
 \description{
 Checks if APL S-alpha cutoff is already calculated.
 }

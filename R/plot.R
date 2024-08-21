@@ -497,7 +497,6 @@ theme_axis_only <- function(title = ggplot2::element_blank(),
         )
 }
 
-# TODO: Improve color palette
 
 #' ggplot2 scale for the MPI colors and extended swatches.
 #' @param name The name of the scale. Either "mpi" or "mpimg".
