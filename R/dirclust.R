@@ -1,11 +1,3 @@
-# ** Plan: **
-# There is one main function that performs clustering by direction.
-# Depending on the choice of a paremter we branch into Salpha clustering or
-# regular splitmerging (e.g. setting cutoff = auto or similar)
-#
-
-#FIXME: Change the naming scheme of the directions.
-# -> Also change `assign_cells() if you do!
 
 #' Initialize directions by kmeans++ method
 #' @param points Row-wise matrix of points to be clustered.
@@ -21,7 +13,13 @@ kmeanspp_init <- function(points, k) {
 
     for (ii in 2:k) {
         lines <- points[center_ids, ] / pnorm[center_ids]
-        ldist <- dist_to_line(points, lines, pnorm)
+
+        ldist <- dist_to_line(
+            points = points,
+            lines = lines,
+            pnorm = pnorm,
+            pos_only = FALSE
+        )
 
         probs <- apply(ldist, 1, min)
         probs[center_ids] <- 0
@@ -36,9 +34,14 @@ kmeanspp_init <- function(points, k) {
 #' @param points Row-wise matrix of points.
 #' @param lines Row-wise matrix of lines/directions.
 #' @param pnorm Vector of the norm of the points.
+#' @param pos_only If TRUE only considers points with a
+#' positive projection onto the line.
 #' @returns
 #' Matrix of distances of points to the directions.
-dist_to_line <- function(points, lines, pnorm) {
+dist_to_line <- function(points,
+                         lines,
+                         pnorm,
+                         pos_only = TRUE) {
     if (is.matrix(lines)) {
         lines <- t(lines)
     }
@@ -46,6 +49,9 @@ dist_to_line <- function(points, lines, pnorm) {
     dist <- pnorm^2 - proj^2
     dist[dist < 0] <- 0
     dist <- sqrt(dist)
+
+    # Ensure that we only look at positive directions
+    if (pos_only) dist[proj < 0] <- Inf
 
     return(dist)
 }
@@ -62,6 +68,13 @@ total_least_squares <- function(points) {
         suppressWarnings({
             reg_line <- irlba::irlba(points, nv = 1, right_only = TRUE)$v
         })
+
+        is_flipped <- sign_flip(points = points, line = reg_line)
+
+        # Ensure that line is pointing towards the majority of points.
+        if (isTRUE(is_flipped)) {
+            reg_line <- reg_line * (-1)
+        }
     }
 
     return(reg_line)
@@ -98,6 +111,8 @@ update_line <- function(points, clusters, lines, k) {
 #' 'kmeanspp'.
 #' @param lines Optional. Row-wise matrix of lines.
 #'  If not NULL, then the provided lines are used for initialization.
+#' @param cadir If a cadir object is provided, uses this instead of `lines` to
+#' initialize the clustering.
 #' @param log Logical. If TRUE, then the function returns a list with
 #' the computed distances and directions at each step.
 #'
@@ -111,8 +126,21 @@ dirclust <- function(
     epochs = 10,
     init = "kmeanspp",
     lines = NULL,
-    log = FALSE
+    log = FALSE,
+    cadir = NULL
 ) {
+
+    if (!is.null(cadir)) {
+        stopifnot(methods::is(cadir, "cadir"))
+        if (!is.null(lines)){
+            rlang::warn(paste0(
+                "You overspecified the init. directions ",
+                "with 'lines' and 'cadir'. ",
+                "Picking directions from 'cadir'."
+            ))
+        }
+        lines <- cadir@directions
+    }
 
     pnorm <- row_norm(points)
 
@@ -126,14 +154,14 @@ dirclust <- function(
             center_ids <- kmeanspp_init(points = points, k = k)
             lines <- points[center_ids, ]
         } else {
-            stop("Please use init = 'rand' or 'kmeanspp'.")
+            rlang::abort("Please use init = 'rand' or 'kmeanspp'.")
         }
     } else {
         # ensure that they are unit vectors.
         lines <- lines / row_norm(lines)
     }
 
-    rownames(lines) <- paste0("line", seq_len(nrow(lines)))
+    rownames(lines) <- paste0("cluster_", seq_len(nrow(lines)))
 
     if (isTRUE(log)) {
         dist_log <- vector(mode = "list", length = epochs)
@@ -145,7 +173,12 @@ dirclust <- function(
 
     for (i in seq_len(epochs)) {
         # calculate distance to line.
-        ldist <- dist_to_line(points, lines, pnorm)
+        ldist <- dist_to_line(
+            points = points,
+            lines = lines,
+            pnorm = pnorm,
+            pos_only = TRUE
+        )
 
         # find closest line
         clusters <- apply(ldist, 1, which.min)
@@ -185,40 +218,83 @@ dirclust <- function(
         ldist <- ldist[, uni_clust, drop = FALSE]
     }
 
-    out <- methods::new("cadir",
-        cell_clusters = factor(clusters),
-        directions = lines,
-        distances = ldist,
-        parameters = list(
-            "k" = k,
-            "epochs" = epochs,
-            "init" = init,
-            "log" = log
-        ),
-        log = log_list
-    )
 
+    cnms <- names(clusters)
+    clusters <- paste0("cluster_", clusters)
+    clusters <- factor(clusters, levels = sort(unique(clusters)))
+    names(clusters) <- cnms
+
+    dict <- as.list(seq_len(nrow(lines)))
+    names(dict) <- rownames(lines)
+
+    if (is.null(cadir)) {
+
+        out <- methods::new("cadir",
+            cell_clusters = clusters,
+            directions = lines,
+            distances = ldist,
+            parameters = list(
+                "k" = k,
+                "epochs" = epochs,
+                "init" = init,
+                "log" = log
+            ),
+            log = log_list,
+            dict = dict
+        )
+
+    } else {
+
+        out <- cadir
+        out@cell_clusters <- clusters
+        out@directions <- lines
+        out@distances <- ldist
+        to_keep <- (!names(out@log) %in% names(log))
+        out@log <- c(out@log[to_keep], out@log)
+        out@dict <- dict
+
+    }
 
     return(out)
 }
 
-#TODO: Document!
+#' Assigns cells to the closest direction.
+#' @param cells Row-wise matrix of cell coordinates.
+#' @param directions Row-wise matrix of directions.
+#' @returns
+#' Vector of same length as nrow(cells) with row-indices of the direction the
+#' cell is assigned to.
+#' @export
 assign_cells <- function(cells, directions) {
 
     # vector norm
     pnorm <- row_norm(cells)
 
     # calculate distance to line.
-    ldist <- dist_to_line(cells, cells, pnorm)
+    ldist <- dist_to_line(cells, directions, pnorm, pos_only = TRUE)
 
     # find closest line
     clusters <- apply(ldist, 1, which.min)
-
-    dir_nms <- rownames(directions)
-    std_nm <- grepl("line[[:digit:]]+$", dir_nms)
-    if (all(std_nm)) {
-        clusters <- rownames(directions)[clusters]
-    }
+    clusters <- rownames(directions)[clusters]
 
     return(clusters)
 }
+
+
+#' Determine sign for SVD singular vectors.
+#'
+#' @param points Points/Cells for which to check the directionality of the line.
+#' @param line Line/direction whose directionality needs to be determined.
+#'
+#' @references
+#' Bro, Rasmus, Acar, Evrim, and Kolda, Tamara Gibson.
+#' Resolving the sign ambiguity in the singular value decomposition.
+#' United States: N. p., 2007. Web. doi:10.2172/920802.
+#'
+#' @returns
+#' TRUE if the sign of the direction needs to be flipped, FALSE otherwise.
+sign_flip <- function(points, line) {
+    s <- sum(sign(points %*% line) * (points %*% line)**2)
+    return(s < 0)
+}
+

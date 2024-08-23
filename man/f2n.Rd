@@ -2,19 +2,16 @@
 % Please edit documentation in R/utils.R
 \name{f2n}
 \alias{f2n}
-\title{Convert a factor to a numeric.}
+\title{Convert factors to numeric.}
 \usage{
 f2n(f)
 }
 \arguments{
-\item{f}{A vector of factors.}
+\item{f}{factor vector.}
 }
 \value{
-The factors converted to numbers.
+A numeric vector.
 }
 \description{
-Convert a factor to a numeric.
-}
-\details{
-Assumes that the factors are numbers such as "1".
+Convert factors to numeric.
 }

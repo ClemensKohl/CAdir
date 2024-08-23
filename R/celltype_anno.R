@@ -3,27 +3,49 @@
 #' @importFrom CAbiNet annotate_by_goa
 NULL
 
-# FIXME: Add documentation
+#' Annotate CAbiNet results by gene overrepresentation
+#'  analysis results.
+#'
+#' @description
+#' `annotate_by_goa` takes a biclustering results such as outputted by `caclust`
+#' and annotates it with the gene overrepresentation analysis results (goa).
+#'
+#' @inheritParams CAbiNet::annotate_by_goa
+#' @param obj `cadir` object with biclustering results. Alternatively could be
+#' a caclust object.
+#'
+#' @description
+#' Conflicts between clusters that have the
+#'  same highest ranking gene set are solved
+#'  with the Hungarian/Munkres algorithm.
+#'
+#' @returns
+#' Object of the same type as `obj`.
+#'
+#' @export
 setMethod(
     f = "annotate_by_goa",
     signature = (object <- "cadir"),
     function(obj,
              goa_res,
              alpha = 0.05) {
-        stopifnot(is(obj, "cadir"))
+        stopifnot(methods::is(obj, "cadir"))
+
+        # dictionary
+        dict <- obj@dict
 
         # cell clusters
         ccs <- cell_clusters(obj)
         ccs_nm <- names(ccs)
-        unccs <- sort(unique(ccs))
+        unccs <- levels(ccs)
 
         # gene clusters
         gcs <- gene_clusters(obj)
         gcs_nm <- names(gcs)
-        ungcs <- sort(unique(gcs))
+        ungcs <- levels(gcs)
 
         # Combine clusters
-        allcs <- sort(unique(c(unccs, ungcs)))
+        allcs <- unique(c(unccs, ungcs))
 
         # Convert to character
         ccs <- as.character(ccs)
@@ -49,7 +71,7 @@ setMethod(
 
         # Rename clusters based on GSE.
         for (c in seq_len(length(allcs))) {
-            noanno <- paste0("cluster", allcs[c])
+            noanno <- allcs[c]
 
             if (!allcs[c] %in% cluster_anno$cluster) {
                 ct <- noanno
@@ -84,6 +106,11 @@ setMethod(
                     rownames(dirs)[c] <- noanno
                 } else {
                     rownames(dirs)[c] <- ct
+
+                    # Update name and entry in the dictionary
+                    dict_idx <- which(names(dict) == search_dict(dict, c))
+                    names(dict)[dict_idx] <- ct
+                    dict[[ct]] <- c
                 }
             }
         }
@@ -96,15 +123,18 @@ setMethod(
         obj@cell_clusters <- factor(ccs, levels = lvls)
         obj@gene_clusters <- factor(gcs, levels = lvls)
         obj@directions <- dirs
+        obj@dict <- dict
 
-        stopifnot(validObject(obj))
+        stopifnot(methods::validObject(obj))
         return(obj)
     }
 )
 
-
-# TODO: Add documentation
 #' Annotate the biclustering
+#' @inheritParams CAbiNet::annotate_biclustering
+#' @param obj A cadir object, or,
+#' alternatively a `caclust` or `SingleCellExperiment` object with biclustering
+#' information.
 #' @rdname annotate_biclustering
 #' @export
 setMethod(
@@ -118,7 +148,7 @@ setMethod(
              min_size = 10,
              max_size = 500,
              ...) {
-        stopifnot(is(obj, "caclust"))
+        stopifnot(methods::is(obj, "caclust"))
 
         goa_res <- CAbiNet::per_cluster_goa(
             cabic = obj,

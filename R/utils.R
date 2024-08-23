@@ -9,63 +9,6 @@ rand_idx <- function(points, k) {
 }
 
 
-#' Rename clusters and directions so that they match.
-#' @param cadir A cadir object.
-#' @details
-#' rename_clusters takes a cadir object and renames the clusters and directions
-#' such that they are again coherent (e.g. from 1:5).
-#' @returns
-#' A cadir object with renamed clusters and directions.
-rename_clusters <- function(cadir) {
-    uni_clust <- sort(unique(c(cadir@cell_clusters, cadir@gene_clusters)))
-    cell_nms <- names(cadir@cell_clusters)
-    gene_nms <- names(cadir@gene_clusters)
-
-    dir_num <- as.numeric(gsub("line", "", rownames(cadir@directions)))
-
-    # Remove directions without any points clustered.
-    have_smpls <- which(dir_num %in% uni_clust)
-    dir_num <- dir_num[have_smpls]
-    cadir@directions <- cadir@directions[have_smpls, , drop = FALSE]
-
-    # Rename the directions according to the cluster numbers.
-    new_dir_num <- match(dir_num, uni_clust)
-    rownames(cadir@directions) <- paste0("line", new_dir_num)
-
-    if (!is.empty(cadir@distances)) {
-        cadir@distances <- cadir@distances[, have_smpls, drop = FALSE]
-        colnames(cadir@distances) <- paste0("line", new_dir_num)
-    }
-
-    # Rename the clusters according to the order of their direction.
-    tmp_cells <- match(cadir@cell_clusters, uni_clust)
-    new_lvls <- sort(unique(tmp_cells))
-
-
-    if (!is.empty(cadir@gene_clusters)) {
-        tmp_genes <- match(cadir@gene_clusters, uni_clust)
-
-        new_lvls <- sort(unique(c(tmp_cells, tmp_genes)))
-
-        cadir@gene_clusters <- factor(
-            tmp_genes,
-            levels = new_lvls
-        )
-        stopifnot(!any(is.na(cadir@gene_clusters)))
-        names(cadir@gene_clusters) <- gene_nms
-    }
-
-    cadir@cell_clusters <- factor(
-        tmp_cells,
-        levels = new_lvls
-    )
-
-
-    stopifnot(!any(is.na(cadir@cell_clusters)))
-    names(cadir@cell_clusters) <- cell_nms
-
-    return(cadir)
-}
 
 #' Check if a variable is empty (length = 0 but not NULL)
 #' @param x variable to check
@@ -121,14 +64,28 @@ setMethod(
 #' @param f A vector of factors.
 #' @returns
 #' The factors converted to numbers.
-f2n <- function(f) {
+fc2n <- function(f) {
     n <- as.numeric(as.character(f))
     stopifnot(is.numeric(n))
 
     return(n)
 }
 
-# TODO: Add documentation.
+#' Convert factors to numeric.
+#' @param f factor vector.
+#' @returns
+#' A numeric vector.
+f2n <- function(f) {
+    n <- as.numeric(f)
+    stopifnot(is.numeric(n))
+
+    return(n)
+}
+
+#' Convert factors to character vector.
+#' @param f A vector of factors.
+#' @returns
+#' A character vector.
 f2c <- function(f) {
     c <- as.character(f)
     stopifnot(is.character(c))
@@ -136,116 +93,12 @@ f2c <- function(f) {
     return(c)
 }
 
-# TODO: Add documentation
 #' Convert a numeric (or character) to a factor
-n2f <- function(n, lvls) {
+#' @param n Numeric or character vector.
+#' @param lvls The levels for the new factor vector.
+x2f <- function(n, lvls) {
     f <- factor(n, levels = lvls)
     return(f)
-}
-
-#' Build a sub-graph that can be joined to a larger graph.
-#' By itself it is a valid graph too.
-#' @param before A vector (optimally of factors) with all cluster/node assignments.
-#' @param after A vector of same length and order as `before`,
-#' with cluster/node assignments after some change.
-#' @param before_nm The name of the node before the change.
-#' @param after_nm The name of the node after the change.
-#' @returns
-#' A data.frame with two columns ("from", "to") representing the edges in the graph.
-#' The data frame can be used to generate a graph.
-build_sub_graph <- function(before,
-                            after,
-                            before_nm = "start",
-                            after_nm = "end") {
-    graph <- data.frame()
-    node <- unique(before)
-
-    for (n in node) {
-        n_nm <- paste0(before_nm, "-", n)
-        cluster <- which(before == n)
-        new_clusters <- unique(after[cluster])
-
-        for (nn in new_clusters) {
-            nn_nm <- paste0(after_nm, "-", nn)
-            graph <- rbind(graph, data.frame(from = n_nm, to = nn_nm))
-        }
-    }
-    return(graph)
-}
-
-#' Build igraph from a cadir results.
-#' @param cadir A cadir object with valid clustering results.
-#' @param rm_redund If TRUE, removes all clustering iterations where nothing changed (no splits/merges).
-#' @returns
-#' A directed igraph object with all splits and merges.
-build_graph <- function(cadir, rm_redund = FALSE, keep_end = TRUE) {
-    graph_list <- list()
-    cls <- cadir@log$clusters
-
-    cls_nodes <- colnames(cls)
-    node_pattern <- c("iter_0|split|merge|end")
-    sel <- which(grepl(node_pattern, cls_nodes))
-
-    # We loop through all the nodes that contain the pattern in their name and
-    # compare the new clusters to the ones from the intermediate dirclust calls.
-    # This way we only record in the graph what actually changes during the
-    # split/merge,
-    # not the arbitrary shifting during the cluster refinement. However,
-    # we need to change the name of the previous graph node to that of the
-    # last split/merge in order to make
-    # a coherent graph.
-    for (i in seq_len(length(sel))) {
-        bef_cls <- cls[, sel[i] - 1]
-        aft_cls <- cls[, sel[i]]
-
-        is_end <- (i != length(sel) && keep_end)
-        if (!is_end &&
-            all(bef_cls == aft_cls) &&
-            isTRUE(rm_redund)) next
-
-        graph_list[[i]] <- build_sub_graph(
-            before = bef_cls,
-            after = aft_cls,
-            before_nm = ifelse(i == 1, "root", cls_nodes[sel[last_i]]),
-            after_nm = cls_nodes[sel[i]]
-        )
-        last_i <- i
-    }
-
-    graph <- do.call(rbind, graph_list)
-    rownames(graph) <- NULL
-    graph <- igraph::graph_from_data_frame(graph, directed = TRUE)
-
-    return(graph)
-}
-
-# FIXME: Prevent opening plot when calling it! ggplotGrob
-
-#' Get relative x and y values in relation to the plotting panel from a ggplot.
-#' Solution adapted from Anwer by Allan Cameron at:
-#' https://stackoverflow.com/a/60857307/1376616
-#' @param gg_plot A ggplot object.
-#' @returns
-#' dataframe with x and y values relative to the plotting panel.
-get_x_y_values <- function(gg_plot) {
-    img_dim <- grDevices::dev.size("cm") * 10
-    gt <- ggplot2::ggplotGrob(gg_plot)
-    to_mm <- function(x) grid::convertUnit(x, "mm", valueOnly = TRUE)
-    n_panel <- which(gt$layout$name == "panel")
-    panel_pos <- gt$layout[n_panel, ]
-    panel_kids <- gtable::gtable_filter(gt, "panel")$grobs[[1]]$children
-    point_grobs <- panel_kids[[grep("point", names(panel_kids))]]
-    from_top <- sum(to_mm(gt$heights[seq(panel_pos$t - 1)]))
-    from_left <- sum(to_mm(gt$widths[seq(panel_pos$l - 1)]))
-    from_right <- sum(to_mm(gt$widths[-seq(panel_pos$l)]))
-    from_bottom <- sum(to_mm(gt$heights[-seq(panel_pos$t)]))
-    panel_height <- img_dim[2] - from_top - from_bottom
-    panel_width <- img_dim[1] - from_left - from_right
-    xvals <- as.numeric(point_grobs$x)
-    yvals <- as.numeric(point_grobs$y)
-    yvals <- yvals * panel_height + from_bottom
-    xvals <- xvals * panel_width + from_left
-    data.frame(x = xvals / img_dim[1], y = yvals / img_dim[2])
 }
 
 
@@ -287,7 +140,7 @@ cadir_to_biclust <- function(cadir) {
     rownames(number_x_col) <- paste0("BC", bitypes)
     colnames(number_x_col) <- names(cell_clusters)
 
-    bic <- new("Biclust",
+    bic <- methods::new("Biclust",
         "Parameters" = params,
         "RowxNumber" = row_x_number,
         "NumberxCol" = number_x_col,
@@ -298,10 +151,11 @@ cadir_to_biclust <- function(cadir) {
     return(bic)
 }
 
-# TODO: Add documentation
 #' Checks if APL S-alpha cutoff is already calculated.
 #' @param cadir Cadir object
 #' @param fun_args Arguments with which the parent function was called.
+#' @returns
+#' TRUE if S-alpha store is already calculated. FALSE otherwise.
 is_stored <- function(cadir, fun_args) {
     !is.null(cadir@parameters$sa_cutoff) &&
         identical(fun_args$apl_cutoff_reps, cadir@parameters$apl_cutoff_reps) &&
@@ -309,12 +163,17 @@ is_stored <- function(cadir, fun_args) {
         identical(fun_args$method, cadir@parameters$call$method)
 }
 
+#' Log or append cell clusters to the logs.
+#' @param log A (empty) list of previous iterations.
+#' @param cadir A CAdir object with cell clusters.
+#' @param name Name of the iteration
+#' @returns
+#' List of iterations with cell clusters.
 log_iter <- function(log, cadir, name) {
-
     log$clusters <- cbind(
         log$clusters,
         stats::setNames(
-            data.frame(f2n(cadir@cell_clusters)),
+            data.frame(cadir@cell_clusters),
             name
         )
     )
@@ -324,9 +183,54 @@ log_iter <- function(log, cadir, name) {
         log$directions,
         cbind(
             iter = name,
+            dirname = rownames(cadir@directions),
             as.data.frame(cadir@directions)
         )
     )
 
     return(log)
+}
+
+#' Convert numeric clusters into a cluster name.
+#' @param i Cluster index.
+#' @returns
+#' Adds prefix "clusters_" to the cluster name.
+cl2nm <- function(i) {
+    paste0("cluster_", i)
+}
+
+#' Searches the dict entry for a given cluster index.
+#' @param dict The dictionary (cadir@dict).
+#' @param query A string or index corresponding to the name of the directions.
+#' @returns
+#' The name of the corresponding cluster.
+search_dict <- function(dict, query) {
+    # names(dict)[dict %in% query]
+    names(dict)[base::match(query, dict)]
+}
+
+#' Checks if the cluster names confirm to the standard naming.
+#' @param nm The cluster name(s) to check.
+#' @returns
+#' TRUE/FALSE
+is_std_name <- function(nm) {
+    grepl("cluster_[[:digit:]]+$", nm)
+}
+
+#' Extracts the cluster number from standard naming.
+#' @param nm A vector of cluster names starting with "cluster_"
+#' @returns
+#' A vector of cluster numbers.
+get_std_num <- function(nm) {
+    as.numeric(gsub("^cluster_", "", nm))
+}
+
+#' Get indices of cells belonging to a cluster.
+#' @param cadir A CAdir object.
+#' @param cluster A cluster name.
+#' @returns
+#' Indices of cells that belong to `cluster`.
+get_cluster_idxs <- function(cadir, cluster) {
+    stopifnot(is.character(cluster))
+    which(cadir@cell_clusters == cluster)
 }

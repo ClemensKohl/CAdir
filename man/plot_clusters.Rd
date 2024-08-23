@@ -8,8 +8,18 @@ plot_clusters(
   cadir,
   caobj,
   point_size = 1,
+  size_factor = 1,
   show_genes = FALSE,
-  label_genes = FALSE
+  label_genes = FALSE,
+  ntop = 5,
+  text_size = 16,
+  title_prefix = "Cluster: ",
+  ggncol = NULL,
+  ggnrow = NULL,
+  axis = FALSE,
+  gsub_title = NULL,
+  legend_pos = "none",
+  return_list = FALSE
 )
 }
 \arguments{
@@ -19,7 +29,33 @@ plot_clusters(
 
 \item{point_size}{Size of the points (cells).}
 
+\item{size_factor}{Factor by which the genes are
+larger/smaller than \code{point_size}.}
+
 \item{show_genes}{If TRUE, genes are plotted.}
+
+\item{label_genes}{If TRUE, adds text labels for the
+\code{ntop} genes per cluster.}
+
+\item{ntop}{Number of genes to label if \code{label_genes = TRUE}.}
+
+\item{text_size}{Size of the text in the plot.}
+
+\item{title_prefix}{Prefix to print before cluster name.}
+
+\item{ggncol}{Number of columns to arrange plots in.}
+
+\item{ggnrow}{Number of rows to arrange plots in.}
+
+\item{axis}{Whether to show axis markings or not.}
+
+\item{gsub_title}{Character string to substitute with " " in plot titles.}
+
+\item{legend_pos}{Where to position the legend.
+Normal ggplot positions allowed.}
+
+\item{return_list}{If TRUE, instead of a final, arranged panel the plots
+are returned as a list.}
 }
 \value{
 A plot that summarizes the cell clustering results.

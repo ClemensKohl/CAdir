@@ -4,7 +4,7 @@
 \alias{dist_to_line}
 \title{Calculate the distance of points to the directions}
 \usage{
-dist_to_line(points, lines, pnorm)
+dist_to_line(points, lines, pnorm, pos_only = TRUE)
 }
 \arguments{
 \item{points}{Row-wise matrix of points.}
@@ -12,6 +12,9 @@ dist_to_line(points, lines, pnorm)
 \item{lines}{Row-wise matrix of lines/directions.}
 
 \item{pnorm}{Vector of the norm of the points.}
+
+\item{pos_only}{If TRUE only considers points with a
+positive projection onto the line.}
 }
 \value{
 Matrix of distances of points to the directions.

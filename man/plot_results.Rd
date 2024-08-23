@@ -11,7 +11,11 @@ plot_results(
   caobj,
   highlight_cluster = TRUE,
   show_cells = TRUE,
-  show_genes = FALSE
+  show_genes = FALSE,
+  title_prefix = "Cluster: ",
+  gsub_title = "",
+  return_list = FALSE,
+  ...
 )
 }
 \arguments{
@@ -25,6 +29,15 @@ plot_results(
 \item{show_cells}{If TRUE, points (cells) are plotted.}
 
 \item{show_genes}{If TRUE, genes are plotted.}
+
+\item{title_prefix}{Prefix to print before cluster name.}
+
+\item{gsub_title}{Character string to substitute with " " in plot titles.}
+
+\item{return_list}{If TRUE, instead of a final, arranged panel the plots
+are returned as a list.}
+
+\item{...}{Further arguments forwarded to cluster_apl().}
 }
 \value{
 A plot that summarizes the cell clustering results and

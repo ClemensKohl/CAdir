@@ -1,0 +1,142 @@
+---
+title: README
+format: gfm
+---
+
+# Clustering by directions in CA space
+
+This package implements a clustering algorithms that determines clusters iteratively by their directions in CA space.
+Unlike most other algorithms it does not require prior knowledge of the number of clusters in the data, but can instead infer them during clustering.
+The package can be installed through GitHub:
+
+```{r}
+#| eval: false
+devtools::install_github("ClemensKohl/CAdir")
+```
+
+Note that currently you have to also install CAbiNet from GitHub for the package to function.
+
+# Quick start
+
+Download example data and perform basic preprocessing:
+
+```{r}
+suppressPackageStartupMessages({
+  library(CAdir)
+  library(APL)
+
+  # packages for loading the example:
+  library(scRNAseq)
+  library(scran)
+  library(scater)
+  library(scuttle)
+})
+
+set.seed(2358)
+
+sce <- scRNAseq::ZeiselBrainData()
+clust <- scran::quickCluster(sce)
+sce <- scran::computeSumFactors(sce, cluster = clust, min.mean = 0.1)
+sce <- scuttle::logNormCounts(sce)
+dec <- scran::modelGeneVar(sce)
+top_genes <- scran::getTopHVGs(dec, prop = 0.8)
+sce <- sce[top_genes, ]
+```
+
+## Correspondence analysis
+
+```{r}
+cnts <- as.matrix(logcounts(sce))
+
+ca <- cacomp(obj = cnts,
+             princ_coords = 3,
+             dims = 30,
+             top = nrow(cnts),
+             residuals = "pearson",
+             python = TRUE)
+
+cell_types <- sce$level1class
+cat("Number of cell types:", length(unique(cell_types)), "\n")
+```
+
+
+## CAdir
+
+```{r}
+cadir <- dirclust_splitmerge(
+  caobj = ca,
+  k = 10,
+  cutoff = NULL,
+  min_cells = 20,
+)
+
+cadir
+```
+
+Annotate cell clusters:
+```{r}
+
+cadir <- annotate_biclustering(
+  obj = cadir,
+  universe = rownames(sce),
+  org = "mm"
+)
+cadir
+```
+
+Rank cluster specific genes:
+```{r}
+cadir <- rank_genes(cadir = cadir, caobj = ca)
+top <- top_genes(cadir)
+
+# Top genes for cluster Macrophage
+head(top[top$Cluster == "Macrophage", ])
+```
+
+## Plot results
+
+```{r}
+cluster_apl(cadir = cadir,
+            caobj = ca,
+            direction = cadir@directions["Macrophage",],
+            group = which(cadir@cell_clusters == "Macrophage"),
+            cluster = "Macrophage",
+            show_genes = TRUE,
+            label_genes = TRUE)
+```
+
+```{r}
+plot_clusters(
+  cadir = cadir,
+  caobj = ca,
+  show_genes = TRUE,
+  title_prefix = "",
+  axis = TRUE
+)
+```
+
+```{r}
+sm_plot(
+  cadir = cadir,
+  caobj = ca,
+  show_genes = FALSE,
+  show_cells = TRUE,
+  annotate_clusters = TRUE,
+  highlight_cluster = TRUE,
+  org = "mm"
+)
+```
+
+# Package settings
+Verbosity of the messages can be controlled with rlang.
+To turn all messages off:
+
+```{r}
+rlang::local_options(mypackage.verbose = "quiet")
+```
+
+ To turn them back on:
+
+```{r}
+rlang::local_options(mypackage.verbose = "verbose")
+```

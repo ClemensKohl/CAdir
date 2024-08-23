@@ -4,16 +4,7 @@
 \alias{merge_clusters}
 \title{Merge clusters based on angle}
 \usage{
-merge_clusters(
-  caobj,
-  cadir,
-  cutoff,
-  method = "random",
-  counts = NULL,
-  apl_quant = 0.99,
-  make_plots = FALSE,
-  apl_cutoff_reps = 100
-)
+merge_clusters(caobj, cadir, cutoff, make_plots = FALSE)
 }
 \arguments{
 \item{caobj}{A \code{caclust} object.}
@@ -24,19 +15,7 @@ merge_clusters(
 If \code{NULL} the cutoff angle is calculated based on the cutoff angle based
 on the quantile defined through \code{apl_quant}.}
 
-\item{method}{Method to use for computing the cutoff.
-Either "random" or "permutation".}
-
-\item{counts}{The original count matrix that was used to compute the caobj.}
-
-\item{apl_quant}{The quantile to use for the APL cutoff. Only used
-if cutoff is \code{NULL}.
-split and merge}
-
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
-
-\item{apl_cutoff_reps}{The number of repetitions to use.
-Should be between 3-10 for permutation, and >=100 for random.}
 }
 \value{
 A \code{cadir} object with merged clusters.

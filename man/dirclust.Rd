@@ -4,7 +4,15 @@
 \alias{dirclust}
 \title{Basic clustering by directions in CA space}
 \usage{
-dirclust(points, k, epochs = 10, init = "kmeanspp", lines = NULL, log = FALSE)
+dirclust(
+  points,
+  k,
+  epochs = 10,
+  init = "kmeanspp",
+  lines = NULL,
+  log = FALSE,
+  cadir = NULL
+)
 }
 \arguments{
 \item{points}{Matrix of points to be clustered.
@@ -22,6 +30,9 @@ If not NULL, then the provided lines are used for initialization.}
 
 \item{log}{Logical. If TRUE, then the function returns a list with
 the computed distances and directions at each step.}
+
+\item{cadir}{If a cadir object is provided, uses this instead of \code{lines} to
+initialize the clustering.}
 }
 \value{
 An element of class cadir.

@@ -16,6 +16,29 @@
   ...
 )
 }
+\arguments{
+\item{obj}{A cadir object, or,
+alternatively a \code{caclust} or \code{SingleCellExperiment} object with biclustering
+information.}
+
+\item{universe}{All genes in data set.}
+
+\item{org}{Short name of the organism. "mm" for mouse, "hs" for human.}
+
+\item{set}{Name of the gene set. Currently only supports "CellMarker"}
+
+\item{alpha}{Adjusted p-value cutoff.
+Only results with padj < alpha will be used.}
+
+\item{min_size}{Min. number of genes in the gene set.}
+
+\item{max_size}{Max number of genes in the gene set.
+Set to Inf if you want to keep all genes.}
+
+\item{verbose}{Toggles verbosity of warnings.}
+
+\item{...}{Further arguments.}
+}
 \description{
 Annotate the biclustering
 }

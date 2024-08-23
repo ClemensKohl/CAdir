@@ -1,6 +1,6 @@
 Package: CAdir
 Title: What the Package Does (One Line, Title Case)
-Version: 0.1.0
+Version: 0.0.99
 Authors@R:
   c(person(given = "Clemens",
            family = "Kohl",
@@ -14,12 +14,14 @@ Description: CAdir description. WIP.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.1
+RoxygenNote: 7.3.2
 Imports:
     CAbiNet,
     APL,
+    rlang,
     irlba,
     ggplot2,
+    ggrepel,
     igraph,
     ggraph,
     patchwork,
@@ -31,13 +33,16 @@ Imports:
     ggsankey
 Remotes:
     davidsjoberg/ggsankey
-Collate: 
+Collate:
     'apl.R'
     'classes.R'
     'celltype_anno.R'
+    'cluster_apl.R'
     'dirclust.R'
     'genes.R'
+    'graph_plots.R'
     'plot.R'
+    'rename_clusters.R'
     'splitmerge.R'
     'utils.R'
     'vector_utils.R'

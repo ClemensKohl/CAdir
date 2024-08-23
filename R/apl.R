@@ -1,3 +1,66 @@
+#' Create a model to project points into an Association Plot
+#' @param caobj A cacomp object.
+#' @param direction Normed direction vector of the APL plot.
+#' @param group A vector of indices which indicate the points
+#' that belong to the cluster. Only needed here to orient the plot.
+#' @returns
+#' A model that can be used to project new points onto the APL plot.
+#' @export
+apl_model <- function(
+    caobj,
+    direction,
+    group = NULL) {
+    stopifnot(methods::is(caobj, "cacomp"))
+
+    cent <- caobj@prin_coords_cols
+
+    avg_group_coords <- direction
+    length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
+
+    # The line sometimes point into the "wrong" direction.
+    # We can determine the cosine, if its negative we flip the x coords.
+
+    cosangle <- 1
+
+    if (!is.null(group)) {
+        subgroup <- cent[group, ]
+
+        if (length(group) == 1) {
+            group_mean <- subgroup # single sample
+        } else {
+            group_mean <- colMeans(subgroup) # centroid vector.
+        }
+
+        cosangle <- cosine(a = group_mean, b = direction)
+
+        # group_norm <- row_norm(group_mean)
+        # gx <- drop(group_mean %*% avg_group_coords) / group_norm
+        #
+        # if (sign(gx) == -1) {
+        #     avg_group_coords <- -avg_group_coords
+        # }
+
+        if (cosangle < 0) {
+            avg_group_coords <- -avg_group_coords
+        }
+    }
+
+
+    model <- function(vec) {
+        length_vector <- row_norm(vec)
+        cordx <- drop(vec %*% avg_group_coords) / length_vector_group
+        cordy <- suppressWarnings(sqrt(length_vector^2 - cordx^2))
+
+        cordx[is.na(cordx)] <- 0
+        cordy[is.na(cordy)] <- 0
+
+        return(cbind("x" = cordx, "y" = cordy))
+    }
+
+    return(model)
+}
+
+
 #' Random direction association plot coordinates
 #'
 #' @description
@@ -128,7 +191,6 @@ permutation_cutoff <- function(caobj,
     return(apl_perm)
 }
 
-# FIXME: Clean up function from commented out parts.
 
 #' Calculates the S_alpha cutoff based on random directions or permutations of the data
 #'
@@ -153,7 +215,7 @@ get_apl_cutoff <- function(caobj,
         if (is.null(apl_cutoff_reps)) {
             apl_cutoff_reps <- 100
         } else if (apl_cutoff_reps < 100) {
-            warning("Number of repetitions should be set >=100.")
+            rlang::warn("Number of repetitions should be set >=100.")
             apl_cutoff_reps <- 100
         }
 
@@ -166,7 +228,7 @@ get_apl_cutoff <- function(caobj,
         if (is.null(apl_cutoff_reps)) {
             apl_cutoff_reps <- 5
         } else if (apl_cutoff_reps > 10) {
-            message("Large number of repetitions might take a long time.")
+            rlang::inform("Large number of repetitions might take a long time.")
         }
 
         apl_perm <- permutation_cutoff(
@@ -185,115 +247,10 @@ get_apl_cutoff <- function(caobj,
 
     cutoff_cotan <- stats::quantile(apl_perm[, 3], quant)
 
+    # tan = 1/cotan
     # angle alpha is in radian.
     alpha <- atan(1 / cutoff_cotan)
 
     return(alpha)
 }
 
-
-#' Calculates APL coordinates for points (columns)
-#'  and directions of a cadir object.
-#'  point into a precomputed APL space.
-#' @param caobj A cacomp object.
-#' @param cadir A cadir object.
-#' @param apl_dir The direction in the original space for which to
-#'  compute the APL coordinates.
-#' @param group A vector of group indices.
-#'  (Usually the cluster belonging to `apl_dir`)
-#' @returns
-#' A list with the columns (points) and directions projected into the APL space.
-apl_dir_coords <- function(cadir, caobj, apl_dir, group) {
-    model <- apl_model(
-        caobj = caobj,
-        direction = apl_dir,
-        group = group
-    )
-
-    apl_cols <- model(caobj@prin_coords_cols)
-    apl_dirs <- model(cadir@directions)
-
-    for (r in seq_len(nrow(apl_dirs))) {
-        sel <- match(
-            names(cadir@cell_clusters)[cadir@cell_clusters == r],
-            rownames(caobj@prin_coords_cols)
-        )
-
-        if (length(sel) > 1) {
-            grp_mean <- colMeans(apl_cols[sel, ])
-        } else {
-            grp_mean <- apl_cols[sel, ]
-        }
-
-        if (sign(grp_mean[1]) != sign(apl_dirs[r, 1])) {
-            apl_dirs[r, ] <- c(-1, 1) * apl_dirs[r, ]
-        }
-    }
-
-    return(list("apl_cols" = apl_cols, "apl_dirs" = apl_dirs))
-}
-
-#' Checks if two clusters should be merged based on their angle in APL space.
-#' @param cadir A cadir object.
-#' @param caobj A cacomp object.
-#' @param apl_quant The quantile to use for the cutoff.
-#' @inheritParams get_apl_cutoff
-#' @returns
-#' A matrix with TRUE/FALSE values indicating if two clusters should be merged.
-#' Importantly the function returns as soon as a candidate is found,
-#'  the matrix stays the same size however.
-get_apl_mergers <- function(cadir,
-                            caobj,
-                            apl_cutoff_reps = 100,
-                            method = "random",
-                            counts = NULL,
-                            apl_quant = 0.99) {
-    fun_args <- match.call()
-    candidates <- matrix(FALSE,
-        nrow = nrow(cadir@directions),
-        ncol = nrow(cadir@directions)
-    )
-
-    for (d in seq_len(nrow(cadir@directions))) {
-        grp_idx <- which(f2n(cadir@cell_clusters) == d)
-
-        if (length(grp_idx) == 0) next
-
-        aplcds <- apl_dir_coords(
-            cadir = cadir,
-            caobj = caobj,
-            apl_dir = cadir@directions[d, ],
-            group = grp_idx
-        )
-
-        cutoff_exists <- is_stored(cadir = cadir, fun_args = fun_args)
-
-        if (isTRUE(cutoff_exists)) {
-            cutoff <- cadir@parameters$sa_cutoff
-        } else {
-            cutoff <- get_apl_cutoff(
-                caobj = caobj,
-                counts = counts,
-                method = method,
-                group = grp_idx,
-                apl_cutoff_reps = apl_cutoff_reps,
-                quant = apl_quant
-            )
-
-            cadir@parameters$sa_cutoff <- cutoff
-        }
-
-        cutoff <- rad_to_ang_sim(cutoff)
-
-        sim <- get_ang_sim(aplcds$apl_dirs[d, ], aplcds$apl_dirs)
-        sim[1, d] <- 0
-
-        candidates[d, ] <- sim > cutoff
-
-        if (any(candidates[d, ])) {
-            return(candidates)
-        }
-    }
-
-    return(candidates)
-}

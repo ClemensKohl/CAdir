@@ -8,7 +8,7 @@ row_norm <- function(x) {
     } else if (is.null(dim(x))) {
         norm <- sqrt(sum(x^2))
     } else {
-        stop("Uknown object.")
+        rlang::abort("Uknown object.")
     }
 
     return(norm)
