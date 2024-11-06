@@ -72,8 +72,12 @@ rename_clusters  <- function(cadir) {
         cadir <- .correct_dict(cadir)
     }
 
+    # FIXME: Double check that combined cell & gene levels are not a problem!
     cadir@cell_clusters <- droplevels(cadir@cell_clusters)
     cadir@gene_clusters <- droplevels(cadir@gene_clusters)
+    comb_lvl <- unique(c(levels(cadir@cell_clusters), levels(cadir@gene_clusters)))
+    levels(cadir@cell_clusters) <- comb_lvl
+    levels(cadir@gene_clusters) <- comb_lvl
 
     stopifnot(!any(is.na(cadir@cell_clusters)))
     stopifnot(!any(is.na(cadir@gene_clusters)))
