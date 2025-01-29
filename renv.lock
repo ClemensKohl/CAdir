@@ -229,7 +229,7 @@
         "umap",
         "viridis"
       ],
-      "Hash": "a547d26e4189ce0ed548861a6aa30200"
+      "Hash": "389b968a8ee26bddaa709506ff4fe965"
     },
     "ClusterR": {
       "Package": "ClusterR",
@@ -1246,13 +1246,13 @@
     },
     "curl": {
       "Package": "curl",
-      "Version": "5.2.1",
+      "Version": "6.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R"
       ],
-      "Hash": "411ca2c03b1ce5f548345d2fc2685f7a"
+      "Hash": "b580cbb010099fd990df6bfe44459e1a"
     },
     "data.table": {
       "Package": "data.table",
@@ -1360,14 +1360,13 @@
     },
     "evaluate": {
       "Package": "evaluate",
-      "Version": "0.24.0",
+      "Version": "1.0.3",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
-        "R",
-        "methods"
+        "R"
       ],
-      "Hash": "a1066cbc05caee9a4bf6d90f194ff4da"
+      "Hash": "e9651417729bbe7472e32b5027370e79"
     },
     "fansi": {
       "Package": "fansi",
@@ -2697,14 +2696,14 @@
     },
     "rlang": {
       "Package": "rlang",
-      "Version": "1.1.4",
+      "Version": "1.1.5",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "utils"
       ],
-      "Hash": "3eec01f8b1dee337674b2e34ab1f9bc1"
+      "Hash": "724dcc1490cd7071ee75ca2994a5446e"
     },
     "rmarkdown": {
       "Package": "rmarkdown",
@@ -3354,7 +3353,7 @@
     },
     "withr": {
       "Package": "withr",
-      "Version": "3.0.1",
+      "Version": "3.0.2",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -3362,7 +3361,7 @@
         "grDevices",
         "graphics"
       ],
-      "Hash": "07909200e8bbe90426fbfeb73e1e27aa"
+      "Hash": "cc2d62c76458d425210d1eb1478b30b4"
     },
     "xfun": {
       "Package": "xfun",
