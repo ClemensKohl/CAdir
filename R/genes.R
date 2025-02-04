@@ -67,10 +67,8 @@ assign_genes <- function(caobj,
 #' @export
 rank_genes <- function(cadir, caobj) {
 
-    # Step1: Get cutoff
-    alpha <- cadir@parameters$sa_cutoff
-
-    # Step 2: Get APL coordinates of co-clustered genes
+    # Step 1: Get APL coordinates of co-clustered genes
+    alpha <- cadir@parameters$alpha_genes
     # for the cluster direction.
     # gcs <- sort(unique(cadir@gene_clusters)
     # gcs_lvls <- as.numeric(gcs)
@@ -79,14 +77,17 @@ rank_genes <- function(cadir, caobj) {
     all_ranks <- list()
     for (c in gcs_lvls) {
 
+    # Get cutoff
         if (is.null(alpha)) {
             alpha <- get_apl_cutoff(
                 caobj = caobj,
                 method = "random",
                 group = which(cadir@cell_clusters == c),
                 quant = 0.99,
-                apl_cutoff_reps = 100
+                apl_cutoff_reps = 100,
+                axis = "rows"
             )
+            cadir@parameters$alpha_genes <- alpha
         }
 
         direction <- cadir@directions[c, ]

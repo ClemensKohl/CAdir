@@ -76,8 +76,18 @@ apl_model <- function(
 random_direction_cutoff <- function(
     caobj,
     dims = caobj@dims,
-    apl_cutoff_reps = 300) {
-    row_num <- nrow(caobj@prin_coords_cols)
+    apl_cutoff_reps = 300,
+    axis = "cols") {
+
+    if (axis == "cols") {
+        cols <- caobj@prin_coords_cols
+        ca_coords <- caobj@prin_coords_cols
+    } else if (axis == "rows") {
+        cols <- caobj@std_coords_cols
+        ca_coords <- caobj@prin_coords_rows
+    }
+
+    row_num <- nrow(ca_coords)
 
     if (caobj@dims == 1 && !is.empty(caobj@dims)) {
         row_num <- 1
@@ -103,17 +113,17 @@ random_direction_cutoff <- function(
         )
 
         length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
-        length_vector_cols <- sqrt(rowSums(cols^2))
+        length_vector_coords <- sqrt(rowSums(ca_coords^2))
 
-        colx <- drop(cols %*% avg_group_coords) / length_vector_group
+        coord_x <- drop(ca_coords %*% avg_group_coords) / length_vector_group
         # pythagoras, y(r)=b²=c²-a²
-        coly <- sqrt(length_vector_cols^2 - colx^2)
+        coord_y <- sqrt(length_vector_coords^2 - coord_x^2)
 
-        colx[is.na(colx)] <- 0
-        coly[is.na(coly)] <- 0
+        coord_x[is.na(coord_x)] <- 0
+        coord_y[is.na(coord_y)] <- 0
 
         idx <- ((1:row_num) + ((k - 1) * row_num))
-        apl_perm[idx, ] <- cbind("x" = colx, "y" = coly)
+        apl_perm[idx, ] <- cbind("x" = coord_x, "y" = coord_y)
     }
     return(apl_perm)
 }
@@ -136,8 +146,14 @@ permutation_cutoff <- function(caobj,
                                group = caobj@group,
                                dims = caobj@dims,
                                apl_cutoff_reps = 10,
-                               python = TRUE) {
-    row_num <- nrow(counts)
+                               python = TRUE,
+                               axis = "cols") {
+
+    if (axis == "cols") {
+        row_num <- ncol(caobj@V)
+    } else if (axis == "rows") {
+        row_num <- nrow(caobj@U)
+    }
 
     apl_perm <- data.frame(
         "x" = rep(0, row_num * apl_cutoff_reps),
@@ -151,8 +167,8 @@ permutation_cutoff <- function(caobj,
 
     margin <- 1
     pc <- 1
-    cc <- TRUE
-    cr <- FALSE
+    cc <- (axis == "cols")
+    cr <- (axis == "rows")
 
     for (k in seq(apl_cutoff_reps)) {
         # permute rows and rerun cacomp
@@ -184,8 +200,11 @@ permutation_cutoff <- function(caobj,
         )
 
         idx <- ((seq_len(row_num) + ((k - 1) * row_num)))
-
-        apl_perm[idx, ] <- caobjp@apl_cols
+        if (axis == "cols") {
+            apl_perm[idx, ] <- caobjp@apl_cols
+        } else if (axis == "rows") {
+            apl_perm[idx, ] <- caobjp@apl_rows
+        }
     }
 
     return(apl_perm)
@@ -202,6 +221,7 @@ permutation_cutoff <- function(caobj,
 #' @param quant The quantile to use for the cutoff.
 #' @param apl_cutoff_reps The number of repetitions to use.
 #' Should be between 3-10 for permutation, and >=100 for random.
+#' @param axis The axis for which the cutoff should be calculated, either "cols" or "rows".
 #'
 #' @returns
 #' The cutoff angle alpha in radians.
@@ -210,7 +230,8 @@ get_apl_cutoff <- function(caobj,
                            group = caobj@group,
                            counts = NULL,
                            quant = 0.99,
-                           apl_cutoff_reps = 100) {
+                           apl_cutoff_reps = 100,
+                           axis = "cols") {
     if (method == "random") {
         if (is.null(apl_cutoff_reps)) {
             apl_cutoff_reps <- 100
@@ -222,8 +243,10 @@ get_apl_cutoff <- function(caobj,
         apl_perm <- random_direction_cutoff(
             caobj = caobj,
             dims = caobj@dims,
-            apl_cutoff_reps = apl_cutoff_reps
+            apl_cutoff_reps = apl_cutoff_reps,
+            axis = axis
         )
+
     } else if (method == "permutation") {
         if (is.null(apl_cutoff_reps)) {
             apl_cutoff_reps <- 5
@@ -237,7 +260,8 @@ get_apl_cutoff <- function(caobj,
             group = group,
             dims = caobj@dims,
             apl_cutoff_reps = apl_cutoff_reps,
-            python = TRUE
+            python = TRUE,
+            axis = axis
         )
     }
 

@@ -405,7 +405,8 @@ dirclust_splitmerge <- function(caobj,
             method = method,
             group = grp_idx,
             quant = apl_quant,
-            apl_cutoff_reps = apl_cutoff_reps
+            apl_cutoff_reps = apl_cutoff_reps,
+            axis = "cols"
         )
 
         out@parameters$sa_cutoff <- cutoff
