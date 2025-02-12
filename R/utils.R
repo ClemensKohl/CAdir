@@ -234,3 +234,8 @@ get_cluster_idxs <- function(cadir, cluster) {
     stopifnot(is.character(cluster))
     which(cadir@cell_clusters == cluster)
 }
+
+
+check_convergence <- function(now, prev) {
+
+}
