@@ -7,11 +7,13 @@
 dirclust(
   points,
   k,
-  epochs = 10,
+  epochs = NULL,
   init = "kmeanspp",
   lines = NULL,
   log = FALSE,
-  cadir = NULL
+  cadir = NULL,
+  convergence_thr = 0.001,
+  max_iter = 50
 )
 }
 \arguments{
@@ -33,6 +35,11 @@ the computed distances and directions at each step.}
 
 \item{cadir}{If a cadir object is provided, uses this instead of \code{lines} to
 initialize the clustering.}
+
+\item{convergence_thr}{Angle between directions from different iterations in
+degrees below or equal which convergence is reached.}
+
+\item{max_iter}{Maximum number of iterations if no convergence.}
 }
 \value{
 An element of class cadir.

@@ -329,7 +329,7 @@ dirclust_splitmerge <- function(caobj,
                                 counts = NULL,
                                 apl_quant = 0.99,
                                 min_cells = 5,
-                                epochs = 15,
+                                epochs = NULL,
                                 reps = NULL,
                                 apl_cutoff_reps = 100,
                                 make_plots = FALSE,
@@ -370,7 +370,9 @@ dirclust_splitmerge <- function(caobj,
         epochs = epochs,
         init = "kmeanspp",
         lines = NULL,
-        log = FALSE
+        log = FALSE,
+        convergence_thr = convergence_thr,
+        max_iter = max_iter
     )
 
     out <- rename_clusters(out)
@@ -420,11 +422,12 @@ dirclust_splitmerge <- function(caobj,
         ))
     }
 
-    if (is.null(reps)) reps <- Inf
+    use_conv <- is.null(reps)
+    if (is.null(reps)) reps <- max_iter
     i <- 0
     has_conv <- FALSE
 
-    while (isFALSE(has_conv) || i <= reps) {
+    while (!(isTRUE(has_conv) || i >= reps)) {
         i <-  i + 1
         rlang::inform(paste0("Iteration ", i))
 
@@ -450,9 +453,11 @@ dirclust_splitmerge <- function(caobj,
         out <- dirclust(
             points = caobj@prin_coords_cols,
             k = ncol(out@directions),
-            epochs = 5,
+            epochs = epochs,
             log = FALSE,
-            cadir = out
+            cadir = out,
+            convergence_thr = convergence_thr,
+            max_iter = 10
         )
 
         out <- rename_clusters(out)
@@ -479,9 +484,11 @@ dirclust_splitmerge <- function(caobj,
         out <- dirclust(
             points = caobj@prin_coords_cols,
             k = ncol(out@directions),
-            epochs = 5,
+            epochs = epochs,
             log = FALSE,
-            cadir = out
+            cadir = out,
+            convergence_thr = convergence_thr,
+            max_iter = 10
         )
         out <- rename_clusters(out)
 
@@ -489,18 +496,16 @@ dirclust_splitmerge <- function(caobj,
                         cadir = out,
                         name = paste0("interM_", iter_nm))
 
-        if (i > 1) {
+        if (i > 1 && use_conv) {
             has_conv <- check_convergence(
-                now = out,
+                now = out@directions,
                 prev = last_iter,
-                cutoff = convergence_thr
+                convergence_thr = convergence_thr
             )
             if (isTRUE(has_conv)) break
         }
 
-        if (i >= max_iter) has_conv <- TRUE
-
-        last_iter <- out
+        last_iter <- out@directions
     }
 
     ################

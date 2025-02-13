@@ -13,7 +13,7 @@ dirclust_splitmerge(
   counts = NULL,
   apl_quant = 0.99,
   min_cells = 5,
-  epochs = 15,
+  epochs = NULL,
   reps = NULL,
   apl_cutoff_reps = 100,
   make_plots = FALSE,
@@ -51,6 +51,11 @@ split and merge}
 Should be between 3-10 for permutation, and >=100 for random.}
 
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
+
+\item{convergence_thr}{Angle between directions from different iterations in
+degrees below or equal which convergence is reached.}
+
+\item{max_iter}{Maximum number of iterations if no convergence.}
 }
 \value{
 A \code{cadir} object with cell clusters.

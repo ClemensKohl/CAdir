@@ -103,6 +103,7 @@ update_line <- function(points, clusters, lines, k) {
 }
 
 #' Basic clustering by directions in CA space
+#' @inheritParams check_convergence
 #' @param points Matrix of points to be clustered.
 #'  Points are expected to be rows.
 #' @param k Number of clusters.
@@ -115,6 +116,7 @@ update_line <- function(points, clusters, lines, k) {
 #' initialize the clustering.
 #' @param log Logical. If TRUE, then the function returns a list with
 #' the computed distances and directions at each step.
+#' @param max_iter Maximum number of iterations if no convergence.
 #'
 #' @returns
 #' An element of class cadir.
@@ -123,11 +125,13 @@ update_line <- function(points, clusters, lines, k) {
 dirclust <- function(
     points,
     k,
-    epochs = 10,
+    epochs = NULL,
     init = "kmeanspp",
     lines = NULL,
     log = FALSE,
-    cadir = NULL
+    cadir = NULL,
+    convergence_thr = 0.001,
+    max_iter = 50
 ) {
 
     if (!is.null(cadir)) {
@@ -171,7 +175,14 @@ dirclust <- function(
         dir_log[["0"]] <- lines
     }
 
-    for (i in seq_len(epochs)) {
+    use_conv <- is.null(epochs)
+    if (is.null(epochs)) epochs <- max_iter
+    i <- 0
+    has_conv <- FALSE
+
+    while (!(isTRUE(has_conv) || i >= epochs)) {
+        i <- i + 1
+
         # calculate distance to line.
         ldist <- dist_to_line(
             points = points,
@@ -197,6 +208,17 @@ dirclust <- function(
                 numeric(1)
             )
         }
+
+        if (i > 1 && use_conv) {
+            has_conv <- check_convergence(
+                now = lines,
+                prev = last_iter,
+                convergence_thr = convergence_thr
+            )
+            if (isTRUE(has_conv)) break
+        }
+
+        last_iter <- lines
     }
 
     if (isTRUE(log)) {

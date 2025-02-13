@@ -4,14 +4,14 @@
 \alias{check_convergence}
 \title{Checks whether cluster directions have converged.}
 \usage{
-check_convergence(now, prev, cutoff = 0.001)
+check_convergence(now, prev, convergence_thr = 0.001)
 }
 \arguments{
-\item{now}{Current CAdir object.}
+\item{now}{Current CAdir directions}
 
-\item{prev}{CAdir object from previous iteration.}
+\item{prev}{CAdir directions from previous iteration.}
 
-\item{cutoff}{Mean angle between directions from different iterations in
+\item{convergence_thr}{Angle between directions from different iterations in
 degrees below or equal which convergence is reached.}
 }
 \value{
