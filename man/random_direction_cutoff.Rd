@@ -4,7 +4,12 @@
 \alias{random_direction_cutoff}
 \title{Random direction association plot coordinates}
 \usage{
-random_direction_cutoff(caobj, dims = caobj@dims, apl_cutoff_reps = 300)
+random_direction_cutoff(
+  caobj,
+  dims = caobj@dims,
+  apl_cutoff_reps = 300,
+  axis = "cols"
+)
 }
 \arguments{
 \item{caobj}{A cacomp object.}
@@ -13,6 +18,8 @@ random_direction_cutoff(caobj, dims = caobj@dims, apl_cutoff_reps = 300)
 
 \item{apl_cutoff_reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
+
+\item{axis}{The axis for which the cutoff should be calculated, either "cols" or "rows".}
 }
 \value{
 List with permuted apl coordinates ("apl_perm") and, a list of saved ca

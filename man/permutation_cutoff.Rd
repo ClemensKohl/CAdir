@@ -10,7 +10,8 @@ permutation_cutoff(
   group = caobj@group,
   dims = caobj@dims,
   apl_cutoff_reps = 10,
-  python = TRUE
+  python = TRUE,
+  axis = "cols"
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ Usually can be kept as \code{caobj@dims}.}
 Should be between 3-10 for permutation, and >=100 for random.}
 
 \item{python}{If TRUE, use python for CA SVD.}
+
+\item{axis}{The axis for which the cutoff should be calculated, either "cols" or "rows".}
 }
 \value{
 List with permuted apl coordinates ("apl_perm") and, a list of saved ca

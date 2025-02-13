@@ -10,7 +10,8 @@ get_apl_cutoff(
   group = caobj@group,
   counts = NULL,
   quant = 0.99,
-  apl_cutoff_reps = 100
+  apl_cutoff_reps = 100,
+  axis = "cols"
 )
 }
 \arguments{
@@ -27,6 +28,8 @@ Either "random" or "permutation".}
 
 \item{apl_cutoff_reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
+
+\item{axis}{The axis for which the cutoff should be calculated, either "cols" or "rows".}
 }
 \value{
 The cutoff angle alpha in radians.

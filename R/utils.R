@@ -236,6 +236,25 @@ get_cluster_idxs <- function(cadir, cluster) {
 }
 
 
-check_convergence <- function(now, prev) {
+#' Checks whether cluster directions have converged.
+#' @param now Current CAdir object.
+#' @param prev CAdir object from previous iteration.
+#' @param cutoff Mean angle between directions from different iterations in
+#' degrees below or equal which convergence is reached.
+#' @return
+#' TRUE or FALSE, depending if convergence criteria is met.
+check_convergence <- function(now, prev, cutoff = 0.001) {
 
+    if (nrow(now@directions) != nrow(prev@directions)) {
+        return(FALSE)
+    }
+
+    ang <- get_angle(now@directions, prev@directions)
+    # FIXME: Change from mean to any angle on the diag!
+    mean_ang <- mean(diag(ang))
+    if (mean_ang <= deg2rad(cutoff)) {
+        return(TRUE)
+    }
+
+    return(FALSE)
 }

@@ -330,9 +330,11 @@ dirclust_splitmerge <- function(caobj,
                                 apl_quant = 0.99,
                                 min_cells = 5,
                                 epochs = 15,
-                                reps = 5,
+                                reps = NULL,
                                 apl_cutoff_reps = 100,
-                                make_plots = FALSE) {
+                                make_plots = FALSE,
+                                convergence_thr = 0.001,
+                                max_iter = 50) {
     fun_args <- match.call()
 
     # Convert cutoff to radians
@@ -418,7 +420,12 @@ dirclust_splitmerge <- function(caobj,
         ))
     }
 
-    for (i in seq_len(reps)) {
+    if (is.null(reps)) reps <- Inf
+    i <- 0
+    has_conv <- FALSE
+
+    while (isFALSE(has_conv) || i <= reps) {
+        i <-  i + 1
         rlang::inform(paste0("Iteration ", i))
 
         iter_nm <- paste0("iter_", i)
@@ -482,6 +489,18 @@ dirclust_splitmerge <- function(caobj,
                         cadir = out,
                         name = paste0("interM_", iter_nm))
 
+        if (i > 1) {
+            has_conv <- check_convergence(
+                now = out,
+                prev = last_iter,
+                cutoff = convergence_thr
+            )
+            if (isTRUE(has_conv)) break
+        }
+
+        if (i >= max_iter) has_conv <- TRUE
+
+        last_iter <- out
     }
 
     ################

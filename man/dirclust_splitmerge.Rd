@@ -14,9 +14,11 @@ dirclust_splitmerge(
   apl_quant = 0.99,
   min_cells = 5,
   epochs = 15,
-  reps = 5,
+  reps = NULL,
   apl_cutoff_reps = 100,
-  make_plots = FALSE
+  make_plots = FALSE,
+  convergence_thr = 0.001,
+  max_iter = 50
 )
 }
 \arguments{
