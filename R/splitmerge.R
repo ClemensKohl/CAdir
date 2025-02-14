@@ -323,7 +323,7 @@ merge_clusters <- function(caobj,
 #' @export
 dirclust_splitmerge <- function(caobj,
                                 k,
-                                cutoff = 40,
+                                cutoff = NULL,
                                 qcutoff = 0.8,
                                 method = "random",
                                 counts = NULL,
