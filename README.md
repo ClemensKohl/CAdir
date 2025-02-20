@@ -31,15 +31,7 @@ suppressPackageStartupMessages({
   library(scater)
   library(scuttle)
 })
-```
 
-    Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
-    'DelayedArray::makeNindexFromArrayViewport' when loading 'SummarizedExperiment'
-
-    Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
-    'DelayedArray::makeNindexFromArrayViewport' when loading 'HDF5Array'
-
-``` r
 set.seed(2358)
 
 sce <- scRNAseq::ZeiselBrainData()
@@ -60,8 +52,7 @@ ca <- cacomp(obj = cnts,
              princ_coords = 3,
              dims = 30,
              top = nrow(cnts),
-             residuals = "pearson",
-             python = TRUE)
+             residuals = "pearson")
 
 cell_types <- sce$level1class
 cat("Number of cell types:", length(unique(cell_types)), "\n")
@@ -81,15 +72,12 @@ cadir <- dirclust_splitmerge(
 ```
 
 
-    Inferred cutoff angle: 66.85
+    Inferred cutoff angle: 66.82
 
     Iteration 1
-        Merging cluster_1 with cluster_4
-    •   Merging cluster_1 with cluster_9
+        Merging cluster_1 with cluster_9
+        Merging cluster_4 with cluster_5
     Iteration 2
-    Iteration 3
-    Iteration 4
-    Iteration 5
 
 ``` r
 cadir
@@ -100,14 +88,14 @@ cadir
     Clustering results:
 
      cluster   ncells ngenes
-     cluster_1 1225     2   
+     cluster_1  221   364   
      cluster_2   92   233   
-     cluster_3  310    43   
-     cluster_4   37   215   
-     cluster_5  721    22   
-     cluster_6  242   148   
-     cluster_7  157   491   
-     cluster_8  221   364   
+     cluster_3  312    44   
+     cluster_4  242   148   
+     cluster_5 1223     1   
+     cluster_6  721    22   
+     cluster_7   37   215   
+     cluster_8  157   491   
 
 Annotate cell clusters:
 
@@ -125,14 +113,14 @@ cadir
     Clustering results:
 
      cluster          ncells ngenes
-     Wnt2+_cell       1225     2   
-     Mural_cell         92   233   
-     CCK_basket_cell   310    43   
-     Ciliated_cell      37   215   
-     cluster_5         721    22   
-     Astrocyte         242   148   
-     Macrophage        157   491   
      Endothelial_cell  221   364   
+     Mural_cell         92   233   
+     CCK_basket_cell   312    44   
+     Astrocyte         242   148   
+     Wnt2+_cell       1223     1   
+     cluster_6         721    22   
+     Ciliated_cell      37   215   
+     Macrophage        157   491   
 
 Rank cluster specific genes:
 
@@ -145,12 +133,12 @@ head(top[top$Cluster == "Macrophage", ])
 ```
 
                       Rowname    Score Row_num    Cluster
-    Macrophage.Fcgr3    Fcgr3 3.345201      14 Macrophage
-    Macrophage.Fcer1g  Fcer1g 3.338749      31 Macrophage
-    Macrophage.Fcrls    Fcrls 3.301021      15 Macrophage
-    Macrophage.Emr1      Emr1 3.246037      52 Macrophage
-    Macrophage.Tyrobp  Tyrobp 3.129216      10 Macrophage
-    Macrophage.C1qc      C1qc 3.126874      24 Macrophage
+    Macrophage.Fcgr3    Fcgr3 3.360433      14 Macrophage
+    Macrophage.Fcer1g  Fcer1g 3.357104      31 Macrophage
+    Macrophage.Fcrls    Fcrls 3.315777      15 Macrophage
+    Macrophage.Emr1      Emr1 3.263846      52 Macrophage
+    Macrophage.C1qc      C1qc 3.146628      24 Macrophage
+    Macrophage.Tyrobp  Tyrobp 3.144369      10 Macrophage
 
 ## Plot results
 
@@ -164,7 +152,7 @@ cluster_apl(cadir = cadir,
             label_genes = TRUE)
 ```
 
-![](README_files/figure-commonmark/unnamed-chunk-7-1.png)
+![](README_files/figure-commonmark/macrophage_APL-1.png)
 
 ``` r
 plot_clusters(
@@ -176,7 +164,7 @@ plot_clusters(
 )
 ```
 
-![](README_files/figure-commonmark/unnamed-chunk-8-1.png)
+![](README_files/figure-commonmark/APLs-1.png)
 
 ``` r
 sm_plot(
@@ -190,7 +178,7 @@ sm_plot(
 )
 ```
 
-![](README_files/figure-commonmark/unnamed-chunk-9-1.png)
+![](README_files/figure-commonmark/splitmerge_plot-1.png)
 
 # Package settings
 

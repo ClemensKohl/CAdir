@@ -11,6 +11,7 @@ The package can be installed through GitHub:
 
 ```{r}
 #| eval: false
+#| label: installation
 devtools::install_github("ClemensKohl/CAdir")
 ```
 
@@ -21,6 +22,7 @@ Note that currently you have to also install CAbiNet from GitHub for the package
 Download example data and perform basic preprocessing:
 
 ```{r}
+#| label: setup
 suppressPackageStartupMessages({
   library(CAdir)
   library(APL)
@@ -46,6 +48,7 @@ sce <- sce[top_genes, ]
 ## Correspondence analysis
 
 ```{r}
+#| label: CA
 cnts <- as.matrix(logcounts(sce))
 
 ca <- cacomp(obj = cnts,
@@ -62,6 +65,7 @@ cat("Number of cell types:", length(unique(cell_types)), "\n")
 ## CAdir
 
 ```{r}
+#| label: splitmerge
 cadir <- dirclust_splitmerge(
   caobj = ca,
   k = 10,
@@ -74,7 +78,7 @@ cadir
 
 Annotate cell clusters:
 ```{r}
-
+#| label: annotate
 cadir <- annotate_biclustering(
   obj = cadir,
   universe = rownames(sce),
@@ -85,6 +89,7 @@ cadir
 
 Rank cluster specific genes:
 ```{r}
+#| label: rank
 cadir <- rank_genes(cadir = cadir, caobj = ca)
 top <- top_genes(cadir)
 
@@ -95,6 +100,7 @@ head(top[top$Cluster == "Macrophage", ])
 ## Plot results
 
 ```{r}
+#| label: macrophage_APL
 cluster_apl(cadir = cadir,
             caobj = ca,
             direction = cadir@directions["Macrophage",],
@@ -105,6 +111,7 @@ cluster_apl(cadir = cadir,
 ```
 
 ```{r}
+#| label: APLs
 plot_clusters(
   cadir = cadir,
   caobj = ca,
@@ -115,6 +122,7 @@ plot_clusters(
 ```
 
 ```{r}
+#| label: splitmerge_plot
 sm_plot(
   cadir = cadir,
   caobj = ca,
@@ -129,13 +137,15 @@ sm_plot(
 # Package settings
 Verbosity of the messages can be controlled with rlang.
 To turn all messages off:
-
 ```{r}
+#| eval: false
+#| label: quiet
 rlang::local_options(mypackage.verbose = "quiet")
 ```
 
  To turn them back on:
-
 ```{r}
+#| eval: false
+#| label: verbose
 rlang::local_options(mypackage.verbose = "verbose")
 ```
