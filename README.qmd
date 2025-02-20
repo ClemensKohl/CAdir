@@ -52,8 +52,7 @@ ca <- cacomp(obj = cnts,
              princ_coords = 3,
              dims = 30,
              top = nrow(cnts),
-             residuals = "pearson",
-             python = TRUE)
+             residuals = "pearson")
 
 cell_types <- sce$level1class
 cat("Number of cell types:", length(unique(cell_types)), "\n")
