@@ -77,7 +77,14 @@ rank_genes <- function(cadir, caobj) {
     all_ranks <- list()
     for (c in gcs_lvls) {
 
-    # Get cutoff
+        # if there are no genes, skip cluster.
+        ngenes <- sum(cadir@gene_clusters == c)
+        if (ngenes < 1) {
+            all_ranks[[c]] <- NA
+            next
+        }
+
+        # Get cutoff
         if (is.null(alpha)) {
             alpha <- get_apl_cutoff(
                 caobj = caobj,
@@ -141,6 +148,8 @@ top_genes <- function(cadir, cutoff = 0) {
     gene_ranks <- cadir@gene_ranks
 
     for (i in seq_len(length(gene_ranks))) {
+        if (all(is.na(gene_ranks[[i]]))) next
+
         relevant_genes <- gene_ranks[[i]][gene_ranks[[i]]$Score > cutoff, ]
         del <- which(colnames(relevant_genes) == "Rank")
         top_list[[names(gene_ranks)[i]]] <- relevant_genes[, -del]
