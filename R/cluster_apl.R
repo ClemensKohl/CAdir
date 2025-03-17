@@ -360,7 +360,7 @@ cluster_apl <- function(caobj,
                 both = (show_cells && show_genes)
             )
 
-            if (isTRUE(label_genes)) {
+            if (isTRUE(label_genes) && isTRUE(show_genes)) {
                 ggplt <- .label_genes(
                     ggplt = ggplt,
                     plot_df = plot_df,
