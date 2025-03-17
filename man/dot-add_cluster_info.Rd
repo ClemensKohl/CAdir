@@ -4,7 +4,13 @@
 \alias{.add_cluster_info}
 \title{Adds information on the clusters to the plotting data frame.}
 \usage{
-.add_cluster_info(plot_df, cadir, cluster = NULL, highlight_cluster = FALSE)
+.add_cluster_info(
+  plot_df,
+  cadir,
+  cluster = NULL,
+  highlight_cluster = FALSE,
+  label_genes = FALSE
+)
 }
 \arguments{
 \item{plot_df}{The plotting data frame.}
@@ -15,6 +21,9 @@
 
 \item{highlight_cluster}{If TRUE, highlights the points in belonging to
 \code{cluster}, unless colour_by_group is TRUE.}
+
+\item{label_genes}{If TRUE, adds text labels for the
+\code{ntop} genes per cluster.}
 }
 \value{
 The enhanced plotting data frame.

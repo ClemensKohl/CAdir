@@ -62,6 +62,10 @@ cluster_apl <- function(caobj,
         }
     }
 
+    # get gene ranks if we want to label them.
+    if (isTRUE(label_genes) && length(cadir@gene_ranks) == 0) {
+        cadir <- rank_genes(cadir = cadir, caobj = caobj)
+    }
 
     # Calculate angle if only two directions, NA otherwise
     ang <- .get_plot_angle(directions = cadir@directions)
@@ -99,7 +103,8 @@ cluster_apl <- function(caobj,
         plot_df = df,
         cadir = cadir,
         cluster = cluster,
-        highlight_cluster = highlight_cluster
+        highlight_cluster = highlight_cluster,
+        label_genes = label_genes
     )
 
     ############
@@ -243,7 +248,8 @@ cluster_apl <- function(caobj,
     plot_df,
     cadir,
     cluster = NULL,
-    highlight_cluster = FALSE) {
+    highlight_cluster = FALSE,
+    label_genes = FALSE) {
     show_genes <- any("gene" %in% plot_df$type)
     show_cells <- any("cell" %in% plot_df$type)
 
@@ -283,6 +289,19 @@ cluster_apl <- function(caobj,
         # if conditions, conc. type and cluster.
         if (show_cells && show_genes) {
             plot_df$cluster <- paste0(plot_df$type, "_", plot_df$cluster)
+        }
+
+        if (show_genes && label_genes) {
+            plot_df$gene_score <- -Inf
+            rnks <- cadir@gene_ranks[[cluster]]
+            idx <- which(
+                plot_df$sample %in% rnks$Rowname
+            )
+            ord <- base::match(plot_df[idx,]$sample, rnks$Rowname)
+            rnks <- rnks[ord,]
+            stopifnot(identical(rnks$Rowname, plot_df$sample[idx]))
+
+            plot_df$gene_score[idx] <- rnks$Score
         }
     } else {
         no_cluster <- "N/A"
@@ -426,7 +445,7 @@ cluster_apl <- function(caobj,
     to_highlight <- (plot_df$cluster == "gene_cluster")
 
     dfh <- plot_df[to_highlight, ]
-    dfh <- utils::head(dfh[order(dfh$x, decreasing = TRUE), ], ntop)
+    dfh <- utils::head(dfh[order(dfh$gene_score, decreasing = TRUE), ], ntop)
     ggplt <- ggplt + ggrepel::geom_label_repel(
         data = dfh,
         ggplot2::aes(
