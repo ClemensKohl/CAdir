@@ -1,5 +1,5 @@
 Package: CAdir
-Title: What the Package Does (One Line, Title Case)
+Title: Cluster scRNA-seq data by their directions in CA space
 Version: 0.0.99
 Authors@R:
   c(person(given = "Clemens",
