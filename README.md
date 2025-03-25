@@ -10,7 +10,7 @@ in the data, but can instead infer them during clustering. The package
 can be installed through GitHub:
 
 ``` r
-devtools::install_github("ClemensKohl/CAdir")
+devtools::install_github("VingronLab/CAdir")
 ```
 
 Note that currently you have to also install CAbiNet from GitHub for the

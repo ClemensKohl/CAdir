@@ -12,7 +12,7 @@ The package can be installed through GitHub:
 ```{r}
 #| eval: false
 #| label: installation
-devtools::install_github("ClemensKohl/CAdir")
+devtools::install_github("VingronLab/CAdir")
 ```
 
 Note that currently you have to also install CAbiNet from GitHub for the package to function.
