@@ -96,7 +96,8 @@ split_clusters <- function(
                     group = which(cadir@cell_clusters == i),
                     cluster = NULL,
                     highlight_cluster = FALSE,
-                    show_genes = FALSE
+                    show_genes = FALSE,
+                    show_lines = TRUE
                 )
 
                 rep <- paste0("rep_", cadir@log$last_rep)
@@ -248,7 +249,8 @@ merge_clusters <- function(caobj,
                 cluster = merge_parent,
                 highlight_cluster = FALSE,
                 show_cells = TRUE,
-                show_genes = FALSE
+                show_genes = FALSE,
+                show_lines = TRUE
             )
 
             nms_rep <- names(cadir@plots$merges[[rep]])
