@@ -336,7 +336,8 @@ dirclust_splitmerge <- function(caobj,
                                 apl_cutoff_reps = 100,
                                 make_plots = FALSE,
                                 convergence_thr = 0.001,
-                                max_iter = 50) {
+                                max_iter = 50,
+                                init = "kmeanspp") {
     fun_args <- match.call()
 
     # Convert cutoff to radians
@@ -370,7 +371,7 @@ dirclust_splitmerge <- function(caobj,
         points = caobj@prin_coords_cols,
         k = k,
         epochs = epochs,
-        init = "kmeanspp",
+        init = init,
         lines = NULL,
         log = FALSE,
         convergence_thr = convergence_thr,
