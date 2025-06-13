@@ -21,9 +21,9 @@
 #' @export
 cluster_apl <- function(caobj,
                         cadir,
-                        cluster = NULL,
-                        direction,
-                        group,
+                        cluster,
+                        direction = cadir@directions[cluster, ],
+                        group = which(cadir@cell_clusters == cluster),
                         show_cells = TRUE,
                         show_genes = FALSE,
                         show_lines = FALSE,
@@ -35,9 +35,6 @@ cluster_apl <- function(caobj,
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
 
-    if (length(group) == 0) {
-        rlang::abort("`group` has length 0.")
-    }
 
     if (is.null(cluster) && isTRUE(highlight_cluster)) {
         rlang::warn(paste0("Turning `highlight_cluster off,",
@@ -46,6 +43,7 @@ cluster_apl <- function(caobj,
         highlight_cluster <- FALSE
     }
 
+    # Check if cluster is in actual cluster names.
     all_cls <- unique(c(
         levels(cadir@cell_clusters),
         levels(cadir@gene_clusters)
@@ -60,6 +58,19 @@ cluster_apl <- function(caobj,
                 " Setting to NULL."
             ))
         }
+    }
+
+    # Check validity of direction.
+    ndim <- ncol(cadir@directions)
+    dir_is_vec <- is.numeric(direction)
+    has_len <- length(direction) == ndim
+    if (!dir_is_vec || !has_len) {
+        rlang::abort("A valid direction is needed!")
+    }
+
+    # Check if group is available.
+    if (length(group) == 0) {
+        rlang::abort("`group` has length 0.")
     }
 
     # get gene ranks if we want to label them.

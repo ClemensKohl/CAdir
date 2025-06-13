@@ -163,7 +163,8 @@ sm_plot <- function(cadir,
                     inlet_side = 0.08,
                     title_size = 10,
                     show_axis = FALSE,
-                    n_wrap = Inf) {
+                    n_wrap = Inf,
+                    layout = "dendrogram") {
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)
@@ -181,22 +182,37 @@ sm_plot <- function(cadir,
         keep_end = keep_end
     )
 
-    lgraph <- ggraph::create_layout(graph, layout = "tree")
+    if (layout == "tree") {
+        lgraph <- ggraph::create_layout(graph, layout = "tree")
+    } else if (layout == "dendrogram") {
+        lgraph <- ggraph::create_layout(
+            graph,
+            layout = "igraph",
+            algorithm = "tree",
+            # root = grep("iter_0", names(igraph::V(graph))),
+            # rootlevel = grep("iter_0", names(igraph::V(graph)))
+        )
+    }
 
     ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
-    bg <- ggraph::ggraph(lgraph) +
-        ggraph::geom_edge_link() +
-        ggraph::geom_node_point(alpha = 1)
+    bg <- ggraph::ggraph(lgraph, layout = "dendrogram") +
+        # ggraph::geom_edge_link() +
+        # ggraph::geom_edge_elbow0(check_overlap = TRUE) +
+        ggraph::geom_edge_diagonal() +
+        ggraph::geom_node_point(alpha = 1) +
+        coord_flip() +
+        scale_y_reverse()
 
     bg_coords <- get_x_y_values(bg)
 
     cls <- cadir@log$clusters
     dirs <- cadir@log$directions
 
-    nodes <- names(igraph::V(graph))
+    # nodes <- names(igraph::V(graph))
+    nodes <- lgraph$name
 
     old_iter_nm <- ""
-    for (i in seq_len(nrow(lgraph))) {
+    for (i in seq_len(length(nodes))) {
         node_nm <- nodes[i]
 
         name_elems <- base::strsplit(node_nm, "-", fixed = TRUE)[[1]]
