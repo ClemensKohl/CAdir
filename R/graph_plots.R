@@ -188,17 +188,15 @@ sm_plot <- function(cadir,
         lgraph <- ggraph::create_layout(
             graph,
             layout = "igraph",
-            algorithm = "tree",
-            # root = grep("iter_0", names(igraph::V(graph))),
-            # rootlevel = grep("iter_0", names(igraph::V(graph)))
+            algorithm = "sugiyama",
         )
     }
 
     ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
     bg <- ggraph::ggraph(lgraph, layout = "dendrogram") +
         # ggraph::geom_edge_link() +
-        # ggraph::geom_edge_elbow0(check_overlap = TRUE) +
-        ggraph::geom_edge_diagonal() +
+        ggraph::geom_edge_elbow(check_overlap = TRUE) +
+        # ggraph::geom_edge_diagonal() +
         ggraph::geom_node_point(alpha = 1) +
         coord_flip() +
         scale_y_reverse()
@@ -289,7 +287,10 @@ sm_plot <- function(cadir,
         if (isTRUE(annotate_clusters)) {
             cluster_title <- gsub(pattern = "_", replacement = " ", cluster )
             p <- p +
-                ggplot2::ggtitle(paste(strwrap(cluster_title, width = n_wrap), collapse = "\n")) +
+                ggplot2::ggtitle(paste(
+                    strwrap(cluster_title, width = n_wrap),
+                    collapse = "\n"
+                )) +
                 plot_theme(
                     title = ggplot2::element_text(color = "black",
                                                   size = title_size),
