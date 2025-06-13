@@ -165,6 +165,8 @@ sm_plot <- function(cadir,
                     show_axis = FALSE,
                     n_wrap = Inf,
                     layout = "dendrogram") {
+
+    # TODO: Add better options for layout and aesthetics.
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)
