@@ -18,7 +18,8 @@ dirclust_splitmerge(
   apl_cutoff_reps = 100,
   make_plots = FALSE,
   convergence_thr = 0.001,
-  max_iter = 50
+  max_iter = 50,
+  init = "kmeanspp"
 )
 }
 \arguments{
@@ -56,6 +57,9 @@ Should be between 3-10 for permutation, and >=100 for random.}
 degrees below or equal which convergence is reached.}
 
 \item{max_iter}{Maximum number of iterations if no convergence.}
+
+\item{init}{Initialization method for the lines. Options are 'rand' and
+'kmeanspp'.}
 }
 \value{
 A \code{cadir} object with cell clusters.

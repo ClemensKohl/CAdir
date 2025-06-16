@@ -7,9 +7,9 @@
 cluster_apl(
   caobj,
   cadir,
-  cluster = NULL,
-  direction,
-  group,
+  cluster,
+  direction = cadir@directions[cluster, ],
+  group = which(cadir@cell_clusters == cluster),
   show_cells = TRUE,
   show_genes = FALSE,
   show_lines = FALSE,
@@ -17,7 +17,8 @@ cluster_apl(
   label_genes = FALSE,
   point_size = 1.5,
   size_factor = 2,
-  ntop = 15
+  ntop = 15,
+  interactive = FALSE
 )
 }
 \arguments{
@@ -50,6 +51,9 @@ Can be the same as the cluster.}
 larger/smaller than \code{point_size}.}
 
 \item{ntop}{Number of genes to label if \code{label_genes = TRUE}.}
+
+\item{interactive}{Uses plotly to generate an interactive version of the
+plot.}
 }
 \value{
 An APL plot (ggplot2 object).

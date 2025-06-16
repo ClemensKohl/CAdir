@@ -148,6 +148,8 @@ plot_sm_graph <- function(cadir,
 #' @param title_size Font size of the title.
 #' @param show_axis Whether or not to show axis markings.
 #' @param n_wrap Character length around which to wrap inlet titles.
+#' @param layout Graph layout.
+#' Currently only supports `"dendrogram"` or `"tree"`.
 #' @returns
 #' A ggplot object showing the split-merge graph and APL plots for each cluster.
 #' @export
@@ -195,13 +197,18 @@ sm_plot <- function(cadir,
     }
 
     ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
-    bg <- ggraph::ggraph(lgraph, layout = "dendrogram") +
-        # ggraph::geom_edge_link() +
-        ggraph::geom_edge_elbow(check_overlap = TRUE) +
-        # ggraph::geom_edge_diagonal() +
+    bg <- ggraph::ggraph(lgraph, layout = layout)
+
+    if (layout == "tree") {
+        bg <- bg + ggraph::geom_edge_link()
+    } else if (layout == "dendrogram") {
+        bg <- bg + ggraph::geom_edge_elbow(check_overlap = TRUE)
+    }
+
+    bg <- bg +
         ggraph::geom_node_point(alpha = 1) +
-        coord_flip() +
-        scale_y_reverse()
+        ggplot2::coord_flip() +
+        ggplot2::scale_y_reverse()
 
     bg_coords <- get_x_y_values(bg)
 

@@ -16,6 +16,8 @@
 #' @param label_genes If TRUE, adds text labels for the
 #' `ntop` genes per cluster.
 #' @param ntop Number of genes to label if `label_genes = TRUE`.
+#' @param interactive Uses plotly to generate an interactive version of the
+#' plot.
 #' @returns
 #' An APL plot (ggplot2 object).
 #' @export
@@ -31,7 +33,8 @@ cluster_apl <- function(caobj,
                         label_genes = FALSE,
                         point_size = 1.5,
                         size_factor = 2,
-                        ntop = 15) {
+                        ntop = 15,
+                        interactive = FALSE) {
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
 
@@ -118,11 +121,22 @@ cluster_apl <- function(caobj,
         label_genes = label_genes
     )
 
+    df$info <- paste0(
+        "Type: ", df$type, "\n",
+        "Name: ", df$sample, "\n",
+        "Cluster: ", df$cluster
+    )
+
     ############
     ### Plot ###
     ############
 
-    p <- ggplot2::ggplot(df, ggplot2::aes(x = x, y = y, color = cluster))
+    p <- ggplot2::ggplot(df, ggplot2::aes(
+        x = x,
+        y = y,
+        color = cluster,
+        text = info
+    ))
 
     p <- .cluster_apl_points(
         ggplt = p,
@@ -151,6 +165,11 @@ cluster_apl <- function(caobj,
         )) +
         ggplot2::theme_bw()
 
+    if (isTRUE(interactive)) {
+        suppressWarnings({
+            p <- plotly::ggplotly(p = p)
+        })
+    }
     return(p)
 }
 

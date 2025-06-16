@@ -18,7 +18,8 @@ sm_plot(
   inlet_side = 0.08,
   title_size = 10,
   show_axis = FALSE,
-  n_wrap = Inf
+  n_wrap = Inf,
+  layout = "dendrogram"
 )
 }
 \arguments{
@@ -51,6 +52,9 @@ around the cluster node.}
 \item{show_axis}{Whether or not to show axis markings.}
 
 \item{n_wrap}{Character length around which to wrap inlet titles.}
+
+\item{layout}{Graph layout.
+Currently only supports \code{"dendrogram"} or \code{"tree"}.}
 }
 \value{
 A ggplot object showing the split-merge graph and APL plots for each cluster.

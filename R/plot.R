@@ -137,7 +137,8 @@ plot_clusters <- function(cadir,
                           axis = FALSE,
                           gsub_title = NULL,
                           legend_pos = "none",
-                          return_list = FALSE) {
+                          return_list = FALSE,
+                          interactive = FALSE) {
     pls <- list()
     cls <- levels(cadir@cell_clusters)
 
