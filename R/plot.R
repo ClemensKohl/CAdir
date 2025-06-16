@@ -17,8 +17,7 @@ plot_results <- function(cadir,
                          title_prefix = "Cluster: ",
                          gsub_title = "",
                          return_list = FALSE,
-                         ...
-                         ) {
+                         ...) {
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)
@@ -30,12 +29,11 @@ plot_results <- function(cadir,
 
     for (i in seq_along(cls)) {
         for (j in seq_along(cls)) {
-
             if (!is.null(gsub_title)) {
                 cls_title <- gsub(
-                                  pattern = gsub_title,
-                                  replacement = " ",
-                                  x = cls[i]
+                    pattern = gsub_title,
+                    replacement = " ",
+                    x = cls[i]
                 )
             } else {
                 cls_title <- cls[i]
@@ -45,7 +43,9 @@ plot_results <- function(cadir,
                 cadir@cell_clusters == cls[j])
 
             if (anno_dirs) {
-                sel_dir <- which(rownames(cadir@directions) %in% unique(c(cls[i], cls[j])))
+                sel_dir <- which(
+                    rownames(cadir@directions) %in% unique(c(cls[i], cls[j]))
+                )
                 dir_idx <- which(rownames(cadir@directions) == cls[i])
             } else {
                 sel_dir <- search_dict(cadir@dict, c(cls[i], cls[j]))
@@ -71,7 +71,11 @@ plot_results <- function(cadir,
                 highlight_cluster = highlight_cluster,
                 ...
             ) +
-                ggplot2::ggtitle(ifelse(i == j, paste0(title_prefix, cls_title), "")) +
+                ggplot2::ggtitle(ifelse(
+                    i == j,
+                    paste0(title_prefix, cls_title),
+                    ""
+                )) +
                 ggplot2::theme(
                     legend.position = "none",
                     axis.title.x = ggplot2::element_blank(),
@@ -99,8 +103,7 @@ plot_results <- function(cadir,
             plotlist = pls,
             nrow = length(cls),
             ncol = length(cls)
-    )
-
+        )
     }
 
     return(fig)
@@ -137,8 +140,7 @@ plot_clusters <- function(cadir,
                           axis = FALSE,
                           gsub_title = NULL,
                           legend_pos = "none",
-                          return_list = FALSE,
-                          interactive = FALSE) {
+                          return_list = FALSE) {
     pls <- list()
     cls <- levels(cadir@cell_clusters)
 
@@ -164,9 +166,9 @@ plot_clusters <- function(cadir,
     for (i in seq_along(cls)) {
         if (!is.null(gsub_title)) {
             cls_title <- gsub(
-                              pattern = gsub_title,
-                              replacement = " ",
-                              x = cls[i]
+                pattern = gsub_title,
+                replacement = " ",
+                x = cls[i]
             )
         } else {
             cls_title <- cls[i]
@@ -199,11 +201,13 @@ plot_clusters <- function(cadir,
         fig <- ggpubr::ggarrange(
             plotlist = pls,
             nrow = ifelse(test = is.null(ggnrow),
-                        yes = ceiling(sqrt(length(cls))),
-                        no = ggnrow),
+                yes = ceiling(sqrt(length(cls))),
+                no = ggnrow
+            ),
             ncol = ifelse(test = is.null(ggncol),
-                        yes = ceiling(sqrt(length(cls))),
-                        no = ggncol)
+                yes = ceiling(sqrt(length(cls))),
+                no = ggncol
+            )
         )
     }
 
@@ -428,7 +432,7 @@ theme_blank <- function(title = ggplot2::element_blank(),
 #' @importFrom ggplot2 '%+replace%'
 # ggplot2 theme that strips all elements from a plot, but leaves axis ticks and elements.
 theme_axis_only <- function(title = ggplot2::element_blank(),
-                        text = ggplot2::element_blank()) {
+                            text = ggplot2::element_blank()) {
     ggplot2::theme_classic() %+replace%
         ggplot2::theme(
             # Elements in this first block aren't used directly, but are inherited

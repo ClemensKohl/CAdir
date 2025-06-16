@@ -19,8 +19,7 @@ plot_clusters(
   axis = FALSE,
   gsub_title = NULL,
   legend_pos = "none",
-  return_list = FALSE,
-  interactive = FALSE
+  return_list = FALSE
 )
 }
 \arguments{
@@ -57,9 +56,6 @@ Normal ggplot positions allowed.}
 
 \item{return_list}{If TRUE, instead of a final, arranged panel the plots
 are returned as a list.}
-
-\item{interactive}{Uses plotly to generate an interactive version of the
-plot.}
 }
 \value{
 A plot that summarizes the cell clustering results.

@@ -90,7 +90,9 @@ build_graph <- function(cadir, rm_redund = FALSE, keep_end = TRUE) {
         is_end <- (i == length(sel) && keep_end)
         if (!is_end &&
             all(f2c(bef_cls) == f2c(aft_cls)) &&
-            isTRUE(rm_redund)) next
+            isTRUE(rm_redund)) {
+            next
+        }
 
         graph_list[[i]] <- build_sub_graph(
             before = bef_cls,
@@ -167,14 +169,13 @@ sm_plot <- function(cadir,
                     show_axis = FALSE,
                     n_wrap = Inf,
                     layout = "dendrogram") {
-
     # TODO: Add better options for layout and aesthetics.
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
             isTRUE(show_cells) || isTRUE(show_genes)
     )
 
-    if (isTRUE(show_axis)){
+    if (isTRUE(show_axis)) {
         plot_theme <- theme_axis_only
     } else {
         plot_theme <- theme_blank
@@ -294,15 +295,17 @@ sm_plot <- function(cadir,
             point_size = 0.3
         )
         if (isTRUE(annotate_clusters)) {
-            cluster_title <- gsub(pattern = "_", replacement = " ", cluster )
+            cluster_title <- gsub(pattern = "_", replacement = " ", cluster)
             p <- p +
                 ggplot2::ggtitle(paste(
                     strwrap(cluster_title, width = n_wrap),
                     collapse = "\n"
                 )) +
                 plot_theme(
-                    title = ggplot2::element_text(color = "black",
-                                                  size = title_size),
+                    title = ggplot2::element_text(
+                        color = "black",
+                        size = title_size
+                    ),
                     text = ggplot2::element_text()
                 )
         } else {
@@ -311,7 +314,7 @@ sm_plot <- function(cadir,
 
         # Ensure that we dont plot outside of the window:
         lradj <- tbadj <- 0
-        mid_length <- inlet_side/2
+        mid_length <- inlet_side / 2
         if (bg_coords[i, 1] < mid_length) {
             lradj <- mid_length - bg_coords[i, 1]
         }
