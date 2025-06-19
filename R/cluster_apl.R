@@ -67,14 +67,23 @@ cluster_apl <- function(caobj,
     ndim <- ncol(cadir@directions)
     dir_is_vec <- is.numeric(direction)
     has_len <- length(direction) == ndim
+    has_grp <- !(length(group) == 0 || is.null(group))
+
+    # Check if group is available.
+    if (isTRUE(has_grp) && is.null(cluster)) {
+        if (isFALSE(dir_is_vec) || isFALSE(has_len)){
+            direction <- colMeans(caobj@prin_coords_cols[group, ])
+            dir_is_vec <- is.numeric(direction)
+            has_len <- length(direction) == ndim
+        }
+    } else if (isFALSE(has_grp)){
+        rlang::abort("`group` has length 0.")
+    }
+
     if (!dir_is_vec || !has_len) {
         rlang::abort("A valid direction is needed!")
     }
 
-    # Check if group is available.
-    if (length(group) == 0) {
-        rlang::abort("`group` has length 0.")
-    }
 
     # get gene ranks if we want to label them.
     if (isTRUE(label_genes) && length(cadir@gene_ranks) == 0) {
@@ -159,9 +168,9 @@ cluster_apl <- function(caobj,
     p <- p +
         ggplot2::ggtitle(paste0(
             "Cluster: ",
-            as.character(cluster),
-            ", CA-angle: ",
-            round(ang, 2)
+           as.character(cluster)
+            # ", CA-angle: ",
+            # round(ang, 2)
         )) +
         ggplot2::theme_bw()
 

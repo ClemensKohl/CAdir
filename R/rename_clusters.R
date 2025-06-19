@@ -63,8 +63,8 @@ rename_clusters  <- function(cadir) {
 
     # 5) Change distances
     if (!is.empty(cadir@distances)) {
-        cadir@distances <- cadir@distances[, have_smpls, drop = FALSE]
-        colnames(cadir@distances) <- dir_nms
+        # cadir@distances <- cadir@distances[, have_smpls, drop = FALSE]
+        # colnames(cadir@distances) <- dir_nms
     }
 
     # Double Check that the dict is correct!
