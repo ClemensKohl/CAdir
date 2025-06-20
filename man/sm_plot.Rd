@@ -15,7 +15,7 @@ sm_plot(
   annotate_clusters = FALSE,
   org = "mm",
   keep_end = TRUE,
-  inlet_side = 0.08,
+  inlet_side = 0.1,
   title_size = 10,
   show_axis = FALSE,
   n_wrap = Inf,

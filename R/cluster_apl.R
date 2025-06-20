@@ -131,9 +131,9 @@ cluster_apl <- function(caobj,
     )
 
     df$info <- paste0(
-        "Type: ", df$type, "\n",
         "Name: ", df$sample, "\n",
-        "Cluster: ", df$cluster
+        "Cluster: ", df$cluster, "\n",
+        "Type: ", df$type
     )
 
     ############
@@ -157,11 +157,12 @@ cluster_apl <- function(caobj,
         ntop = ntop
     )
 
-    if (isTRUE(show_lines)) {
+    if (isTRUE(show_lines) || !is.null(show_lines)) {
         p <- .add_lines(
             ggplt = p,
             apl_dir = dapl,
-            highlight_cluster = highlight_cluster
+            highlight_cluster = highlight_cluster,
+            show_lines = show_lines
         )
     }
 
@@ -176,7 +177,7 @@ cluster_apl <- function(caobj,
 
     if (isTRUE(interactive)) {
         suppressWarnings({
-            p <- plotly::ggplotly(p = p)
+            p <- plotly::ggplotly(p = p, tooltip = "text")
         })
     }
     return(p)
@@ -403,7 +404,8 @@ cluster_apl <- function(caobj,
                 ggplt <- .label_genes(
                     ggplt = ggplt,
                     plot_df = plot_df,
-                    ntop = ntop
+                    ntop = ntop,
+                    show_cells = show_cells
                 )
             }
         } else {
@@ -480,8 +482,12 @@ cluster_apl <- function(caobj,
 #' @inheritParams .cluster_apl_points
 #' @returns
 #' ggplot object with labels added.
-.label_genes <- function(ggplt, plot_df, ntop = 15) {
-    to_highlight <- (plot_df$cluster == "gene_cluster")
+.label_genes <- function(ggplt, plot_df, show_cells, ntop = 15) {
+    if (isTRUE(show_cells)){
+        to_highlight <- (plot_df$cluster == "gene_cluster")
+    } else {
+        to_highlight <- (plot_df$cluster == "cluster")
+    }
 
     dfh <- plot_df[to_highlight, ]
     dfh <- utils::head(dfh[order(dfh$gene_score, decreasing = TRUE), ], ntop)
@@ -504,9 +510,16 @@ cluster_apl <- function(caobj,
 #' @param apl_dir The cluster directions in APL coordinates.
 #' @returns
 #' ggplot with lines added.
-.add_lines <- function(ggplt, apl_dir, highlight_cluster = FALSE) {
-    for (d in seq_len(nrow(apl_dir))) {
-        is_x <- is_xaxis(apl_dir[d, ])
+.add_lines <- function(ggplt, show_lines, apl_dir, highlight_cluster = FALSE) {
+    if (is.character(show_lines)) {
+        clusters <- show_lines
+    } else {
+        clusters <- rownames(apl_dir)
+    }
+
+    for (c in clusters) {
+        idx <- which(rownames(apl_dir) == c)
+        is_x <- is_xaxis(apl_dir[idx, ])
 
         if (is_x) {
             lcolor <- "black"
@@ -521,14 +534,14 @@ cluster_apl <- function(caobj,
 
         ggplt <- ggplt + ggplot2::geom_abline(
             intercept = 0,
-            slope = slope(lines = apl_dir[d, ], dims = 1:2),
+            slope = slope(lines = apl_dir[idx, ], dims = 1:2),
             color = lcolor,
             linetype = ltype,
             size = 1
         ) +
             ggplot2::geom_point(
                 data = data.frame(x = 0, y = 0),
-                ggplot2::aes(x, y),
+                ggplot2::aes(x, y, text = NULL),
                 color = lcolor
             )
     }
