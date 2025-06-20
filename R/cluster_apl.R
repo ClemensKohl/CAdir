@@ -517,6 +517,15 @@ cluster_apl <- function(caobj,
         clusters <- rownames(apl_dir)
     }
 
+    ltypes <- vector(mode = "character", length = length(clusters))
+    names(ltypes) <- clusters
+    slopes <- vector(mode = "numeric", length = length(clusters))
+    names(slopes) <- clusters
+    # highlight <- vector(mode = "character", length = length(clusters))
+    # names(highlight) <- clusters
+
+
+        cat("clcuster", dim(apl_dir), "\n")
     for (c in clusters) {
         idx <- which(rownames(apl_dir) == c)
         is_x <- is_xaxis(apl_dir[idx, ])
@@ -531,20 +540,44 @@ cluster_apl <- function(caobj,
                 lcolor <- "#006c66"
             }
         }
+        cat("SLpe", slope(lines = apl_dir[idx, ], dims = 1:2), "\n")
+        cat("Dim", length(slope(lines = apl_dir[idx, ], dims = 1:2)), "\n")
+        cat(slopes)
 
-        ggplt <- ggplt + ggplot2::geom_abline(
-            intercept = 0,
-            slope = slope(lines = apl_dir[idx, ], dims = 1:2),
-            color = lcolor,
-            linetype = ltype,
-            size = 1
-        ) +
+        i <- which(clusters == c)
+        ltypes[i] <- ltype
+        slopes[i] <- slope(lines = apl_dir[idx, ], dims = 1:2)
+
+        # ggplt <- ggplt + ggplot2::geom_abline(
+        #     intercept = 0,
+        #     slope = slope(lines = apl_dir[idx, ], dims = 1:2),
+        #     color = lcolor,
+        #     linetype = ltype,
+        #     size = 1
+        # ) +
+        #     ggplot2::geom_point(
+        #         data = data.frame(x = 0, y = 0),
+        #         ggplot2::aes(x, y, text = NULL),
+        #         color = lcolor
+        #     )
+    }
+    ldf <- data.frame(
+                      "ltype" = ltypes,
+                      "slopes" = slopes,
+                      "cluster" = clusters
+    )
+    ggplt <- ggplt + ggplot2::geom_abline(
+                                          data = ldf,
+                                          aes(slope = slopes, linetype = ltype, color = cluster),
+                                          intercept = 0,
+                                          size = 1
+                                          ) +
             ggplot2::geom_point(
                 data = data.frame(x = 0, y = 0),
                 ggplot2::aes(x, y, text = NULL),
                 color = lcolor
             )
-    }
+
 
     return(ggplt)
 }
