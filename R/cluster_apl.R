@@ -525,7 +525,7 @@ cluster_apl <- function(caobj,
     # names(highlight) <- clusters
 
 
-        cat("clcuster", dim(apl_dir), "\n")
+    cat("cluster", dim(apl_dir), "\n")
     for (c in clusters) {
         idx <- which(rownames(apl_dir) == c)
         is_x <- is_xaxis(apl_dir[idx, ])
@@ -540,7 +540,7 @@ cluster_apl <- function(caobj,
                 lcolor <- "#006c66"
             }
         }
-        cat("SLpe", slope(lines = apl_dir[idx, ], dims = 1:2), "\n")
+        cat("Slope", slope(lines = apl_dir[idx, ], dims = 1:2), "\n")
         cat("Dim", length(slope(lines = apl_dir[idx, ], dims = 1:2)), "\n")
         cat(slopes)
 
@@ -566,18 +566,25 @@ cluster_apl <- function(caobj,
                       "slopes" = slopes,
                       "cluster" = clusters
     )
-    ggplt <- ggplt + ggplot2::geom_abline(
-                                          data = ldf,
-                                          aes(slope = slopes, linetype = ltype, color = cluster),
-                                          intercept = 0,
-                                          size = 1
-                                          ) +
-            ggplot2::geom_point(
-                data = data.frame(x = 0, y = 0),
-                ggplot2::aes(x, y, text = NULL),
-                color = lcolor
-            )
+    ldf$intercept <- 0
 
+    ggplt <- ggplt + ggplot2::geom_abline(
+        data = ldf,
+        aes(
+            slope = slopes,
+            linetype = ltype,
+            color = cluster,
+            intercept = intercept
+        ),
+        size = 1
+    ) +
+        ggplot2::geom_point(
+            data = data.frame(x = 0, y = 0),
+            ggplot2::aes(x, y, text = NULL),
+            color = lcolor
+        )
+
+ggsave("~/tmp/line.jpg")
 
     return(ggplt)
 }
