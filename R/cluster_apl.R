@@ -157,7 +157,7 @@ cluster_apl <- function(caobj,
         ntop = ntop
     )
 
-    if (isTRUE(show_lines) || !is.null(show_lines)) {
+    if (!isFALSE(show_lines)) {
         p <- .add_lines(
             ggplt = p,
             apl_dir = dapl,
