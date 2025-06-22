@@ -274,7 +274,7 @@ cluster_apl <- function(caobj,
         )
 
         if (length(sel) == 0) next
-        cell_coords <- ca_coords[sel, ]
+        cell_coords <- model(ca_coords)[sel, ]
         # cell_coords <- model(caobj@prin_coords_cols)[sel, ]
 
         if (length(sel) > 1) {
