@@ -7,12 +7,12 @@
 #' A model that can be used to project new points onto the APL plot.
 #' @export
 apl_model <- function(
-    caobj,
+    coords,
     direction,
     group = NULL) {
-    stopifnot(methods::is(caobj, "cacomp"))
+    # stopifnot(methods::is(caobj, "cacomp"))
 
-    cent <- caobj@prin_coords_cols
+    # coords <- caobj@prin_coords_cols
 
     avg_group_coords <- direction
     length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
@@ -23,7 +23,7 @@ apl_model <- function(
     cosangle <- 1
 
     if (!is.null(group)) {
-        subgroup <- cent[group, ]
+        subgroup <- coords[group, ]
 
         if (length(group) == 1) {
             group_mean <- subgroup # single sample

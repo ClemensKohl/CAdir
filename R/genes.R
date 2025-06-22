@@ -100,7 +100,7 @@ rank_genes <- function(cadir, caobj) {
         direction <- cadir@directions[c, ]
 
         model <- apl_model(
-            caobj = caobj,
+            coords = caobj@prin_coords_cols,
             direction = direction,
             group = which(cadir@cell_clusters == c)
         )

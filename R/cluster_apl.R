@@ -93,22 +93,20 @@ cluster_apl <- function(caobj,
     # Calculate angle if only two directions, NA otherwise
     ang <- .get_plot_angle(directions = cadir@directions)
 
+    bool_sum <- show_cells + show_genes
+    coords <- list("prin_coords_cols", "std_coords_cols")
+
+    if (coords[bool_sum] == "std_coords_cols") {
+        # Convert to standard coordinates
+        direction <- direction / ca@D
+    }
+
     model <- apl_model(
-        caobj = caobj,
+        coords = methods::slot(caobj, name = coords[[bool_sum]]),
         direction = direction,
         group = group
     )
 
-    dapl <- model(cadir@directions)
-    dapl <- .toggle_dir(
-        apl_dirs = dapl,
-        caobj = caobj,
-        cadir = cadir,
-        model = model
-    )
-
-    bool_sum <- show_cells + show_genes
-    coords <- list("prin_coords_cols", "std_coords_cols")
 
     c_coords <- if (isTRUE(show_cells)) {
         methods::slot(caobj, name = coords[[bool_sum]])
@@ -158,11 +156,24 @@ cluster_apl <- function(caobj,
     )
 
     if (!isFALSE(show_lines)) {
+        show_both <- isTRUE(show_cells && show_genes)
+        dapl <- model(cadir@directions)
+
+        cat(coords[[bool_sum]])
+        dapl <- .toggle_dir(
+            apl_dirs = dapl,
+            caobj = caobj,
+            cadir = cadir,
+            model = model,
+            coords_type = coords[[bool_sum]]
+        )
+
         p <- .add_lines(
             ggplt = p,
             apl_dir = dapl,
             highlight_cluster = highlight_cluster,
-            show_lines = show_lines
+            show_lines = show_lines,
+            show_both = show_both
         )
     }
 
@@ -251,19 +262,20 @@ cluster_apl <- function(caobj,
 #' @inheritParams cluster_apl
 #' @returns
 #' The (flipped) APL directions.
-.toggle_dir <- function(apl_dirs, caobj, cadir, model) {
+.toggle_dir <- function(apl_dirs, caobj, cadir, model, coords_type = "prin_coords_cols") {
     # If the line points into the opposite direction of points
     # we flip the line.
     dapl_nms <- rownames(apl_dirs)
+    ca_coords <- methods::slot(caobj, name = coords_type)
     for (d in seq_len(nrow(apl_dirs))) {
         sel <- match(
             names(cadir@cell_clusters)[cadir@cell_clusters == dapl_nms[d]],
-            rownames(caobj@prin_coords_cols)
+            rownames(ca_coords)
         )
 
         if (length(sel) == 0) next
-
-        cell_coords <- model(caobj@prin_coords_cols)[sel, ]
+        cell_coords <- ca_coords[sel, ]
+        # cell_coords <- model(caobj@prin_coords_cols)[sel, ]
 
         if (length(sel) > 1) {
             grp_mean <- colMeans(cell_coords)
@@ -508,9 +520,10 @@ cluster_apl <- function(caobj,
 #' @inheritParams cluster_apl
 #' @param ggplt More or less finished ggplot object.
 #' @param apl_dir The cluster directions in APL coordinates.
+#' @param show_both TRUE if both cells and genes are shown.
 #' @returns
 #' ggplot with lines added.
-.add_lines <- function(ggplt, show_lines, apl_dir, highlight_cluster = FALSE) {
+.add_lines <- function(ggplt, show_lines, apl_dir, highlight_cluster = FALSE, show_both = FALSE) {
     if (is.character(show_lines)) {
         clusters <- show_lines
     } else {
@@ -521,51 +534,53 @@ cluster_apl <- function(caobj,
     names(ltypes) <- clusters
     slopes <- vector(mode = "numeric", length = length(clusters))
     names(slopes) <- clusters
-    # highlight <- vector(mode = "character", length = length(clusters))
-    # names(highlight) <- clusters
+    cl_name <- vector(mode = "character", length = length(clusters))
+    names(cl_name) <- clusters
 
-
-    cat("cluster", dim(apl_dir), "\n")
     for (c in clusters) {
         idx <- which(rownames(apl_dir) == c)
         is_x <- is_xaxis(apl_dir[idx, ])
 
         if (is_x) {
-            lcolor <- "black"
             ltype <- "solid"
+            if (isTRUE(highlight_cluster)) {
+                if (isTRUE(show_both)) {
+                    hcluster <- "cell_cluster"
+                } else {
+                    hcluster <- "cluster"
+                }
+            } else {
+                hcluster <- c
+            }
+
         } else {
-            lcolor <- "red"
             ltype <- "dashed"
             if (isTRUE(highlight_cluster)) {
-                lcolor <- "#006c66"
+                if (isTRUE(show_both)) {
+                    hcluster <- "cell_other"
+                } else {
+                    hcluster <- "other"
+                }
+            } else {
+                hcluster  <- c
             }
         }
-        cat("Slope", slope(lines = apl_dir[idx, ], dims = 1:2), "\n")
-        cat("Dim", length(slope(lines = apl_dir[idx, ], dims = 1:2)), "\n")
-        cat(slopes)
 
+        if (isTRUE(show_both)) {
+            # FIXME: Convert principal to standard coordinates
+        }
         i <- which(clusters == c)
         ltypes[i] <- ltype
         slopes[i] <- slope(lines = apl_dir[idx, ], dims = 1:2)
-
-        # ggplt <- ggplt + ggplot2::geom_abline(
-        #     intercept = 0,
-        #     slope = slope(lines = apl_dir[idx, ], dims = 1:2),
-        #     color = lcolor,
-        #     linetype = ltype,
-        #     size = 1
-        # ) +
-        #     ggplot2::geom_point(
-        #         data = data.frame(x = 0, y = 0),
-        #         ggplot2::aes(x, y, text = NULL),
-        #         color = lcolor
-        #     )
+        cl_name[i] <- hcluster
     }
+
     ldf <- data.frame(
-                      "ltype" = ltypes,
-                      "slopes" = slopes,
-                      "cluster" = clusters
+        "ltype" = as.factor(ltypes),
+        "slopes" = slopes,
+        "cluster" = as.factor(cl_name)
     )
+
     ldf$intercept <- 0
 
     ggplt <- ggplt + ggplot2::geom_abline(
@@ -576,15 +591,18 @@ cluster_apl <- function(caobj,
             color = cluster,
             intercept = intercept
         ),
-        size = 1
+        linewidth = 1
     ) +
+        scale_linetype_manual(
+            values = c("dashed" = "dashed", "solid" = "solid")
+        ) +
         ggplot2::geom_point(
             data = data.frame(x = 0, y = 0),
             ggplot2::aes(x, y, text = NULL),
             color = lcolor
         )
 
-ggsave("~/tmp/line.jpg")
+    ggsave("~/tmp/line.jpg")
 
     return(ggplt)
 }
