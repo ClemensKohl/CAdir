@@ -4,7 +4,7 @@
 \alias{.toggle_dir}
 \title{Flips APL direction if pointing away from majority of points.}
 \usage{
-.toggle_dir(apl_dirs, caobj, cadir, model)
+.toggle_dir(apl_dirs, caobj, cadir, model, coords_type = "prin_coords_cols")
 }
 \arguments{
 \item{apl_dirs}{Row-wise matrix of APL directions.}
@@ -14,6 +14,8 @@
 \item{cadir}{A cadir object for which to compute the APL}
 
 \item{model}{The APL model to project cells and genes.}
+
+\item{coords_type}{\code{prin_coords_cols} or \code{std_coords_cols}.}
 }
 \value{
 The (flipped) APL directions.

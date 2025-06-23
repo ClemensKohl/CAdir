@@ -85,6 +85,9 @@ plot_results <- function(cadir,
                     axis.text.y = ggplot2::element_blank(),
                     axis.ticks.y = ggplot2::element_blank()
                 )
+            if (isFALSE(sc) && isFALSE(sg)){
+                p <- p + ggplot2::scale_color_manual(values = c("black", "#006c66"))
+            }
 
 
             if (i == j) {

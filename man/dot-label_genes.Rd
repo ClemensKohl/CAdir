@@ -4,13 +4,15 @@
 \alias{.label_genes}
 \title{Helper function to label the top \code{ntop} genes of a cluster in the APL.}
 \usage{
-.label_genes(ggplt, plot_df, ntop = 15)
+.label_genes(ggplt, plot_df, show_cells, ntop = 15)
 }
 \arguments{
 \item{ggplt}{A ggplot2 object. It should be the result of ggplot() with
 aes() defined but without any geoms_*.}
 
 \item{plot_df}{The plotting data frame.}
+
+\item{show_cells}{TRUE/FALSE whether to show cells or not.}
 
 \item{ntop}{Number of genes to label if \code{label_genes = TRUE}.}
 }

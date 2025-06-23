@@ -1,6 +1,6 @@
 #' Create a model to project points into an Association Plot
-#' @param caobj A cacomp object.
-#' @param direction Normed direction vector of the APL plot.
+#' @param coords The CA coordinates to use (should be standard or principal coordinates).
+#' @param direction Normed direction vector of the APL plot (usually same coordinate type as coords).
 #' @param group A vector of indices which indicate the points
 #' that belong to the cluster. Only needed here to orient the plot.
 #' @returns

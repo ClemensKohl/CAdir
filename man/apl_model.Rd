@@ -4,12 +4,12 @@
 \alias{apl_model}
 \title{Create a model to project points into an Association Plot}
 \usage{
-apl_model(caobj, direction, group = NULL)
+apl_model(coords, direction, group = NULL)
 }
 \arguments{
-\item{caobj}{A cacomp object.}
+\item{coords}{The CA coordinates to use (should be standard or principal coordinates).}
 
-\item{direction}{Normed direction vector of the APL plot.}
+\item{direction}{Normed direction vector of the APL plot (usually same coordinate type as coords).}
 
 \item{group}{A vector of indices which indicate the points
 that belong to the cluster. Only needed here to orient the plot.}

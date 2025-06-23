@@ -1,6 +1,6 @@
 #' Plot a cluster with the respective direction/line in an APL.
-#'@inheritParams apl_model
 #' @param cadir A cadir object for which to compute the APL
+#' @param caobj A cacomp object.
 #' @param direction Direction of the APL plot.
 #' @param cluster The cluster (if any) to highlight cells and genes by.
 #' @param group Group to determine the correct direction of the APL plot.
@@ -95,22 +95,27 @@ cluster_apl <- function(caobj,
 
     bool_sum <- show_cells + show_genes
     coords <- list("prin_coords_cols", "std_coords_cols")
-    coords_type <- coords[bool_sum]
 
-    if (coords_type == "std_coords_cols") {
+    coords_type <- if (bool_sum != 0) {
+        coords[[bool_sum]]
+    } else {
+        "prin_coords_cols"
+    }
+
+    if (coords_type == "std_coords_cols" && !is.null(coords_type)) {
         # Convert direction to standard coordinates
         direction <- direction / caobj@D
     }
 
     model <- apl_model(
-        coords = methods::slot(caobj, name = coords[[bool_sum]]),
+        coords = methods::slot(caobj, name = coords_type),
         direction = direction,
         group = group
     )
 
 
     c_coords <- if (isTRUE(show_cells)) {
-        methods::slot(caobj, name = coords[[bool_sum]])
+        methods::slot(caobj, name = coords_type)
     } else {
         NULL
     }
@@ -129,11 +134,13 @@ cluster_apl <- function(caobj,
         label_genes = label_genes
     )
 
-    df$info <- paste0(
-        "Name: ", df$sample, "\n",
-        "Cluster: ", df$cluster, "\n",
-        "Type: ", df$type
-    )
+    if (nrow(df) > 0) {
+        df$info <- paste0(
+            "Name: ", df$sample, "\n",
+            "Cluster: ", df$cluster, "\n",
+            "Type: ", df$type
+        )
+    }
 
     ############
     ### Plot ###
@@ -177,7 +184,7 @@ cluster_apl <- function(caobj,
             caobj = caobj,
             cadir = cadir,
             model = model,
-            coords_type = coords[[bool_sum]]
+            coords_type = coords_type
         )
 
         p <- .add_lines(
@@ -271,6 +278,7 @@ cluster_apl <- function(caobj,
 #' Flips APL direction if pointing away from majority of points.
 #' @param apl_dirs Row-wise matrix of APL directions.
 #' @param model The APL model to project cells and genes.
+#' @param coords_type `prin_coords_cols` or `std_coords_cols`.
 #' @inheritParams cluster_apl
 #' @returns
 #' The (flipped) APL directions.
@@ -510,6 +518,7 @@ cluster_apl <- function(caobj,
 
 #' Helper function to label the top `ntop` genes of a cluster in the APL.
 #' @inheritParams .cluster_apl_points
+#' @param show_cells TRUE/FALSE whether to show cells or not.
 #' @returns
 #' ggplot object with labels added.
 .label_genes <- function(ggplt, plot_df, show_cells, ntop = 15) {
@@ -602,7 +611,7 @@ cluster_apl <- function(caobj,
 
     ggplt <- ggplt + ggplot2::geom_abline(
         data = ldf,
-        aes(
+        ggplot2::aes(
             slope = slopes,
             linetype = ltype,
             color = cluster,
@@ -610,7 +619,7 @@ cluster_apl <- function(caobj,
         ),
         linewidth = 1
     ) +
-        scale_linetype_manual(
+        ggplot2::scale_linetype_manual(
             values = c("dashed" = "dashed", "solid" = "solid")
         ) +
         ggplot2::geom_point(

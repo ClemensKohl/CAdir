@@ -4,15 +4,25 @@
 \alias{.add_lines}
 \title{Adds lines of other clusters to the APL.}
 \usage{
-.add_lines(ggplt, apl_dir, highlight_cluster = FALSE)
+.add_lines(
+  ggplt,
+  show_lines,
+  apl_dir,
+  highlight_cluster = FALSE,
+  show_both = FALSE
+)
 }
 \arguments{
 \item{ggplt}{More or less finished ggplot object.}
+
+\item{show_lines}{If TRUE, the directions in cadir are plotted.}
 
 \item{apl_dir}{The cluster directions in APL coordinates.}
 
 \item{highlight_cluster}{If TRUE, highlights the points in belonging to
 \code{cluster}, unless colour_by_group is TRUE.}
+
+\item{show_both}{TRUE if both cells and genes are shown.}
 }
 \value{
 ggplot with lines added.
