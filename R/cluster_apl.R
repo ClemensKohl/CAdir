@@ -95,10 +95,11 @@ cluster_apl <- function(caobj,
 
     bool_sum <- show_cells + show_genes
     coords <- list("prin_coords_cols", "std_coords_cols")
+    coords_type <- coords[bool_sum]
 
-    if (coords[bool_sum] == "std_coords_cols") {
-        # Convert to standard coordinates
-        direction <- direction / ca@D
+    if (coords_type == "std_coords_cols") {
+        # Convert direction to standard coordinates
+        direction <- direction / caobj@D
     }
 
     model <- apl_model(
@@ -157,9 +158,20 @@ cluster_apl <- function(caobj,
 
     if (!isFALSE(show_lines)) {
         show_both <- isTRUE(show_cells && show_genes)
-        dapl <- model(cadir@directions)
 
-        cat(coords[[bool_sum]])
+        dapl <- cadir@directions
+        if (coords_type == "std_coords_cols") {
+            # Convert directions to standard coordinates
+            dapl <- sweep(
+                dapl,
+                2,
+                caobj@D,
+                "/"
+            )
+        }
+
+        dapl <- model(dapl)
+
         dapl <- .toggle_dir(
             apl_dirs = dapl,
             caobj = caobj,
@@ -262,7 +274,13 @@ cluster_apl <- function(caobj,
 #' @inheritParams cluster_apl
 #' @returns
 #' The (flipped) APL directions.
-.toggle_dir <- function(apl_dirs, caobj, cadir, model, coords_type = "prin_coords_cols") {
+.toggle_dir <- function(
+    apl_dirs,
+    caobj,
+    cadir,
+    model,
+    coords_type = "prin_coords_cols"
+) {
     # If the line points into the opposite direction of points
     # we flip the line.
     dapl_nms <- rownames(apl_dirs)
@@ -566,9 +584,6 @@ cluster_apl <- function(caobj,
             }
         }
 
-        if (isTRUE(show_both)) {
-            # FIXME: Convert principal to standard coordinates
-        }
         i <- which(clusters == c)
         ltypes[i] <- ltype
         slopes[i] <- slope(lines = apl_dir[idx, ], dims = 1:2)
@@ -582,6 +597,8 @@ cluster_apl <- function(caobj,
     )
 
     ldf$intercept <- 0
+    ldf$orig_x <- 0
+    ldf$orig_y <- 0
 
     ggplt <- ggplt + ggplot2::geom_abline(
         data = ldf,
@@ -597,12 +614,14 @@ cluster_apl <- function(caobj,
             values = c("dashed" = "dashed", "solid" = "solid")
         ) +
         ggplot2::geom_point(
-            data = data.frame(x = 0, y = 0),
-            ggplot2::aes(x, y, text = NULL),
-            color = lcolor
+            data = ldf,
+            ggplot2::aes(
+                x = orig_x,
+                y = orig_y,
+                color = cluster,
+                text = NULL
+            )
         )
-
-    ggsave("~/tmp/line.jpg")
 
     return(ggplt)
 }
