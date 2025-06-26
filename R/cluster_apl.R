@@ -33,7 +33,7 @@ cluster_apl <- function(caobj,
                         label_genes = FALSE,
                         point_size = 1.5,
                         size_factor = 2,
-                        ntop = 15,
+                        ntop = 10,
                         interactive = FALSE) {
     stopifnot(methods::is(caobj, "cacomp"))
     stopifnot(methods::is(cadir, "cadir"))
