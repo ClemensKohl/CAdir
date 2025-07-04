@@ -19,7 +19,8 @@ sm_plot(
   title_size = 10,
   show_axis = FALSE,
   n_wrap = Inf,
-  layout = "dendrogram"
+  layout = "tree",
+  rotate = TRUE
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ around the cluster node.}
 
 \item{layout}{Graph layout.
 Currently only supports \code{"dendrogram"} or \code{"tree"}.}
+
+\item{rotate}{TRUE/FALSE. Whether to rotate the tree by 90 degrees.}
 }
 \value{
 A ggplot object showing the split-merge graph and APL plots for each cluster.

@@ -152,6 +152,7 @@ plot_sm_graph <- function(cadir,
 #' @param n_wrap Character length around which to wrap inlet titles.
 #' @param layout Graph layout.
 #' Currently only supports `"dendrogram"` or `"tree"`.
+#' @param rotate TRUE/FALSE. Whether to rotate the tree by 90 degrees.
 #' @returns
 #' A ggplot object showing the split-merge graph and APL plots for each cluster.
 #' @export
@@ -168,7 +169,8 @@ sm_plot <- function(cadir,
                     title_size = 10,
                     show_axis = FALSE,
                     n_wrap = Inf,
-                    layout = "dendrogram") {
+                    layout = "tree",
+                    rotate = TRUE) {
     # TODO: Add better options for layout and aesthetics.
     base::stopifnot(
         "Set either `show_cells` or `show_genes` to TRUE." =
@@ -207,9 +209,13 @@ sm_plot <- function(cadir,
     }
 
     bg <- bg +
-        ggraph::geom_node_point(alpha = 1) +
-        ggplot2::coord_flip() +
-        ggplot2::scale_y_reverse()
+        ggraph::geom_node_point(alpha = 1)
+
+    if (isTRUE(rotate)) {
+        bg <- bg +
+            ggplot2::coord_flip() +
+            ggplot2::scale_y_reverse()
+    }
 
     bg_coords <- get_x_y_values(bg)
 
