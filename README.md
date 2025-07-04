@@ -31,15 +31,7 @@ suppressPackageStartupMessages({
   library(scater)
   library(scuttle)
 })
-```
 
-    Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
-    'DelayedArray::makeNindexFromArrayViewport' when loading 'SummarizedExperiment'
-
-    Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
-    'DelayedArray::makeNindexFromArrayViewport' when loading 'HDF5Array'
-
-``` r
 set.seed(2358)
 
 sce <- scRNAseq::ZeiselBrainData()
