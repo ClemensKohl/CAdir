@@ -9,18 +9,22 @@
 #' @returns A plot that summarizes the cell clustering results and
 #' how the clusters relate to each other.
 #' @export
-plot_results <- function(cadir,
-                         caobj,
-                         highlight_cluster = TRUE,
-                         show_cells = TRUE,
-                         show_genes = FALSE,
-                         title_prefix = "Cluster: ",
-                         gsub_title = "",
-                         return_list = FALSE,
-                         ...) {
+plot_results <- function(
+    cadir,
+    caobj,
+    highlight_cluster = TRUE,
+    show_cells = TRUE,
+    show_genes = FALSE,
+    title_prefix = "Cluster: ",
+    gsub_title = "",
+    return_list = FALSE,
+    ...
+) {
     base::stopifnot(
-        "Set either `show_cells` or `show_genes` to TRUE." =
-            isTRUE(show_cells) || isTRUE(show_genes)
+        "Set either `show_cells` or `show_genes` to TRUE." = isTRUE(
+            show_cells
+        ) ||
+            isTRUE(show_genes)
     )
     size <- 1
     pls <- list()
@@ -39,8 +43,10 @@ plot_results <- function(cadir,
                 cls_title <- cls[i]
             }
 
-            sel <- which(cadir@cell_clusters == cls[i] |
-                cadir@cell_clusters == cls[j])
+            sel <- which(
+                cadir@cell_clusters == cls[i] |
+                    cadir@cell_clusters == cls[j]
+            )
 
             if (anno_dirs) {
                 sel_dir <- which(
@@ -52,13 +58,22 @@ plot_results <- function(cadir,
                 dir_idx <- search_dict(cadir@dict, cls[i])
             }
 
-            sub_cak <- methods::new("cadir",
+            sub_cak <- methods::new(
+                "cadir",
                 cell_clusters = cadir@cell_clusters[sel],
                 directions = cadir@directions[sel_dir, , drop = FALSE]
             )
             # cat("\n\ni,j", i, ",", j)
-            if (show_cells) sc <- i == j else sc <- FALSE
-            if (show_genes) sg <- i == j else sg <- FALSE
+            if (show_cells) {
+                sc <- i == j
+            } else {
+                sc <- FALSE
+            }
+            if (show_genes) {
+                sg <- i == j
+            } else {
+                sg <- FALSE
+            }
             p <- cluster_apl(
                 caobj = caobj,
                 cadir = sub_cak,
@@ -85,10 +100,10 @@ plot_results <- function(cadir,
                     axis.text.y = ggplot2::element_blank(),
                     axis.ticks.y = ggplot2::element_blank()
                 )
-            if (isFALSE(sc) && isFALSE(sg)){
-                p <- p + ggplot2::scale_color_manual(values = c("black", "#006c66"))
+            if (isFALSE(sc) && isFALSE(sg)) {
+                p <- p +
+                    ggplot2::scale_color_manual(values = c("black", "#006c66"))
             }
-
 
             if (i == j) {
                 p$layers[[1]]$aes_params$size <- size
@@ -129,21 +144,23 @@ plot_results <- function(cadir,
 #' @inheritParams cluster_apl
 #' @returns A plot that summarizes the cell clustering results.
 #' @export
-plot_clusters <- function(cadir,
-                          caobj,
-                          point_size = 1,
-                          size_factor = 1,
-                          show_genes = FALSE,
-                          label_genes = FALSE,
-                          ntop = 5,
-                          text_size = 16,
-                          title_prefix = "Cluster: ",
-                          ggncol = NULL,
-                          ggnrow = NULL,
-                          axis = FALSE,
-                          gsub_title = NULL,
-                          legend_pos = "none",
-                          return_list = FALSE) {
+plot_clusters <- function(
+    cadir,
+    caobj,
+    point_size = 1,
+    size_factor = 1,
+    show_genes = FALSE,
+    label_genes = FALSE,
+    ntop = 5,
+    text_size = 16,
+    title_prefix = "Cluster: ",
+    ggncol = NULL,
+    ggnrow = NULL,
+    axis = FALSE,
+    gsub_title = NULL,
+    legend_pos = "none",
+    return_list = FALSE
+) {
     pls <- list()
     cls <- levels(cadir@cell_clusters)
 
@@ -203,11 +220,13 @@ plot_clusters <- function(cadir,
     } else {
         fig <- ggpubr::ggarrange(
             plotlist = pls,
-            nrow = ifelse(test = is.null(ggnrow),
+            nrow = ifelse(
+                test = is.null(ggnrow),
                 yes = ceiling(sqrt(length(cls))),
                 no = ggnrow
             ),
-            ncol = ifelse(test = is.null(ggncol),
+            ncol = ifelse(
+                test = is.null(ggncol),
                 yes = ceiling(sqrt(length(cls))),
                 no = ggncol
             )
@@ -216,9 +235,6 @@ plot_clusters <- function(cadir,
 
     return(suppressWarnings(fig))
 }
-
-
-
 
 
 #' Creates a sankey plot of the clustering results with all splits and merges.
@@ -234,7 +250,9 @@ plot_ggsankey <- function(cadir, rm_redund = TRUE) {
     if (isTRUE(rm_redund)) {
         del_cl <- c()
         for (c in seq_len(ncol(sub_cls))) {
-            if (c == 1) next
+            if (c == 1) {
+                next
+            }
             if (all(sub_cls[, c] == sub_cls[, c - 1])) {
                 del_cl <- c(del_cl, c)
             }
@@ -285,7 +303,9 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
     if (isTRUE(rm_redund)) {
         del_cl <- c()
         for (c in seq_len(ncol(sub_cls))) {
-            if (c == 1) next
+            if (c == 1) {
+                next
+            }
             if (all(sub_cls[, c] == sub_cls[, c - 1])) {
                 del_cl <- c(del_cl, c)
             }
@@ -303,7 +323,9 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
     for (n in seq_len(ncol(sub_cls))) {
         nodes_nms <- c(nodes_nms, paste0(stepnm[n], "_", unique(sub_cls[, n])))
 
-        if (n == ncol(sub_cls)) next
+        if (n == ncol(sub_cls)) {
+            next
+        }
 
         from <- unique(sub_cls[, n])
 
@@ -334,7 +356,6 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
     links$source_id <- as.numeric(links$source) - 1
     links$target_id <- as.numeric(links$target) - 1
 
-
     networkD3::sankeyNetwork(
         Links = links,
         Nodes = nodes,
@@ -350,12 +371,13 @@ plot_sankey <- function(cadir, rm_redund = rm_redund) {
 }
 
 
-
 # Adapted from cowplot::theme_nothing
 #' @importFrom ggplot2 '%+replace%'
 # ggplot2 theme that strips all elements from a plot.
-theme_blank <- function(title = ggplot2::element_blank(),
-                        text = ggplot2::element_blank()) {
+theme_blank <- function(
+    title = ggplot2::element_blank(),
+    text = ggplot2::element_blank()
+) {
     ggplot2::theme_void() %+replace%
         ggplot2::theme(
             # Elements in this first block aren't used directly, but are inherited
@@ -434,8 +456,10 @@ theme_blank <- function(title = ggplot2::element_blank(),
 
 #' @importFrom ggplot2 '%+replace%'
 # ggplot2 theme that strips all elements from a plot, but leaves axis ticks and elements.
-theme_axis_only <- function(title = ggplot2::element_blank(),
-                            text = ggplot2::element_blank()) {
+theme_axis_only <- function(
+    title = ggplot2::element_blank(),
+    text = ggplot2::element_blank()
+) {
     ggplot2::theme_classic() %+replace%
         ggplot2::theme(
             # Elements in this first block aren't used directly, but are inherited
@@ -507,7 +531,7 @@ theme_axis_only <- function(title = ggplot2::element_blank(),
 
 
 #' ggplot2 scale for the MPI colors and extended swatches.
-#' @param name The name of the scale. Either "mpi" or "mpimg".
+#' @param name The name of the scale. Either "mpimg" or "mpi_extend".
 #' @param ... Further arguments to ggplot2::discrete_scale.
 #' @export
 scale_color_mpimg <- function(name = "mpimg", ...) {

@@ -7,7 +7,7 @@
 scale_color_mpimg(name = "mpimg", ...)
 }
 \arguments{
-\item{name}{The name of the scale. Either "mpi" or "mpimg".}
+\item{name}{The name of the scale. Either "mpimg" or "mpi_extend".}
 
 \item{...}{Further arguments to ggplot2::discrete_scale.}
 }
