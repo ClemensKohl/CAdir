@@ -5,42 +5,44 @@
 #' @return
 #' If object is a valid cadir object returns TRUE, otherwise the errors.
 check_cadir <- function(object) {
-    stopifnot(methods::is(object, "cadir"))
+  stopifnot(methods::is(object, "cadir"))
 
-    errors <- character()
+  errors <- character()
 
-    ndir <- nrow(object@directions)
-    n_cell_cl <- unique(object@cell_clusters)
-    n_gene_cl <- unique(object@gene_clusters)
+  ndir <- nrow(object@directions)
+  n_cell_cl <- unique(object@cell_clusters)
+  n_gene_cl <- unique(object@gene_clusters)
 
-    n_cl <- length(unique(n_cell_cl, n_gene_cl))
+  n_cl <- length(unique(n_cell_cl, n_gene_cl))
 
-    if (ndir != n_cl) {
-        cat("ndir: ", ndir, "\n")
-        cat("n_cl: ", n_cl, "\n")
-        msg <- c(
-            "Number of cell clusters not equal to number of directions."
-        )
-        errors <- c(errors, msg)
-    }
+  if (ndir != n_cl) {
+    cat("ndir: ", ndir, "\n")
+    cat("n_cl: ", n_cl, "\n")
+    msg <- c(
+      "Number of cell clusters not equal to number of directions."
+    )
+    errors <- c(errors, msg)
+  }
 
-    if (ndir != ncol(object@distances) && !is.empty(object@distances)) {
-        msg <- c("Distances dont match directions.")
-        errors <- c(errors, msg)
-    }
+  if (ndir != ncol(object@distances) && !is.empty(object@distances)) {
+    msg <- c("Distances dont match directions.")
+    errors <- c(errors, msg)
+  }
 
-    if (is.null(names(object@cell_clusters))) {
-        msg <- c("Cell clusters have no names.")
-        errors <- c(errors, msg)
-    }
+  if (is.null(names(object@cell_clusters))) {
+    msg <- c("Cell clusters have no names.")
+    errors <- c(errors, msg)
+  }
 
-    if (!is.empty(object@gene_clusters) &&
-        is.null(names(object@gene_clusters))) {
-        msg <- c("Gene clusters have no names.")
-        errors <- c(errors, msg)
-    }
+  if (
+    !is.empty(object@gene_clusters) &&
+      is.null(names(object@gene_clusters))
+  ) {
+    msg <- c("Gene clusters have no names.")
+    errors <- c(errors, msg)
+  }
 
-    if (length(errors) == 0) TRUE else errors
+  if (length(errors) == 0) TRUE else errors
 }
 
 
@@ -80,33 +82,34 @@ check_cadir <- function(object) {
 #' @slot dict A list that maps cluster names to the row of the corresponding
 #' direction in @directions.
 #' @export
-setClass("cadir",
-    contains = "caclust",
-    representation(
-        cell_clusters = "factor",
-        gene_clusters = "factor",
-        directions = "matrix",
-        distances = "matrix",
-        log = "list",
-        parameters = "list",
-        plots = "list",
-        gene_ranks = "list",
-        dict = "list"
+setClass(
+  "cadir",
+  contains = "caclust",
+  representation(
+    cell_clusters = "factor",
+    gene_clusters = "factor",
+    directions = "matrix",
+    distances = "matrix",
+    log = "list",
+    parameters = "list",
+    plots = "list",
+    gene_ranks = "list",
+    dict = "list"
+  ),
+  prototype(
+    cell_clusters = factor(),
+    gene_clusters = factor(),
+    directions = matrix(0, 0, 0),
+    distances = matrix(0, 0, 0),
+    parameters = list(),
+    log = list(),
+    plots = list(
+      "splits" = list(),
+      "merges" = list(),
+      "clusters" = list()
     ),
-    prototype(
-        cell_clusters = factor(),
-        gene_clusters = factor(),
-        directions = matrix(0, 0, 0),
-        distances = matrix(0, 0, 0),
-        parameters = list(),
-        log = list(),
-        plots = list(
-            "splits" = list(),
-            "merges" = list(),
-            "clusters" = list()
-        ),
-        gene_ranks = list(),
-        dict = list()
-    ),
-    validity = check_cadir
+    gene_ranks = list(),
+    dict = list()
+  ),
+  validity = check_cadir
 )

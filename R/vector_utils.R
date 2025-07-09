@@ -3,18 +3,16 @@
 #' @returns
 #' The norm of the vector.
 row_norm <- function(x) {
-    if (is.matrix(x)) {
-        norm <- sqrt(rowSums(x^2))
-    } else if (is.null(dim(x))) {
-        norm <- sqrt(sum(x^2))
-    } else {
-        rlang::abort("Uknown object.")
-    }
+  if (is.matrix(x)) {
+    norm <- sqrt(rowSums(x^2))
+  } else if (is.null(dim(x))) {
+    norm <- sqrt(sum(x^2))
+  } else {
+    rlang::abort("Uknown object.")
+  }
 
-    return(norm)
+  return(norm)
 }
-
-
 
 
 #' Calculate the cosine of the angle between two vectors.
@@ -23,20 +21,22 @@ row_norm <- function(x) {
 #' @returns
 #' The cosine of the angle between the vectors.
 cosine <- function(a, b) {
-    norma <- row_norm(a)
-    normb <- row_norm(b)
+  norma <- row_norm(a)
+  normb <- row_norm(b)
 
-    if (is.null(dim(a)) && is.null(dim(b))) {
-        costheta <- (a %*% b) / (norma * normb)
-        costheta <- min(max(costheta, -1), 1)
-    } else {
-        if (!is.null(dim(b))) b <- t(b)
-
-        costheta <- (a %*% b) / (outer(norma, normb, FUN = "*"))
-        costheta <- pmin(pmax(costheta, -1), 1)
+  if (is.null(dim(a)) && is.null(dim(b))) {
+    costheta <- (a %*% b) / (norma * normb)
+    costheta <- min(max(costheta, -1), 1)
+  } else {
+    if (!is.null(dim(b))) {
+      b <- t(b)
     }
 
-    return(costheta)
+    costheta <- (a %*% b) / (outer(norma, normb, FUN = "*"))
+    costheta <- pmin(pmax(costheta, -1), 1)
+  }
+
+  return(costheta)
 }
 
 #' Calculate angular similarity between two vectors.
@@ -44,8 +44,8 @@ cosine <- function(a, b) {
 #' @param b Vector or matrix of row-vectors.
 #' @returns scalar. The angular similarity.
 get_ang_sim <- function(a, b) {
-    sim <- 1 - acos(cosine(a, b)) / pi
-    return(sim)
+  sim <- 1 - acos(cosine(a, b)) / pi
+  return(sim)
 }
 
 #' Calculate angle between two vectors.
@@ -53,8 +53,8 @@ get_ang_sim <- function(a, b) {
 #' @param b Vector or matrix of row-vectors.
 #' @returns scalar. The angle between the vectors in radian.
 get_angle <- function(a, b) {
-    angle <- acos(cosine(a, b))
-    return(angle)
+  angle <- acos(cosine(a, b))
+  return(angle)
 }
 
 #' Convert the angular similarity to degrees.
@@ -62,8 +62,8 @@ get_angle <- function(a, b) {
 #' @param ang_sim Angular similarity.
 #' @returns scalar. The angle in degrees.
 ang_sim_to_deg <- function(ang_sim) {
-    deg <- rad2deg((pi - ang_sim * pi))
-    return(deg)
+  deg <- rad2deg((pi - ang_sim * pi))
+  return(deg)
 }
 
 #' Convert the angular similarity to degrees.
@@ -71,8 +71,8 @@ ang_sim_to_deg <- function(ang_sim) {
 #' @param rad The input radians.
 #' @returns scalar. radians converted to angular similarity.
 rad_to_ang_sim <- function(rad) {
-    ang_sim <- 1 - (rad / pi)
-    return(ang_sim)
+  ang_sim <- 1 - (rad / pi)
+  return(ang_sim)
 }
 
 
@@ -80,16 +80,16 @@ rad_to_ang_sim <- function(rad) {
 #' @param x Angle in degrees.
 #' @returns Angle in radians.
 deg2rad <- function(x) {
-    r <- (x * pi) / 180
-    return(r)
+  r <- (x * pi) / 180
+  return(r)
 }
 
 #' Convert radians to degrees.
 #' @param x Angle in radians.
 #' @returns Angle in degrees.
 rad2deg <- function(x) {
-    d <- (x * 180) / pi
-    return(d)
+  d <- (x * 180) / pi
+  return(d)
 }
 
 #' Calculate the slope of lines/vectors.
@@ -98,10 +98,10 @@ rad2deg <- function(x) {
 #' @param dims The 2 dimensions which should be used to calculate the slope.
 #' @returns Vector of slopes.
 slope <- function(lines, dims = 1:2) {
-    if (is.null(nrow(lines)) == 1) {
-        d <- lines[dims[2]] / lines[dims[1]]
-    } else {
-        d <- lines[, dims[2]] / lines[, dims[1]]
-    }
-    return(d)
+  if (is.null(nrow(lines)) == 1) {
+    d <- lines[dims[2]] / lines[dims[1]]
+  } else {
+    d <- lines[, dims[2]] / lines[, dims[1]]
+  }
+  return(d)
 }
