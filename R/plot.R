@@ -553,7 +553,7 @@ scale_color_mpimg <- function(name = "mpimg", ...) {
 }
 
 #' ggplot2 scale for the MPI colors and extended swatches.
-#' @param name The name of the scale. Either "mpi" or "mpimg".
+#' @param name The name of the scale. Either "mpimg" or "mpi_extend".
 #' @param ... Further arguments to ggplot2::discrete_scale.
 #' @export
 scale_fill_mpimg <- function(name = "mpimg", ...) {
