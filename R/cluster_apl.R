@@ -553,14 +553,17 @@ cluster_apl <- function(
   dfh <- plot_df[to_highlight, ]
   dfh <- utils::head(dfh[order(dfh$gene_score, decreasing = TRUE), ], ntop)
   ggplt <- ggplt +
-    ggrepel::geom_label_repel(
+    ggrepel::geom_text_repel(
       data = dfh,
       ggplot2::aes(
         x = x,
         y = y,
         label = sample
       ),
-      max.overlaps = Inf
+      max.overlaps = Inf,
+      # colour = "white",
+      bg.color = "black",
+      bg.r = .05
     )
 
   return(ggplt)
