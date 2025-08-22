@@ -563,7 +563,7 @@ cluster_apl <- function(
       max.overlaps = Inf,
       # colour = "white",
       bg.color = "black",
-      bg.r = .05
+      bg.r = .05 # NOTE: remove if bg wrong size.
     )
 
   return(ggplt)
