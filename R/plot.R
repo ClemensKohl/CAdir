@@ -575,6 +575,10 @@ scale_fill_mpimg <- function(name = "mpimg", ...) {
 }
 
 
+#' Continous ggplot2 scale for the MPI colors and extended swatches.
+#' @param name The name of the scale. Either "mpi" or "mpimg".
+#' @param ... Further arguments to ggplot2::discrete_scale.
+#' @export
 scale_fill_gradient_mpimg <- function(name = "orange", ...) {
   if (name == "orange") {
     ggplot2::scale_fill_gradientn(
