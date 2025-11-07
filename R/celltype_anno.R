@@ -3,6 +3,9 @@
 #' @importFrom CAbiNet annotate_by_goa
 NULL
 
+# NOTE: use fsgea package
+perform_gsea <- function(cadir) {}
+
 #' Annotate CAbiNet results by gene overrepresentation
 #'  analysis results.
 #'
