@@ -1,8 +1,8 @@
 # NOTE: Verbosity of the messages can be controlled with rlang.
 # To turn all messages off:
-# rlang::local_options(mypackage.verbose = "quiet")
-# To turn them back on:
-# rlang::local_options(mypackage.verbose = "verbose")
+# options(rlib_message_verbosity = "quiet")
+# # To turn them back on:
+# options(rlib_message_verbosity = "default")
 
 #' Split a cluster into 2 sub-clusters.
 #' @inheritParams dirclust

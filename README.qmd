@@ -51,11 +51,13 @@ sce <- sce[top_genes, ]
 #| label: CA
 cnts <- as.matrix(logcounts(sce))
 
-ca <- cacomp(obj = cnts,
-             princ_coords = 3,
-             dims = 30,
-             top = nrow(cnts),
-             residuals = "pearson")
+ca <- cacomp(
+  obj = cnts,
+  princ_coords = 3,
+  dims = 30,
+  top = nrow(cnts),
+  residuals = "pearson"
+)
 
 cell_types <- sce$level1class
 cat("Number of cell types:", length(unique(cell_types)), "\n")
@@ -101,13 +103,15 @@ head(top[top$Cluster == "Macrophage", ])
 
 ```{r}
 #| label: macrophage_APL
-cluster_apl(cadir = cadir,
-            caobj = ca,
-            direction = cadir@directions["Macrophage",],
-            group = which(cadir@cell_clusters == "Macrophage"),
-            cluster = "Macrophage",
-            show_genes = TRUE,
-            label_genes = TRUE)
+cluster_apl(
+  cadir = cadir,
+  caobj = ca,
+  direction = cadir@directions["Macrophage", ],
+  group = which(cadir@cell_clusters == "Macrophage"),
+  cluster = "Macrophage",
+  show_genes = TRUE,
+  label_genes = TRUE
+)
 ```
 
 ```{r}
@@ -140,12 +144,12 @@ To turn all messages off:
 ```{r}
 #| eval: false
 #| label: quiet
-rlang::local_options(mypackage.verbose = "quiet")
+options(rlib_message_verbosity = "quiet")
 ```
 
- To turn them back on:
+To turn them back on:
 ```{r}
 #| eval: false
 #| label: verbose
-rlang::local_options(mypackage.verbose = "verbose")
+options(rlib_message_verbosity = "default")
 ```
