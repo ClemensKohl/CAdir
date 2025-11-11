@@ -4,12 +4,15 @@
 \alias{rank_genes}
 \title{Rank genes based on the S-alpha score.}
 \usage{
-rank_genes(cadir, caobj)
+rank_genes(cadir, caobj, cluster_only = TRUE)
 }
 \arguments{
 \item{cadir}{A cadir object.}
 
 \item{caobj}{A cacomp object.}
+
+\item{cluster_only}{TRUE/FALSE.
+Set if only co-clustered genes should be ranked.}
 }
 \value{
 A modified cadir object with the gene ranking

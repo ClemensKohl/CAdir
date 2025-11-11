@@ -61,10 +61,12 @@ assign_genes <- function(caobj, cadir, qcutoff = NULL, coords = "prin") {
 #' Rank genes based on the S-alpha score.
 #' @param cadir A cadir object.
 #' @param caobj A cacomp object.
+#' @param cluster_only TRUE/FALSE.
+#' Set if only co-clustered genes should be ranked.
 #' @returns A modified cadir object with the gene ranking
 #' in the 'gene_ranks' slot.
 #' @export
-rank_genes <- function(cadir, caobj) {
+rank_genes <- function(cadir, caobj, cluster_only = TRUE) {
   # Step 1: Get APL coordinates of co-clustered genes
   alpha <- cadir@parameters$alpha_genes
   # for the cluster direction.
@@ -78,7 +80,7 @@ rank_genes <- function(cadir, caobj) {
     ngenes <- sum(cadir@gene_clusters == c)
     if (ngenes < 1) {
       all_ranks[[c]] <- NA
-      next
+      if (isTRUE(cluster_only)) next
     }
 
     # Get cutoff
@@ -103,13 +105,18 @@ rank_genes <- function(cadir, caobj) {
     )
 
     gene_coords <- model(caobj@prin_coords_rows)
-    cluster_genes <- names(cadir@gene_clusters)[which(cadir@gene_clusters == c)]
+
     # subset genes to cluster genes
-    gene_coords <- gene_coords[
-      which(rownames(gene_coords) %in% cluster_genes),
-      ,
-      drop = FALSE
-    ]
+    if (isTRUE(cluster_only)) {
+      cluster_genes <- names(cadir@gene_clusters)[which(
+        cadir@gene_clusters == c
+      )]
+      gene_coords <- gene_coords[
+        which(rownames(gene_coords) %in% cluster_genes),
+        ,
+        drop = FALSE
+      ]
+    }
 
     # Step 3: Score by cutoff
     score <- gene_coords[, 1] - (gene_coords[, 2] * alpha)

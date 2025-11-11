@@ -12,8 +12,8 @@
   alpha = 0.05,
   min_size = 10,
   max_size = 500,
-  verbose = TRUE,
-  ...
+  ...,
+  method = "goa"
 )
 }
 \arguments{
@@ -34,8 +34,6 @@ Only results with padj < alpha will be used.}
 
 \item{max_size}{Max number of genes in the gene set.
 Set to Inf if you want to keep all genes.}
-
-\item{verbose}{Toggles verbosity of warnings.}
 
 \item{...}{Further arguments.}
 }
