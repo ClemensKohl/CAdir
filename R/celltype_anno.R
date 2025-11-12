@@ -16,17 +16,18 @@ assign_cts_logpval <- function(goa_res) {
   # Solve assignment problem with the hungarian algorithm.
   # Build cost matrix.
   goa_res <- dplyr::bind_rows(goa_res, .id = "cluster")
+  goa_res$log_padj <- log10(goa_res$padj)
 
   cost_mat <- stats::reshape(
-    data = goa_res[, c("cluster", "gene_set", "padj")],
+    data = goa_res[, c("cluster", "gene_set", "log_padj")],
     direction = "wide",
     idvar = "cluster",
     timevar = "gene_set",
     new.row.names = seq_len(length(unique(goa_res$cluster)))
   )
 
-  cost_mat[is.na(cost_mat)] <- 1
-  colnames(cost_mat) <- gsub("padj.", "", colnames(cost_mat), fixed = TRUE)
+  cost_mat[is.na(cost_mat)] <- 0
+  colnames(cost_mat) <- gsub("log_padj.", "", colnames(cost_mat), fixed = TRUE)
 
   if ("No_Cell_Type_Found" %in% colnames(cost_mat)) {
     rm_col <- which(colnames(cost_mat) == "No_Cell_Type_Found")
@@ -52,7 +53,7 @@ assign_cts_logpval <- function(goa_res) {
   cluster_anno <- data.frame(
     cluster = clusters[assignments[, 1]],
     cell_type = cell_types[assignments[, 2]],
-    padj = cost_mat[assignments]
+    log_padj = -cost_mat[assignments]
   )
 
   return(cluster_anno)
@@ -130,8 +131,8 @@ setMethod(
         ct <- noanno
       } else {
         ct <- cluster_anno[cluster_anno$cluster == allcs[c], "cell_type"]
-        padj <- cluster_anno[cluster_anno$cluster == allcs[c], "padj"]
-        if (padj > alpha) ct <- noanno
+        log_padj <- cluster_anno[cluster_anno$cluster == allcs[c], "log_padj"]
+        if (log_padj < (-log10(alpha))) ct <- noanno
       }
 
       if (allcs[c] %in% ungcs) {
