@@ -2,6 +2,7 @@
 
 export(apl_model)
 export(assign_cells)
+export(assign_cts_logpval)
 export(assign_genes)
 export(cadir_to_biclust)
 export(cluster_apl)
