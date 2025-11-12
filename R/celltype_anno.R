@@ -11,9 +11,6 @@ perform_gsea <- function(
   max_size = 500,
   set = "CellMarker"
 ) {
-  # TODO: Figure out if you need to convert the scores to high score -> low score.
-  # TODO: Figure out if you need to rank all genes, or if co-clustered are enough.
-
   gsea <- fgsea::fgsea(
     pathways = gene_sets,
     stats = salpha,
@@ -142,6 +139,8 @@ setMethod(
       subs <- min(nrow(x), nc)
       x[seq_len(subs), ]
     })
+
+    # TODO: Should I use NES for GSEA celltype assignment?
 
     # Solve assignment problem with the hungarian algorithm.
     cluster_anno <- assign_cts(goa_res)
