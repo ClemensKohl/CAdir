@@ -16,7 +16,8 @@ perform_gsea <- function(
 
   gsea <- fgsea::fgsea(
     pathways = gene_sets,
-    stats = salpha * (-1),
+    stats = salpha,
+    scoreType = "pos",
     minSize = min_size,
     maxSize = max_size
   )
@@ -28,7 +29,8 @@ per_cluster_gsea <- function(
   org,
   set = "CellMarker",
   min_size = 10,
-  max_size = 500
+  max_size = 500,
+  filter_literature = TRUE
 ) {
   stopifnot(is(cadir, "cadir"))
 
@@ -41,12 +43,18 @@ per_cluster_gsea <- function(
   gs <- CAbiNet:::load_gene_set(set = set, org = org)
   gene_sets <- CAbiNet:::format_gene_sets(gs)
 
+  if (isTRUE(filter_literature)) {
+    gene_sets <- gene_sets[!grepl("et_al\\.", names(gene_sets))]
+  }
+
   gc <- gene_clusters(cadir)
   gc_names <- sort(unique(gc))
 
+  cadir_rnk <- cadir
+  # cadir_rnk@parameters$alpha_genes <- deg2rad(90)
   # Rank all genes
   cadir_rnk <- rank_genes(
-    cadir = cadir,
+    cadir = cadir_rnk,
     caobj = caobj,
     cluster_only = FALSE
   )
@@ -66,68 +74,12 @@ per_cluster_gsea <- function(
       max_size = max_size,
     )
     colnames(gsea)[colnames(gsea) == "pathway"] <- "gene_set"
-    gsea <- gsea[order(padj), ]
+    gsea <- gsea[order(gsea$padj), ]
 
     gsea_res[[cls]] <- gsea
   }
 
   return(gsea_res)
-}
-
-
-#' Assign cell types to clusters using the Hungarian algorithm.
-#' @description
-#' Uses the hungarian algorithm (assignment problem)
-#' to assign a cell type from the gene set overrepresentation
-#' analysis to one (and only one) cluster.
-#' @param goa_res List of goa results for each bicluster.
-#' @returns
-#' A data frame with the assigned cell types and adjusted p-values.
-#' @export
-assign_cts <- function(goa_res) {
-  # Solve assignment problem with the hungarian algorithm.
-  # Build cost matrix.
-  goa_res <- dplyr::bind_rows(goa_res, .id = "cluster")
-
-  cost_mat <- stats::reshape(
-    data = goa_res[, c("cluster", "gene_set", "padj")],
-    direction = "wide",
-    idvar = "cluster",
-    timevar = "gene_set",
-    new.row.names = seq_len(length(unique(goa_res$cluster)))
-  )
-
-  cost_mat[is.na(cost_mat)] <- 1
-  colnames(cost_mat) <- gsub("padj.", "", colnames(cost_mat), fixed = TRUE)
-
-  if ("No_Cell_Type_Found" %in% colnames(cost_mat)) {
-    rm_col <- which(colnames(cost_mat) == "No_Cell_Type_Found")
-    cost_mat <- cost_mat[, -rm_col, drop = FALSE]
-  }
-
-  if (ncol(cost_mat) == 1) {
-    stop(
-      "GOA results do not contain any cell types! Check if any genes are in the gene sets!"
-    )
-  }
-
-  clusters <- as.character(cost_mat$cluster)
-  cell_types <- colnames(cost_mat)[2:ncol(cost_mat)]
-
-  cost_mat <- as.matrix(cost_mat[, 2:ncol(cost_mat)], drop = FALSE)
-
-  # solve assignment problem
-  assignments <- RcppHungarian::HungarianSolver(cost_mat)$pairs
-
-  assignments <- assignments[assignments[, 2] > 0, ]
-
-  cluster_anno <- data.frame(
-    cluster = clusters[assignments[, 1]],
-    cell_type = cell_types[assignments[, 2]],
-    padj = cost_mat[assignments]
-  )
-
-  return(cluster_anno)
 }
 
 #' Annotate CAbiNet results by gene overrepresentation
@@ -275,7 +227,8 @@ setMethod(
     max_size = 500,
     ...,
     caobj = NULL,
-    method = "goa" # TODO: add parameter to all function calls elsewhere.
+    method = "goa", # TODO: add parameter to all function calls elsewhere.
+    filter_literature = TRUE # TODO: add parameter to all function calls elsewhere.
   ) {
     stopifnot(methods::is(obj, "caclust"))
 
@@ -292,14 +245,14 @@ setMethod(
       if (is.null(caobj)) {
         rlang::abort("Please provide a cacomp object for parameter 'caobj'.")
       }
-
       enr_res <- per_cluster_gsea(
         cadir = obj,
         caobj = caobj,
         set = set,
         org = org,
         min_size = min_size,
-        max_size = max_size
+        max_size = max_size,
+        filter_literature = filter_literature
       )
     } else {
       rlang::abort("Please pick a valid method: Can be either 'goa' or 'gsea'.")

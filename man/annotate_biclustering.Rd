@@ -13,7 +13,9 @@
   min_size = 10,
   max_size = 500,
   ...,
-  method = "goa"
+  caobj = NULL,
+  method = "goa",
+  filter_literature = TRUE
 )
 }
 \arguments{
