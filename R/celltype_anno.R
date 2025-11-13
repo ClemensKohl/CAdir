@@ -3,6 +3,41 @@
 #' @importFrom CAbiNet annotate_by_goa
 NULL
 
+#' Filter gene sets by size
+#' @description
+#' This function cuts removes gene sets below and above a certain size.
+#' @param gene_sets A named list of gene sets (name is the gene set,
+#' each element of the list contains a vector of genes)
+#' @param min_size Min. number of genes in the gene set.
+#' @param max_size Max number of genes in the gene set.
+#' Set to Inf if you want to keep all genes.
+#' @returns
+#' Filtered list of gene sets.
+filter_gene_sets <- function(
+  gene_sets,
+  min_size = 10,
+  max_size = 500,
+  filter_literature = FALSE
+) {
+  if (is.na(min_size) || is.null(min_size)) {
+    min_size <- 1
+  }
+  if (is.na(max_size) || is.null(max_size)) {
+    max_size <- Inf
+  } #.Machine$integer.max
+
+  ## index of gene_sets in used.
+  ## logical
+  gene_sets_length <- lengths(gene_sets)
+  idx <- min_size <= gene_sets_length & gene_sets_length <= max_size
+
+  gene_sets <- gene_sets[idx]
+  if (isTRUE(filter_literature)) {
+    gene_sets <- gene_sets[!grepl("et_al\\.", names(gene_sets))]
+  }
+  return(gene_sets)
+}
+
 # NOTE: use fsgea package
 perform_gsea <- function(
   salpha,
@@ -20,6 +55,25 @@ perform_gsea <- function(
   )
 }
 
+#' Perform gene set overrepresentation analysis
+#' for each bicluster and annotate cells based on
+#' the best match.
+#'
+#' @description
+#' per_cluster_goa loads the required gene set, formats it and performs
+#' gene overrepresentation analysis for each bicluster in the cabic
+#' object.
+#'
+#' @param cabic A biclustering object of class "caclust"
+#'  as obtained from `caclust`.
+#' @inheritParams perform_goa
+#' @inheritParams load_gene_set
+#' @inheritParams format_gene_sets
+#'
+#' @return
+#' A list contain the goa results for each cluster.
+#'
+#' @export
 per_cluster_gsea <- function(
   cadir,
   caobj,
@@ -38,11 +92,16 @@ per_cluster_gsea <- function(
 
   # Load gene sets
   gs <- CAbiNet:::load_gene_set(set = set, org = org)
-  gene_sets <- CAbiNet:::format_gene_sets(gs)
+  gene_sets <- format_gene_sets(
+    gs,
+    min_size = min_size,
+    max_size = max_size,
+    filter_literature = filter_literature
+  )
 
-  if (isTRUE(filter_literature)) {
-    gene_sets <- gene_sets[!grepl("et_al\\.", names(gene_sets))]
-  }
+  # if (isTRUE(filter_literature)) {
+  #   gene_sets <- gene_sets[!grepl("et_al\\.", names(gene_sets))]
+  # }
 
   gc <- gene_clusters(cadir)
   gc_names <- sort(unique(gc))
@@ -78,6 +137,82 @@ per_cluster_gsea <- function(
 
   return(gsea_res)
 }
+
+#' Perform gene set overrepresentation analysis
+#' for each bicluster and annotate cells based on
+#' the best match.
+#'
+#' @description
+#' per_cluster_goa loads the required gene set, formats it and performs
+#' gene overrepresentation analysis for each bicluster in the cabic
+#' object.
+#'
+#' @param cabic A biclustering object of class "caclust"
+#'  as obtained from `caclust`.
+#' @inheritParams perform_goa
+#' @inheritParams load_gene_set
+#'
+#' @return
+#' A list contain the goa results for each cluster.
+#'
+#' @export
+per_cluster_goa <- function(
+  cabic,
+  universe,
+  org,
+  set = "CellMarker",
+  min_size = 10,
+  max_size = 500,
+  filter_literature = FALSE,
+  verbose = TRUE
+) {
+  stopifnot(is(cabic, "caclust"))
+
+  # Ensure that we deal only with clusters consisting of cells and genes.
+  suppressWarnings({
+    cabic <- rm_monoclusters(cabic)
+  })
+
+  # Load gene sets
+  gs <- load_gene_set(set = set, org = org)
+  gene_sets <- format_gene_sets(
+    gs,
+    min_size = min_size,
+    max_size = max_size,
+    filter_literature = filter_literature
+  )
+
+  gc <- gene_clusters(cabic)
+  gc_names <- sort(unique(gc))
+
+  gc_list <- lapply(X = gc_names, FUN = function(x) {
+    names(gc[which(gc == gc_names[x])])
+  })
+
+  names(gc_list) <- gc_names
+
+  # Perform goa for each cluster
+  goa_res <- list()
+
+  for (c in seq_len(length(gc_list))) {
+    gene <- gc_list[[c]]
+    clst_name <- names(gc_list)[c]
+
+    goa <- perform_goa(
+      gois = gene,
+      gene_sets = gene_sets,
+      universe = universe,
+      min_size = min_size,
+      max_size = max_size,
+      verbose = verbose
+    )
+
+    goa_res[[clst_name]] <- goa
+  }
+
+  return(goa_res)
+}
+
 
 #' Annotate CAbiNet results by gene overrepresentation
 #'  analysis results.
