@@ -213,6 +213,61 @@ per_cluster_goa <- function(
   return(goa_res)
 }
 
+#' Assign cell types to clusters using the Hungarian algorithm.
+#' @description
+#' Uses the hungarian algorithm (assignment problem)
+#' to assign a cell type from the gene set overrepresentation
+#' analysis to one (and only one) cluster.
+#' @param goa_res List of goa results for each bicluster.
+#' @returns
+#' A data frame with the assigned cell types and adjusted p-values.
+#' @export
+assign_cts_logpval <- function(goa_res) {
+  # Solve assignment problem with the hungarian algorithm.
+  # Build cost matrix.
+  goa_res <- dplyr::bind_rows(goa_res, .id = "cluster")
+  goa_res$log_padj <- log10(goa_res$padj)
+
+  cost_mat <- stats::reshape(
+    data = goa_res[, c("cluster", "gene_set", "log_padj")],
+    direction = "wide",
+    idvar = "cluster",
+    timevar = "gene_set",
+    new.row.names = seq_len(length(unique(goa_res$cluster)))
+  )
+
+  cost_mat[is.na(cost_mat)] <- 0
+  colnames(cost_mat) <- gsub("log_padj.", "", colnames(cost_mat), fixed = TRUE)
+
+  if ("No_Cell_Type_Found" %in% colnames(cost_mat)) {
+    rm_col <- which(colnames(cost_mat) == "No_Cell_Type_Found")
+    cost_mat <- cost_mat[, -rm_col, drop = FALSE]
+  }
+
+  if (ncol(cost_mat) == 1) {
+    stop(
+      "GOA results do not contain any cell types! Check if any genes are in the gene sets!"
+    )
+  }
+
+  clusters <- as.character(cost_mat$cluster)
+  cell_types <- colnames(cost_mat)[2:ncol(cost_mat)]
+
+  cost_mat <- as.matrix(cost_mat[, 2:ncol(cost_mat)], drop = FALSE)
+
+  # solve assignment problem
+  assignments <- RcppHungarian::HungarianSolver(cost_mat)$pairs
+
+  assignments <- assignments[assignments[, 2] > 0, ]
+
+  cluster_anno <- data.frame(
+    cluster = clusters[assignments[, 1]],
+    cell_type = cell_types[assignments[, 2]],
+    log_padj = -cost_mat[assignments]
+  )
+
+  return(cluster_anno)
+}
 
 #' Annotate CAbiNet results by gene overrepresentation
 #'  analysis results.
@@ -278,7 +333,13 @@ setMethod(
     # TODO: Should I use NES for GSEA celltype assignment?
 
     # Solve assignment problem with the hungarian algorithm.
-    cluster_anno <- assign_cts(goa_res)
+    if (isFALSE(logpval)) {
+      cluster_anno <- assign_cts(goa_res)
+    } else if (isTRUE(logpval)) {
+      cluster_anno <- assign_cts_logpval(goa_res)
+    } else {
+      rlang::abort("logpval can only be TRUE or FALSE!")
+    }
 
     # Rename clusters based on GSE.
     for (c in seq_len(length(allcs))) {
@@ -288,8 +349,8 @@ setMethod(
         ct <- noanno
       } else {
         ct <- cluster_anno[cluster_anno$cluster == allcs[c], "cell_type"]
-        padj <- cluster_anno[cluster_anno$cluster == allcs[c], "padj"]
-        if (padj > alpha) ct <- noanno
+        log_padj <- cluster_anno[cluster_anno$cluster == allcs[c], "log_padj"]
+        if (log_padj < (-log10(alpha))) ct <- noanno
       }
 
       if (allcs[c] %in% ungcs) {
