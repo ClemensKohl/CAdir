@@ -38,6 +38,7 @@ Imports:
 Remotes:
     davidsjoberg/ggsankey
 Collate:
+    'CAdir-package.R'
     'apl.R'
     'classes.R'
     'celltype_anno.R'
