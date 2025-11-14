@@ -81,7 +81,7 @@ cadir
 Annotate cell clusters:
 ```{r}
 #| label: annotate
-cadir <- annotate(
+cadir <- annotate_biclusters(
   obj = cadir,
   universe = rownames(sce),
   org = "mm"

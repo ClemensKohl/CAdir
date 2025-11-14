@@ -33,8 +33,7 @@ Imports:
     networkD3,
     ggsankey,
     RcppHungarian,
-    dplyr,
-    methods
+    dplyr
 Remotes:
     davidsjoberg/ggsankey
 Collate:
@@ -47,7 +46,6 @@ Collate:
     'dirclust.R'
     'genes.R'
     'graph_plots.R'
-    'import_packages.R'
     'plot.R'
     'rename_clusters.R'
     'splitmerge.R'

@@ -1,5 +1,6 @@
 # README
 
+
 # Clustering by directions in CA space
 
 This package implements a clustering algorithms that determines clusters
@@ -8,7 +9,7 @@ algorithms it does not require prior knowledge of the number of clusters
 in the data, but can instead infer them during clustering. The package
 can be installed through GitHub:
 
-```r
+``` r
 devtools::install_github("VingronLab/CAdir")
 ```
 
@@ -19,7 +20,7 @@ package to function.
 
 Download example data and perform basic preprocessing:
 
-```r
+``` r
 suppressPackageStartupMessages({
   library(CAdir)
   library(APL)
@@ -44,7 +45,7 @@ sce <- sce[top_genes, ]
 
 ## Correspondence analysis
 
-```r
+``` r
 cnts <- as.matrix(logcounts(sce))
 
 ca <- cacomp(
@@ -59,11 +60,11 @@ cell_types <- sce$level1class
 cat("Number of cell types:", length(unique(cell_types)), "\n")
 ```
 
-    Number of cell types: 7
+    Number of cell types: 7 
 
 ## CAdir
 
-```r
+``` r
 cadir <- dirclust_splitmerge(
   caobj = ca,
   k = 10,
@@ -72,6 +73,7 @@ cadir <- dirclust_splitmerge(
 )
 ```
 
+
     Inferred cutoff angle: 66.82
 
     Iteration 1
@@ -79,28 +81,28 @@ cadir <- dirclust_splitmerge(
         Merging cluster_4 with cluster_5
     Iteration 2
 
-```r
+``` r
 cadir
 ```
 
-    caclust object with 3005 cells and 1518 genes.
+    cadir object with 3005 cells and 1518 genes.
     8 clusters found.
     Clustering results:
 
      cluster   ncells ngenes
-     cluster_1  221   364
-     cluster_2   92   233
-     cluster_3  312    44
-     cluster_4  242   148
-     cluster_5 1223     1
-     cluster_6  721    22
-     cluster_7   37   215
-     cluster_8  157   491
+     cluster_1  221   364   
+     cluster_2   92   233   
+     cluster_3  312    44   
+     cluster_4  242   148   
+     cluster_5 1223     1   
+     cluster_6  721    22   
+     cluster_7   37   215   
+     cluster_8  157   491   
 
 Annotate cell clusters:
 
-```r
-cadir <- annotate(
+``` r
+cadir <- annotate_biclusters(
   obj = cadir,
   universe = rownames(sce),
   org = "mm"
@@ -108,23 +110,23 @@ cadir <- annotate(
 cadir
 ```
 
-    caclust object with 3005 cells and 1518 genes.
+    cadir object with 3005 cells and 1518 genes.
     8 clusters found.
     Clustering results:
 
      cluster          ncells ngenes
-     Endothelial_cell  221   364
-     Mural_cell         92   233
-     CCK_basket_cell   312    44
-     Astrocyte         242   148
-     Wnt2+_cell       1223     1
-     cluster_6         721    22
-     Ciliated_cell      37   215
-     Macrophage        157   491
+     Endothelial_cell  221   364   
+     Mural_cell         92   233   
+     CCK_basket_cell   312    44   
+     Astrocyte         242   148   
+     Wnt2+_cell       1223     1   
+     cluster_6         721    22   
+     Ciliated_cell      37   215   
+     Macrophage        157   491   
 
 Rank cluster specific genes:
 
-```r
+``` r
 cadir <- rank_genes(cadir = cadir, caobj = ca)
 top <- top_genes(cadir)
 
@@ -142,7 +144,7 @@ head(top[top$Cluster == "Macrophage", ])
 
 ## Plot results
 
-```r
+``` r
 cluster_apl(
   cadir = cadir,
   caobj = ca,
@@ -156,7 +158,7 @@ cluster_apl(
 
 ![](README_files/figure-commonmark/macrophage_APL-1.png)
 
-```r
+``` r
 plot_clusters(
   cadir = cadir,
   caobj = ca,
@@ -168,7 +170,7 @@ plot_clusters(
 
 ![](README_files/figure-commonmark/APLs-1.png)
 
-```r
+``` r
 sm_plot(
   cadir = cadir,
   caobj = ca,
@@ -187,12 +189,12 @@ sm_plot(
 Verbosity of the messages can be controlled with rlang. To turn all
 messages off:
 
-```r
+``` r
 options(rlib_message_verbosity = "quiet")
 ```
 
 To turn them back on:
 
-```r
+``` r
 options(rlib_message_verbosity = "default")
 ```

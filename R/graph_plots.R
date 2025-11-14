@@ -149,7 +149,7 @@ plot_sm_graph <- function(cadir, rm_redund = TRUE, size = 3, alpha = 1) {
 #' @param org Organisme to use for the automatic annotation.
 #' Either "mm" for mouse or "hs" for human.
 #' @param annotate_clusters If TRUE uses automatic cell type annotation via
-#' `annotate` to annotate the clusters in each level.
+#' `annotate_biclusters` to annotate the clusters in each level.
 #' @param inlet_side Length of the inlet side. The inlet is a square centered
 #' around the cluster node.
 #' @param title_size Font size of the title.
@@ -279,13 +279,16 @@ sm_plot <- function(
 
       if (isTRUE(annotate_clusters)) {
         suppressWarnings({
-          tmp_cadir <- annotate(
+          tmp_cadir <- annotate_biclusters(
             obj = tmp_cadir,
             universe = rownames(caobj@std_coords_rows),
             org = org,
             alpha = 0.05,
             min_size = 10,
-            max_size = 500
+            max_size = 500,
+            method = "goa",
+            cost = "pval",
+            filter_literature = FALSE
           )
         })
       }

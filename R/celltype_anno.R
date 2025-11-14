@@ -639,14 +639,14 @@ annotate_by_gse <- function(
 #' for gene set enrichment analysis.
 #'
 #' @details
-#' `annotate` performs per cluster GOA with a hypergeometric
+#' `annotate_biclusters` performs per cluster GOA with a hypergeometric
 #'  and annotates the biclustering results from CAdir.
 #'
 #' @returns
 #' An object of type `cadir` with annotated biclusters.
 #' @export
 setGeneric(
-  "annotate",
+  "annotate_biclusters",
   function(
     obj,
     universe,
@@ -661,18 +661,18 @@ setGeneric(
     filter_literature = FALSE, # TODO: add parameter to all function calls elsewhere.
     cost = c("pval", "logpval", "NES")
   ) {
-    standardGeneric("annotate")
+    standardGeneric("annotate_biclusters")
   }
 )
 
 #' Annotate the biclustering
-#' @inheritParams annotate
+#' @inheritParams annotate_biclusters
 #' @inheritParams annotate_by_gse
 #' @param obj A cadir object.
-#' @rdname annotate
+#' @rdname annotate_biclusters
 #' @export
 setMethod(
-  f = "annotate",
+  f = "annotate_biclusters",
   signature = (obj <- "cadir"),
   function(
     obj,

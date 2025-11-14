@@ -38,7 +38,7 @@ sm_plot(
 \code{cluster}, unless colour_by_group is TRUE.}
 
 \item{annotate_clusters}{If TRUE uses automatic cell type annotation via
-\code{annotate} to annotate the clusters in each level.}
+\code{annotate_biclusters} to annotate the clusters in each level.}
 
 \item{org}{Organisme to use for the automatic annotation.
 Either "mm" for mouse or "hs" for human.}
