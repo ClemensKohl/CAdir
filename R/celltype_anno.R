@@ -7,6 +7,7 @@ NULL
 #' @description
 #' Loads the speciefied gene set and subsets to the required organism.
 #' @param set Name of the gene set. Currently only supports "CellMarker"
+#' and "PanglaoDB"
 #' @param org Short name of the organism. "mm" for mouse, "hs" for human.
 #' @returns
 #' data frame with columns "cell_type" and "gene".
@@ -24,6 +25,15 @@ load_ct_gene_set <- function(set = "CellMarker", org) {
     }
 
     gs <- gs[, c("cell_name", "marker")]
+  } else if (set == "PanglaoDB") {
+    if (org == "mm") {
+      gs <- CAdir::panglaodb_mm
+      gs <- gs[, c("cell_type", "gene")]
+    }
+    if (org == "hs") {
+      gs <- CAdir::panglaodb_hs
+      gs <- gs[, c("cell_type", "gene")]
+    }
   } else {
     stop("Other gene sets besides CellMarker are not implemented yet.")
   }
