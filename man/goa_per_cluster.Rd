@@ -41,6 +41,6 @@ A list contain the goa results for each cluster.
 }
 \description{
 goa_per_cluster loads the required gene set, formats it and performs
-gene overrepresentation analysis for each bicluster in the cabic
+gene overrepresentation analysis for each bicluster in the cadir
 object.
 }

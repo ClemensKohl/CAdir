@@ -253,6 +253,7 @@ compute_gsea <- function(
     minSize = min_size,
     maxSize = max_size
   )
+  return(gsea)
 }
 
 #' Perform gene set overrepresentation analysis
@@ -261,7 +262,7 @@ compute_gsea <- function(
 #'
 #' @description
 #' gsea_per_cluster loads the required gene set, formats it and performs
-#' gene overrepresentation analysis for each bicluster in the cabic
+#' gene overrepresentation analysis for each bicluster in the cadir
 #' object.
 #'
 #' @param cadir A biclustering object of class "cadir".
@@ -297,7 +298,7 @@ gsea_per_cluster <- function(
     filter_literature = filter_literature
   )
 
-  gc <- gene_clusters(cadir)
+  gc <- cadir@gene_clusters
   gc_names <- sort(unique(gc))
 
   cadir_rnk <- cadir
@@ -339,7 +340,7 @@ gsea_per_cluster <- function(
 #'
 #' @description
 #' goa_per_cluster loads the required gene set, formats it and performs
-#' gene overrepresentation analysis for each bicluster in the cabic
+#' gene overrepresentation analysis for each bicluster in the cadir
 #' object.
 #'
 #' @param cadir A biclustering object of class "cadir".
@@ -361,11 +362,11 @@ goa_per_cluster <- function(
   filter_literature = FALSE,
   verbose = TRUE
 ) {
-  stopifnot(is(cabic, "cadir"))
+  stopifnot(is(cadir, "cadir"))
 
   # Ensure that we deal only with clusters consisting of cells and genes.
   suppressWarnings({
-    cabic <- rm_monoclusters(cabic)
+    cadir <- rm_monoclusters(cadir)
   })
 
   # Load gene sets
@@ -375,7 +376,7 @@ goa_per_cluster <- function(
     filter_literature = filter_literature
   )
 
-  gc <- gene_clusters(cabic)
+  gc <- cadir@gene_clusters
   gc_names <- sort(unique(gc))
 
   gc_list <- lapply(X = gc_names, FUN = function(x) {
@@ -487,7 +488,6 @@ run_hungarian <- function(gse_res, cost = "pval") {
 #' and annotates it with the gene overrepresentation analysis results (goa).
 #'
 #' @param gse_res List of goa results for each bicluster.
-#' @inheritParams run_hungarian
 #' @param obj `cadir` object with biclustering results. Alternatively could be
 #' a caclust object.
 #' @param cost value that should be
@@ -523,12 +523,12 @@ annotate_by_gse <- function(
   dict <- obj@dict
 
   # cell clusters
-  ccs <- cell_clusters(obj)
+  ccs <- obj@cell_clusters
   ccs_nm <- names(ccs)
   unccs <- levels(ccs)
 
   # gene clusters
-  gcs <- gene_clusters(obj)
+  gcs <- obj@gene_clusters
   gcs_nm <- names(gcs)
   ungcs <- levels(gcs)
 
@@ -729,13 +729,13 @@ setMethod(
       rlang::abort("Please pick a valid method: Can be either 'goa' or 'gsea'.")
     }
 
-    cabic <- annotate_by_gse(
+    cadir <- annotate_by_gse(
       obj = obj,
       gse_res = enr_res,
       alpha = alpha,
       cost = cost
     )
 
-    return(cabic)
+    return(cadir)
   }
 )

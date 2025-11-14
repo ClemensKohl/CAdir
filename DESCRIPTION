@@ -45,8 +45,12 @@ Collate:
     'dirclust.R'
     'genes.R'
     'graph_plots.R'
+    'import_packages.R'
     'plot.R'
     'rename_clusters.R'
     'splitmerge.R'
     'utils.R'
     'vector_utils.R'
+Depends: 
+    R (>= 2.10)
+LazyData: true

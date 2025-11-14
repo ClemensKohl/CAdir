@@ -52,19 +52,6 @@ check_cadir <- function(object) {
 #' @description
 #' Class to store biclustering by directions results.
 #'
-#' @slot SNN sparse shared nearest neighbours matrix. Values indicate the
-#' jaccard similarity.
-#' @slot eigen matrix, Slot for storing eigenvectors from spectral clustering
-#' @slot cell_prob matrix. Matrix that stores the probabilities that
-#' a cell belongs to a cluster. Only filled when running spectral clustering
-#' with GMM.
-#' @slot gene_prob matrix. Matrix that stores the probabilities that
-#' a gene belongs
-#' to a cluster. Only filled when running spectral clustering with GMM.
-#' @slot cell_idxs integer. Indices of the cells in the SNN adjacency matrix.
-#' @slot gene_idxs integer. Indices of the genes in the SNN adjacency matrix.
-#' @slot bimap data.frame. Data frame storing the biMAP coordinates (x, y) and
-#' the type (cell or gene) as well as the assigned clusters.
 #' @slot cell_clusters factors. The assigned cell clusters with cell names in
 #' the names attribute.
 #' @slot gene_clusters factors. The assigned gene clusters with gene names in

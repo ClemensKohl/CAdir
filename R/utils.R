@@ -262,3 +262,39 @@ check_convergence <- function(now, prev, convergence_thr = 0.001) {
 
   return(FALSE)
 }
+
+#' Remove clusters only consisting of cells/genes
+#'
+#' @description
+#' Takes a cadir object and removes all clusters that only consist
+#' of cells or genes.
+#'
+#' @param obj biclustering results from CAdir.
+#' @param ... further arguments
+#' @return
+#' caclust/biclust object with monoclusters removed.
+#'
+#' @export
+rm_monoclusters <- function(obj, ...) {
+  cc <- unique(obj@cell_clusters)
+  gc <- unique(obj@gene_clusters)
+
+  keep <- sort(as.character(intersect(cc, gc)))
+
+  if (length(keep > 0)) {
+    obj@cell_clusters <- obj@cell_clusters[
+      as.character(obj@cell_clusters) %in% keep
+    ]
+    obj@cell_clusters <- droplevels(obj@cell_clusters)
+
+    obj@gene_clusters <- obj@gene_clusters[
+      as.character(obj@gene_clusters) %in% keep
+    ]
+    obj@gene_clusters <- droplevels(obj@gene_clusters)
+  }
+
+  stopifnot(!is.null(names(obj@cell_clusters)))
+  stopifnot(!is.null(names(obj@gene_clusters)))
+
+  return(obj)
+}
