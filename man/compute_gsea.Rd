@@ -4,13 +4,7 @@
 \alias{compute_gsea}
 \title{Perform GSEA using fgsea.}
 \usage{
-compute_gsea(
-  salpha,
-  gene_sets,
-  min_size = 15,
-  max_size = 500,
-  set = "CellMarker"
-)
+compute_gsea(salpha, gene_sets, min_size = 15, max_size = 500)
 }
 \arguments{
 \item{salpha}{Named vector containing the Salpha gene scores.}

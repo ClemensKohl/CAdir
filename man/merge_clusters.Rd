@@ -7,7 +7,7 @@
 merge_clusters(caobj, cadir, cutoff, make_plots = FALSE)
 }
 \arguments{
-\item{caobj}{A \code{caclust} object.}
+\item{caobj}{A \code{cacomp} object.}
 
 \item{cadir}{A \code{cadir} object.}
 

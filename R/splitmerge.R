@@ -312,7 +312,7 @@ merge_clusters <- function(caobj, cadir, cutoff, make_plots = FALSE) {
 #' Perform Clustering by CA directions with splitting and merging.
 #' @inheritParams dirclust
 #' @inheritParams get_apl_cutoff
-#' @param caobj A `caclust` object.
+#' @param caobj A `cacomp` object.
 #' @param reps Number of repetitions to perform the splitting and merging.
 #' @param min_cells Minimum number of cells to form a cluster.
 #' @param make_plots Logical. If `TRUE` plots are generated for each

@@ -17,6 +17,10 @@ gsea_per_cluster(
 )
 }
 \arguments{
+\item{cadir}{A biclustering object of class "cadir".}
+
+\item{caobj}{A CA object as obtained from APL.}
+
 \item{org}{Short name of the organism. "mm" for mouse, "hs" for human.}
 
 \item{set}{Name of the gene set. Currently only supports "CellMarker"}
@@ -28,15 +32,12 @@ Set to Inf if you want to keep all genes.}
 
 \item{filter_literature}{Filter out gene sets
 named after publications.}
-
-\item{cabic}{A biclustering object of class "caclust"
-as obtained from \code{caclust}.}
 }
 \value{
 A list contain the goa results for each cluster.
 }
 \description{
-goa_per_cluster loads the required gene set, formats it and performs
+gsea_per_cluster loads the required gene set, formats it and performs
 gene overrepresentation analysis for each bicluster in the cabic
 object.
 }

@@ -1,8 +1,6 @@
 #' @include classes.R
 
 NULL
-# TODO: port annotate_biclustering from CAbiNet
-# TODO: avoid name conflict with CAbiNet! -> mark with CAdir:::
 # TODO: Fix documentation
 
 #' Load the required gene set.
@@ -145,7 +143,7 @@ compute_goa <- function(
 
   # Filter out very small and very large gene sets
   # We do this after subsetting the gois.
-  gene_sets <- CAdir:::filter_gene_set_list(
+  gene_sets <- filter_gene_set_list(
     gene_sets = gene_sets,
     min_size = min_size, # 10
     max_size = max_size
@@ -154,7 +152,7 @@ compute_goa <- function(
   gois_in_set <- sapply(gene_sets, intersect, gois)
 
   # Remove gene sets with 0 gois in them
-  gois_in_set <- CAdir:::filter_gene_set_list(
+  gois_in_set <- filter_gene_set_list(
     gene_sets = gois_in_set,
     min_size = 1,
     max_size = Inf
@@ -246,8 +244,7 @@ compute_gsea <- function(
   salpha,
   gene_sets,
   min_size = 15,
-  max_size = 500,
-  set = "CellMarker"
+  max_size = 500
 ) {
   gsea <- fgsea::fgsea(
     pathways = gene_sets,
@@ -263,13 +260,13 @@ compute_gsea <- function(
 #' the best match.
 #'
 #' @description
-#' goa_per_cluster loads the required gene set, formats it and performs
+#' gsea_per_cluster loads the required gene set, formats it and performs
 #' gene overrepresentation analysis for each bicluster in the cabic
 #' object.
 #'
-#' @param cabic A biclustering object of class "caclust"
-#'  as obtained from `caclust`.
-#' @inheritParams compute_goa
+#' @param cadir A biclustering object of class "cadir".
+#' @param caobj A CA object as obtained from APL.
+#' @inheritParams compute_gsea
 #' @inheritParams load_ct_gene_set
 #' @inheritParams make_gene_set_list
 #'
@@ -294,8 +291,8 @@ gsea_per_cluster <- function(
   })
 
   # Load gene sets
-  gs <- CAdir:::load_ct_gene_set(set = set, org = org)
-  gene_sets <- CAdir:::make_gene_set_list(
+  gs <- load_ct_gene_set(set = set, org = org)
+  gene_sets <- make_gene_set_list(
     gs,
     filter_literature = filter_literature
   )
@@ -345,17 +342,17 @@ gsea_per_cluster <- function(
 #' gene overrepresentation analysis for each bicluster in the cabic
 #' object.
 #'
-#' @param cabic A biclustering object of class "caclust"
-#'  as obtained from `caclust`.
+#' @param cadir A biclustering object of class "cadir".
 #' @inheritParams compute_goa
 #' @inheritParams load_ct_gene_set
+#' @inheritParams make_gene_set_list
 #'
 #' @return
 #' A list contain the goa results for each cluster.
 #'
 #' @export
 goa_per_cluster <- function(
-  cabic,
+  cadir,
   universe,
   org,
   set = "CellMarker",
@@ -364,7 +361,7 @@ goa_per_cluster <- function(
   filter_literature = FALSE,
   verbose = TRUE
 ) {
-  stopifnot(is(cabic, "caclust"))
+  stopifnot(is(cabic, "cadir"))
 
   # Ensure that we deal only with clusters consisting of cells and genes.
   suppressWarnings({
@@ -372,8 +369,8 @@ goa_per_cluster <- function(
   })
 
   # Load gene sets
-  gs <- CAdir:::load_ct_gene_set(set = set, org = org)
-  gene_sets <- CAdir:::make_gene_set_list(
+  gs <- load_ct_gene_set(set = set, org = org)
+  gene_sets <- make_gene_set_list(
     gs,
     filter_literature = filter_literature
   )
@@ -486,10 +483,9 @@ run_hungarian <- function(gse_res, cost = "pval") {
 
 #' Annotate CAdir results by gene set enrichment
 #' @description
-#' `annotate_by_gse` takes a biclustering results such as outputted by `caclust`
+#' `annotate_by_gse` takes a biclustering results
 #' and annotates it with the gene overrepresentation analysis results (goa).
 #'
-#' @param obj Biclustering results of type `caclust`
 #' @param gse_res List of goa results for each bicluster.
 #' @inheritParams run_hungarian
 #' @param obj `cadir` object with biclustering results. Alternatively could be
@@ -499,6 +495,7 @@ run_hungarian <- function(gse_res, cost = "pval") {
 #' Can bei either "pval" (adjusted p-value),
 #' "logpval" (adjusted log10(p-value)) or "NES" (normalized enrichment score,
 #' only applicable for GSEA)
+#' @param alpha p-value cutoff for annotating clusters when using cost "pval" or "logpval"
 #'
 #' @description
 #' Conflicts between clusters that have the
@@ -558,7 +555,7 @@ annotate_by_gse <- function(
   })
 
   # Solve assignment problem with the hungarian algorithm.
-  cluster_anno <- CAdir:::run_hungarian(gse_res, cost = cost)
+  cluster_anno <- run_hungarian(gse_res, cost = cost)
 
   # Rename clusters based on GSE.
   for (c in seq_len(length(allcs))) {
@@ -634,18 +631,19 @@ annotate_by_gse <- function(
 #' @description
 #' Wrapper function for `goa_per_cluster` and `annotate_by_goa`.
 #'
-#' @param obj Either a `caclust` or `SingleCellExperiment` object.
-#' @param ... Further arguments.
+#' @param obj Either a `cadir`.
 #' @inheritParams goa_per_cluster
 #' @inheritParams gsea_per_cluster
 #' @inheritParams annotate_by_gse
+#' @param method Either "goa" for gene overrepresentation analysis or "gsea"
+#' for gene set enrichment analysis.
 #'
 #' @details
 #' `annotate` performs per cluster GOA with a hypergeometric
 #'  and annotates the biclustering results from CAdir.
 #'
 #' @returns
-#' An object of type `caclust` with annotated biclusters.
+#' An object of type `cadir` with annotated biclusters.
 #' @export
 setGeneric(
   "annotate",
@@ -660,7 +658,7 @@ setGeneric(
     max_size = 500,
     verbose = TRUE,
     method = "goa", # TODO: add parameter to all function calls elsewhere.
-    filter_literature = TRUE, # TODO: add parameter to all function calls elsewhere.
+    filter_literature = FALSE, # TODO: add parameter to all function calls elsewhere.
     cost = c("pval", "logpval", "NES")
   ) {
     standardGeneric("annotate")
@@ -687,7 +685,7 @@ setMethod(
     max_size = 500,
     verbose = TRUE,
     method = "goa",
-    filter_literature = TRUE,
+    filter_literature = FALSE,
     cost = c("pval", "logpval", "NES")
   ) {
     stopifnot(methods::is(obj, "cadir"))
@@ -705,8 +703,8 @@ setMethod(
     }
 
     if (method == "goa") {
-      enr_res <- CAdir:::goa_per_cluster(
-        cabic = obj,
+      enr_res <- goa_per_cluster(
+        cadir = obj,
         universe = universe,
         set = set,
         org = org,

@@ -12,6 +12,8 @@ a caclust object.}
 
 \item{gse_res}{List of goa results for each bicluster.}
 
+\item{alpha}{p-value cutoff for annotating clusters when using cost "pval" or "logpval"}
+
 \item{cost}{value that should be
 used for constructing the assignment cost matrix.
 Can bei either "pval" (adjusted p-value),
@@ -22,7 +24,7 @@ only applicable for GSEA)}
 Object of the same type as \code{obj}.
 }
 \description{
-\code{annotate_by_gse} takes a biclustering results such as outputted by \code{caclust}
+\code{annotate_by_gse} takes a biclustering results
 and annotates it with the gene overrepresentation analysis results (goa).
 
 Conflicts between clusters that have the

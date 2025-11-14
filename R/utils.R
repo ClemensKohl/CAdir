@@ -24,7 +24,7 @@ show_cadir <- function(object) {
 
   ncells <- length(object@cell_clusters)
   ngenes <- length(object@gene_clusters)
-  cat("caclust object with", ncells, "cells and", ngenes, "genes.")
+  cat("cadir object with", ncells, "cells and", ngenes, "genes.")
 
   if (
     !is.empty(object@cell_clusters) &&

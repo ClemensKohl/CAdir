@@ -23,7 +23,7 @@ dirclust_splitmerge(
 )
 }
 \arguments{
-\item{caobj}{A \code{caclust} object.}
+\item{caobj}{A \code{cacomp} object.}
 
 \item{k}{Number of clusters.}
 

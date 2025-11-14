@@ -9,7 +9,7 @@ split_clusters(cadir, caobj, cutoff = 30, min_cells = 5, make_plots = FALSE)
 \arguments{
 \item{cadir}{A \code{cadir} object.}
 
-\item{caobj}{A \code{caclust} object.}
+\item{caobj}{A \code{cacomp} object.}
 
 \item{cutoff}{Degrees. The cutoff angle to split and merge clusters.
 If \code{NULL} the cutoff angle is calculated based on the cutoff angle based

@@ -31,7 +31,9 @@ Imports:
     ggpubr,
     gtable,
     networkD3,
-    ggsankey
+    ggsankey,
+    RcppHungarian,
+    dplyr
 Remotes:
     davidsjoberg/ggsankey
 Collate:

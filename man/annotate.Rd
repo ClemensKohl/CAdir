@@ -16,7 +16,7 @@ annotate(
   max_size = 500,
   verbose = TRUE,
   method = "goa",
-  filter_literature = TRUE,
+  filter_literature = FALSE,
   cost = c("pval", "logpval", "NES")
 )
 
@@ -31,7 +31,7 @@ annotate(
   max_size = 500,
   verbose = TRUE,
   method = "goa",
-  filter_literature = TRUE,
+  filter_literature = FALSE,
   cost = c("pval", "logpval", "NES")
 )
 }
@@ -42,7 +42,11 @@ annotate(
 
 \item{org}{Short name of the organism. "mm" for mouse, "hs" for human.}
 
+\item{caobj}{A CA object as obtained from APL.}
+
 \item{set}{Name of the gene set. Currently only supports "CellMarker"}
+
+\item{alpha}{p-value cutoff for annotating clusters when using cost "pval" or "logpval"}
 
 \item{min_size}{Min. number of genes in the gene set.}
 
@@ -50,6 +54,9 @@ annotate(
 Set to Inf if you want to keep all genes.}
 
 \item{verbose}{Toggles verbosity of warnings.}
+
+\item{method}{Either "goa" for gene overrepresentation analysis or "gsea"
+for gene set enrichment analysis.}
 
 \item{filter_literature}{Filter out gene sets
 named after publications.}
@@ -59,11 +66,9 @@ used for constructing the assignment cost matrix.
 Can bei either "pval" (adjusted p-value),
 "logpval" (adjusted log10(p-value)) or "NES" (normalized enrichment score,
 only applicable for GSEA)}
-
-\item{...}{Further arguments.}
 }
 \value{
-An object of type \code{caclust} with annotated biclusters.
+An object of type \code{cadir} with annotated biclusters.
 }
 \description{
 Wrapper function for \code{goa_per_cluster} and \code{annotate_by_goa}.

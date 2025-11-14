@@ -7,7 +7,7 @@ for each bicluster and annotate cells based on
 the best match.}
 \usage{
 goa_per_cluster(
-  cabic,
+  cadir,
   universe,
   org,
   set = "CellMarker",
@@ -18,8 +18,7 @@ goa_per_cluster(
 )
 }
 \arguments{
-\item{cabic}{A biclustering object of class "caclust"
-as obtained from \code{caclust}.}
+\item{cadir}{A biclustering object of class "cadir".}
 
 \item{universe}{All genes in data set.}
 
@@ -31,6 +30,9 @@ as obtained from \code{caclust}.}
 
 \item{max_size}{Max number of genes in the gene set.
 Set to Inf if you want to keep all genes.}
+
+\item{filter_literature}{Filter out gene sets
+named after publications.}
 
 \item{verbose}{Toggles verbosity of warnings.}
 }
