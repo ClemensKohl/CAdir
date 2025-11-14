@@ -323,7 +323,7 @@ gsea_per_cluster <- function(
       salpha = salpha,
       gene_sets = gene_sets,
       min_size = min_size,
-      max_size = max_size,
+      max_size = max_size
     )
     colnames(gsea)[colnames(gsea) == "pathway"] <- "gene_set"
     gsea <- gsea[order(gsea$padj), ]

@@ -33,7 +33,8 @@ Imports:
     networkD3,
     ggsankey,
     RcppHungarian,
-    dplyr
+    dplyr,
+    methods
 Remotes:
     davidsjoberg/ggsankey
 Collate:
@@ -51,6 +52,6 @@ Collate:
     'splitmerge.R'
     'utils.R'
     'vector_utils.R'
-Depends: 
+Depends:
     R (>= 2.10)
 LazyData: true
