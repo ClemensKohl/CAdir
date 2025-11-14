@@ -49,7 +49,6 @@ check_cadir <- function(object) {
 #' An S4 class for the CA directional clustering.
 #' @name cadir-class
 #' @rdname cadir-class
-#' @import CAbiNet
 #' @description
 #' Class to store biclustering by directions results.
 #'
@@ -84,7 +83,6 @@ check_cadir <- function(object) {
 #' @export
 setClass(
   "cadir",
-  contains = "caclust",
   representation(
     cell_clusters = "factor",
     gene_clusters = "factor",

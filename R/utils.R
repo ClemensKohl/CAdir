@@ -27,20 +27,20 @@ show_cadir <- function(object) {
   cat("caclust object with", ncells, "cells and", ngenes, "genes.")
 
   if (
-    !is.empty(CAbiNet::cell_clusters(object)) &&
-      !is.empty(CAbiNet::gene_clusters(object))
+    !is.empty(object@cell_clusters) &&
+      !is.empty(object@gene_clusters)
   ) {
     stopifnot(identical(
-      levels(CAbiNet::cell_clusters(object)),
-      levels(CAbiNet::gene_clusters(object))
+      levels(object@cell_clusters),
+      levels(object@gene_clusters)
     ))
     cat("\n")
-    cat(length(levels(CAbiNet::gene_clusters(object))), "clusters found.")
+    cat(length(levels(object@gene_clusters)), "clusters found.")
     cat("\nClustering results:\n\n")
     df <- data.frame(
-      "cluster" = levels(CAbiNet::cell_clusters(object)),
-      "ncells" = summary(CAbiNet::cell_clusters(object), maxsum = Inf),
-      "ngenes" = summary(CAbiNet::gene_clusters(object), maxsum = Inf)
+      "cluster" = levels(object@cell_clusters),
+      "ncells" = summary(object@cell_clusters, maxsum = Inf),
+      "ngenes" = summary(object@gene_clusters, maxsum = Inf)
     )
 
     print(df, row.names = FALSE, right = FALSE)

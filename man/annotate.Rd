@@ -2,6 +2,7 @@
 % Please edit documentation in R/celltype_anno.R
 \name{annotate}
 \alias{annotate}
+\alias{annotate,cadir-method}
 \title{Perform gene overrepresentation analysis and annotate biclusters.}
 \usage{
 annotate(
@@ -18,9 +19,24 @@ annotate(
   filter_literature = TRUE,
   cost = c("pval", "logpval", "NES")
 )
+
+\S4method{annotate}{cadir}(
+  obj,
+  universe,
+  org,
+  caobj = NULL,
+  set = "CellMarker",
+  alpha = 0.05,
+  min_size = 10,
+  max_size = 500,
+  verbose = TRUE,
+  method = "goa",
+  filter_literature = TRUE,
+  cost = c("pval", "logpval", "NES")
+)
 }
 \arguments{
-\item{obj}{Either a \code{caclust} or \code{SingleCellExperiment} object.}
+\item{obj}{A cadir object.}
 
 \item{universe}{All genes in data set.}
 
@@ -50,9 +66,9 @@ only applicable for GSEA)}
 An object of type \code{caclust} with annotated biclusters.
 }
 \description{
-Wrapper function for \code{per_cluster_goa} and \code{annotate_by_goa}.
+Wrapper function for \code{goa_per_cluster} and \code{annotate_by_goa}.
 }
 \details{
-\code{annotate_biclustering} performs per cluster GOA with a hypergeometric
-and annotates the biclustering results from CAbiNet.
+\code{annotate} performs per cluster GOA with a hypergeometric
+and annotates the biclustering results from CAdir.
 }

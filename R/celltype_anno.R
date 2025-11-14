@@ -16,7 +16,7 @@ NULL
 load_ct_gene_set <- function(set = "CellMarker", org) {
   stopifnot(org %in% c("mm", "hs"))
   if (set == "CellMarker") {
-    gs <- CAbiNet::cellmarker_v2
+    gs <- CAdir::cellmarker_v2
 
     if (org == "mm") {
       gs <- gs[gs$species == "Mouse", ]
@@ -48,7 +48,7 @@ load_ct_gene_set <- function(set = "CellMarker", org) {
 #'
 #' @returns
 #' A named list with gene sets as names and genes as vectors.
-format_gene_sets <- function(gene_sets, filter_literature = FALSE) {
+make_gene_set_list <- function(gene_sets, filter_literature = FALSE) {
   # Input gene_sets assumed to be a long format data frame
   # Bring data frame into shape that you can use for hypergeom test
 
@@ -85,7 +85,7 @@ format_gene_sets <- function(gene_sets, filter_literature = FALSE) {
 #' Set to Inf if you want to keep all genes.
 #' @returns
 #' Filtered list of gene sets.
-filter_gene_sets <- function(
+filter_gene_set_list <- function(
   gene_sets,
   min_size = 10,
   max_size = 500
@@ -108,7 +108,7 @@ filter_gene_sets <- function(
 #' Performs Gene Overrepresentation Analysis.
 #'
 #' @description
-#' perform_goa takes a number of genes of interest (gois)
+#' compute_goa takes a number of genes of interest (gois)
 #' and a list of gene sets and performs gene overrepresentation
 #' analysis.
 #'
@@ -116,10 +116,10 @@ filter_gene_sets <- function(
 #' @param universe All genes in data set.
 #' @param gene_sets Named list of gene sets and their genes.
 #' @param verbose Toggles verbosity of warnings.
-#' @inheritParams filter_gene_sets
+#' @inheritParams filter_gene_set_list
 #'
 #' @details
-#' perform_goa performs a hypergeometric test on the gois and gene sets.
+#' compute_goa performs a hypergeometric test on the gois and gene sets.
 #' Gene sets are trimmed to genes that are present in universe
 #'  (usually all the genes available in the data set) and trimmed to set
 #'  min and max size.
@@ -128,7 +128,7 @@ filter_gene_sets <- function(
 #' A data frame with the results of the go-analysis.
 #'
 #' @export
-perform_goa <- function(
+compute_goa <- function(
   gois,
   gene_sets,
   universe,
@@ -145,7 +145,7 @@ perform_goa <- function(
 
   # Filter out very small and very large gene sets
   # We do this after subsetting the gois.
-  gene_sets <- CAdir:::filter_gene_sets(
+  gene_sets <- CAdir:::filter_gene_set_list(
     gene_sets = gene_sets,
     min_size = min_size, # 10
     max_size = max_size
@@ -154,7 +154,7 @@ perform_goa <- function(
   gois_in_set <- sapply(gene_sets, intersect, gois)
 
   # Remove gene sets with 0 gois in them
-  gois_in_set <- CAdir:::filter_gene_sets(
+  gois_in_set <- CAdir:::filter_gene_set_list(
     gene_sets = gois_in_set,
     min_size = 1,
     max_size = Inf
@@ -238,11 +238,11 @@ perform_goa <- function(
 }
 
 #' Perform GSEA using fgsea.
-#' @inheritParams perform_goa
+#' @inheritParams compute_goa
 #' @param salpha Named vector containing the Salpha gene scores.
 #' @returns
 #' Data frame of enriched gene sets.
-perform_gsea <- function(
+compute_gsea <- function(
   salpha,
   gene_sets,
   min_size = 15,
@@ -263,21 +263,21 @@ perform_gsea <- function(
 #' the best match.
 #'
 #' @description
-#' per_cluster_goa loads the required gene set, formats it and performs
+#' goa_per_cluster loads the required gene set, formats it and performs
 #' gene overrepresentation analysis for each bicluster in the cabic
 #' object.
 #'
 #' @param cabic A biclustering object of class "caclust"
 #'  as obtained from `caclust`.
-#' @inheritParams perform_goa
+#' @inheritParams compute_goa
 #' @inheritParams load_ct_gene_set
-#' @inheritParams format_gene_sets
+#' @inheritParams make_gene_set_list
 #'
 #' @return
 #' A list contain the goa results for each cluster.
 #'
 #' @export
-per_cluster_gsea <- function(
+gsea_per_cluster <- function(
   cadir,
   caobj,
   org,
@@ -295,7 +295,7 @@ per_cluster_gsea <- function(
 
   # Load gene sets
   gs <- CAdir:::load_ct_gene_set(set = set, org = org)
-  gene_sets <- CAdir:::format_gene_sets(
+  gene_sets <- CAdir:::make_gene_set_list(
     gs,
     filter_literature = filter_literature
   )
@@ -321,7 +321,7 @@ per_cluster_gsea <- function(
     salpha <- cadir_rnk@gene_ranks[[cls]]$Score
     names(salpha) <- cadir_rnk@gene_ranks[[cls]]$Rowname
 
-    gsea <- perform_gsea(
+    gsea <- compute_gsea(
       salpha = salpha,
       gene_sets = gene_sets,
       min_size = min_size,
@@ -341,20 +341,20 @@ per_cluster_gsea <- function(
 #' the best match.
 #'
 #' @description
-#' per_cluster_goa loads the required gene set, formats it and performs
+#' goa_per_cluster loads the required gene set, formats it and performs
 #' gene overrepresentation analysis for each bicluster in the cabic
 #' object.
 #'
 #' @param cabic A biclustering object of class "caclust"
 #'  as obtained from `caclust`.
-#' @inheritParams perform_goa
+#' @inheritParams compute_goa
 #' @inheritParams load_ct_gene_set
 #'
 #' @return
 #' A list contain the goa results for each cluster.
 #'
 #' @export
-per_cluster_goa <- function(
+goa_per_cluster <- function(
   cabic,
   universe,
   org,
@@ -373,7 +373,7 @@ per_cluster_goa <- function(
 
   # Load gene sets
   gs <- CAdir:::load_ct_gene_set(set = set, org = org)
-  gene_sets <- CAdir:::format_gene_sets(
+  gene_sets <- CAdir:::make_gene_set_list(
     gs,
     filter_literature = filter_literature
   )
@@ -394,7 +394,7 @@ per_cluster_goa <- function(
     gene <- gc_list[[c]]
     clst_name <- names(gc_list)[c]
 
-    goa <- perform_goa(
+    goa <- compute_goa(
       gois = gene,
       gene_sets = gene_sets,
       universe = universe,
@@ -416,24 +416,42 @@ per_cluster_goa <- function(
 #' analysis to one (and only one) cluster.
 #' The cost matrix is based on the adjusted p-value.
 #' @param gse_res List of gene set enrichment results for each bicluster.
+#' @param cost Column to use for the cost matrix. Can be
+#' "pval", "logpval" or "NES".
 #' @returns
 #' A data frame with the assigned cell types and adjusted p-values.
 #' @export
-assign_cts <- function(gse_res) {
+run_hungarian <- function(gse_res, cost = "pval") {
   # Solve assignment problem with the hungarian algorithm.
   # Build cost matrix.
   gse_res <- dplyr::bind_rows(gse_res, .id = "cluster")
 
+  if (cost == "pval") {
+    gse_res$cost <- gse_res[, "padj"]
+    na_cost <- 1
+    result_factor <- 1
+  } else if (cost == "logpval") {
+    gse_res$cost <- log10(gse_res$padj)
+    na_cost <- 0
+    result_factor <- -1
+  } else if (cost == "NES") {
+    gse_res$cost <- -gse_res$NES
+    na_cost <- 0
+    result_factor <- -1
+  } else {
+    rlang::abort("Invalid cost.")
+  }
+
   cost_mat <- stats::reshape(
-    data = gse_res[, c("cluster", "gene_set", "padj")],
+    data = gse_res[, c("cluster", "gene_set", "cost")],
     direction = "wide",
     idvar = "cluster",
     timevar = "gene_set",
     new.row.names = seq_len(length(unique(gse_res$cluster)))
   )
 
-  cost_mat[is.na(cost_mat)] <- 1
-  colnames(cost_mat) <- gsub("padj.", "", colnames(cost_mat), fixed = TRUE)
+  cost_mat[is.na(cost_mat)] <- na_cost
+  colnames(cost_mat) <- gsub("cost.", "", colnames(cost_mat), fixed = TRUE)
 
   if ("No_Cell_Type_Found" %in% colnames(cost_mat)) {
     rm_col <- which(colnames(cost_mat) == "No_Cell_Type_Found")
@@ -459,125 +477,12 @@ assign_cts <- function(gse_res) {
   cluster_anno <- data.frame(
     cluster = clusters[assignments[, 1]],
     cell_type = cell_types[assignments[, 2]],
-    cost = cost_mat[assignments]
+    cost = result_factor * cost_mat[assignments]
   )
 
   return(cluster_anno)
 }
 
-#' Assign cell types to clusters using the Hungarian algorithm.
-#' @description
-#' Uses the hungarian algorithm (assignment problem)
-#' to assign a cell type from the gene set overrepresentation
-#' analysis to one (and only one) cluster.
-#' The cost matrix is based on the adjusted log-pvalue.
-#' @param gse_res List of gene set enrichment results for each bicluster.
-#' @returns
-#' A data frame with the assigned cell types and adjusted p-values.
-#' @export
-assign_cts_logpval <- function(gse_res) {
-  # Solve assignment problem with the hungarian algorithm.
-  # Build cost matrix.
-  gse_res <- dplyr::bind_rows(gse_res, .id = "cluster")
-  gse_res$log_padj <- log10(gse_res$padj)
-
-  cost_mat <- stats::reshape(
-    data = gse_res[, c("cluster", "gene_set", "log_padj")],
-    direction = "wide",
-    idvar = "cluster",
-    timevar = "gene_set",
-    new.row.names = seq_len(length(unique(gse_res$cluster)))
-  )
-
-  cost_mat[is.na(cost_mat)] <- 0
-  colnames(cost_mat) <- gsub("log_padj.", "", colnames(cost_mat), fixed = TRUE)
-
-  if ("No_Cell_Type_Found" %in% colnames(cost_mat)) {
-    rm_col <- which(colnames(cost_mat) == "No_Cell_Type_Found")
-    cost_mat <- cost_mat[, -rm_col, drop = FALSE]
-  }
-
-  if (ncol(cost_mat) == 1) {
-    stop(
-      "GOA results do not contain any cell types! Check if any genes are in the gene sets!"
-    )
-  }
-
-  clusters <- as.character(cost_mat$cluster)
-  cell_types <- colnames(cost_mat)[2:ncol(cost_mat)]
-
-  cost_mat <- as.matrix(cost_mat[, 2:ncol(cost_mat)], drop = FALSE)
-
-  # solve assignment problem
-  assignments <- RcppHungarian::HungarianSolver(cost_mat)$pairs
-
-  assignments <- assignments[assignments[, 2] > 0, ]
-
-  cluster_anno <- data.frame(
-    cluster = clusters[assignments[, 1]],
-    cell_type = cell_types[assignments[, 2]],
-    cost = -cost_mat[assignments]
-  )
-
-  return(cluster_anno)
-}
-
-#' Assign cell types to clusters using the Hungarian algorithm.
-#' @description
-#' Uses the hungarian algorithm (assignment problem)
-#' to assign a cell type from the gene set overrepresentation
-#' analysis to one (and only one) cluster.
-#' The cost matrix is based on the Normalized Enrichment score.
-#' @param gse_res List of gene set enrichment results for each bicluster.
-#' @returns
-#' A data frame with the assigned cell types and adjusted p-values.
-#' @export
-assign_cts_nes <- function(gse_res) {
-  # Solve assignment problem with the hungarian algorithm.
-  # Build cost matrix.
-  gse_res <- dplyr::bind_rows(gse_res, .id = "cluster")
-  gse_res$NES <- -gse_res$NES
-
-  cost_mat <- stats::reshape(
-    data = gse_res[, c("cluster", "gene_set", "NES")],
-    direction = "wide",
-    idvar = "cluster",
-    timevar = "gene_set",
-    new.row.names = seq_len(length(unique(gse_res$cluster)))
-  )
-
-  cost_mat[is.na(cost_mat)] <- 0
-  colnames(cost_mat) <- gsub("NES.", "", colnames(cost_mat), fixed = TRUE)
-
-  if ("No_Cell_Type_Found" %in% colnames(cost_mat)) {
-    rm_col <- which(colnames(cost_mat) == "No_Cell_Type_Found")
-    cost_mat <- cost_mat[, -rm_col, drop = FALSE]
-  }
-
-  if (ncol(cost_mat) == 1) {
-    stop(
-      "GOA results do not contain any cell types! Check if any genes are in the gene sets!"
-    )
-  }
-
-  clusters <- as.character(cost_mat$cluster)
-  cell_types <- colnames(cost_mat)[2:ncol(cost_mat)]
-
-  cost_mat <- as.matrix(cost_mat[, 2:ncol(cost_mat)], drop = FALSE)
-
-  # solve assignment problem
-  assignments <- RcppHungarian::HungarianSolver(cost_mat)$pairs
-
-  assignments <- assignments[assignments[, 2] > 0, ]
-
-  cluster_anno <- data.frame(
-    cluster = clusters[assignments[, 1]],
-    cell_type = cell_types[assignments[, 2]],
-    cost = -cost_mat[assignments]
-  )
-
-  return(cluster_anno)
-}
 
 #' Annotate CAdir results by gene set enrichment
 #' @description
@@ -586,7 +491,7 @@ assign_cts_nes <- function(gse_res) {
 #'
 #' @param obj Biclustering results of type `caclust`
 #' @param gse_res List of goa results for each bicluster.
-#' @inheritParams assign_cts
+#' @inheritParams run_hungarian
 #' @param obj `cadir` object with biclustering results. Alternatively could be
 #' a caclust object.
 #' @param cost value that should be
@@ -653,15 +558,7 @@ annotate_by_gse <- function(
   })
 
   # Solve assignment problem with the hungarian algorithm.
-  if (cost == "pval") {
-    cluster_anno <- CAdir:::assign_cts(gse_res)
-  } else if (cost == "logpval") {
-    cluster_anno <- CAdir:::assign_cts_logpval(gse_res)
-  } else if (cost == "NES") {
-    cluster_anno <- CAdir:::assign_cts_nes(gse_res)
-  } else {
-    rlang::abort("Please choose a valid 'cost'!")
-  }
+  cluster_anno <- CAdir:::run_hungarian(gse_res, cost = cost)
 
   # Rename clusters based on GSE.
   for (c in seq_len(length(allcs))) {
@@ -735,17 +632,17 @@ annotate_by_gse <- function(
 #' Perform gene overrepresentation analysis and annotate biclusters.
 #'
 #' @description
-#' Wrapper function for `per_cluster_goa` and `annotate_by_goa`.
+#' Wrapper function for `goa_per_cluster` and `annotate_by_goa`.
 #'
 #' @param obj Either a `caclust` or `SingleCellExperiment` object.
 #' @param ... Further arguments.
-#' @inheritParams per_cluster_goa
-#' @inheritParams per_cluster_gsea
+#' @inheritParams goa_per_cluster
+#' @inheritParams gsea_per_cluster
 #' @inheritParams annotate_by_gse
 #'
 #' @details
-#' `annotate_biclustering` performs per cluster GOA with a hypergeometric
-#'  and annotates the biclustering results from CAbiNet.
+#' `annotate` performs per cluster GOA with a hypergeometric
+#'  and annotates the biclustering results from CAdir.
 #'
 #' @returns
 #' An object of type `caclust` with annotated biclusters.
@@ -771,10 +668,10 @@ setGeneric(
 )
 
 #' Annotate the biclustering
-#' @inheritParams CAbiNet::annotate_biclustering
+#' @inheritParams annotate
 #' @inheritParams annotate_by_gse
 #' @param obj A cadir object.
-#' @rdname annotate_biclustering
+#' @rdname annotate
 #' @export
 setMethod(
   f = "annotate",
@@ -808,7 +705,7 @@ setMethod(
     }
 
     if (method == "goa") {
-      enr_res <- CAdir:::per_cluster_goa(
+      enr_res <- CAdir:::goa_per_cluster(
         cabic = obj,
         universe = universe,
         set = set,
@@ -821,7 +718,7 @@ setMethod(
       if (is.null(caobj)) {
         rlang::abort("Please provide a cacomp object for parameter 'caobj'.")
       }
-      enr_res <- per_cluster_gsea(
+      enr_res <- gsea_per_cluster(
         cadir = obj,
         caobj = caobj,
         set = set,

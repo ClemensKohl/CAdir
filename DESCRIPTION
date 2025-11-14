@@ -16,7 +16,6 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports:
-    CAbiNet,
     APL,
     rlang,
     irlba,
@@ -40,6 +39,7 @@ Collate:
     'classes.R'
     'celltype_anno.R'
     'cluster_apl.R'
+    'data.R'
     'dirclust.R'
     'genes.R'
     'graph_plots.R'
