@@ -158,6 +158,9 @@ plot_sm_graph <- function(cadir, rm_redund = TRUE, size = 3, alpha = 1) {
 #' @param layout Graph layout.
 #' Currently only supports `"dendrogram"` or `"tree"`.
 #' @param rotate TRUE/FALSE. Whether to rotate the tree by 90 degrees.
+#' @param show_apl Boolean. Whether or not to show an APL plot at each node.
+#' @param annotate_leafs Boolean. Annotates the terminal nodes in the graph.
+#' Only takes affect if show_apl = FALSE.
 #' @returns
 #' A ggplot object showing the split-merge graph and APL plots for each cluster.
 #' @export
@@ -176,13 +179,22 @@ sm_plot <- function(
   show_axis = FALSE,
   n_wrap = Inf,
   layout = "tree",
-  rotate = TRUE
+  rotate = TRUE,
+  show_apl = TRUE,
+  annotate_leafs = FALSE
 ) {
   # TODO: Add better options for layout and aesthetics.
   base::stopifnot(
     "Set either `show_cells` or `show_genes` to TRUE." = isTRUE(show_cells) ||
       isTRUE(show_genes)
   )
+
+  if (isTRUE(annotate_leafs) && isTRUE(show_apl)) {
+    rlang::warn(
+      "annotate_leafs can only be used when `show_apl = FALSE. Turning param off."
+    )
+    annotate_leafs <- FALSE
+  }
 
   if (isTRUE(show_axis)) {
     plot_theme <- theme_axis_only
@@ -205,6 +217,8 @@ sm_plot <- function(
       algorithm = "sugiyama",
     )
   }
+
+  lgraph$leaf <- (lgraph$y == min(lgraph$y))
 
   ggraph::set_graph_style(plot_margin = ggplot2::margin(0, 0, 0, 0))
   bg <- ggraph::ggraph(lgraph, layout = layout)
@@ -231,6 +245,8 @@ sm_plot <- function(
 
   # nodes <- names(igraph::V(graph))
   nodes <- lgraph$name
+
+  lgraph$annotation <- NA
 
   old_iter_nm <- ""
   for (i in seq_len(length(nodes))) {
@@ -278,84 +294,138 @@ sm_plot <- function(
       )
 
       if (isTRUE(annotate_clusters)) {
-        suppressWarnings({
-          tmp_cadir <- annotate_biclusters(
-            obj = tmp_cadir,
-            universe = rownames(caobj@std_coords_rows),
-            org = org,
-            alpha = 0.05,
-            min_size = 10,
-            max_size = 500,
-            method = "goa",
-            cost = "pval",
-            filter_literature = FALSE
-          )
-        })
+        if (isTRUE(annotate_leafs) && isFALSE(lgraph$leaf[i])) {
+          next
+        }
+
+        tryCatch(
+          {
+            suppressWarnings({
+              tmp_cadir <- annotate_biclusters(
+                obj = tmp_cadir,
+                universe = rownames(caobj@std_coords_rows),
+                org = org,
+                alpha = 0.05,
+                min_size = 10,
+                max_size = 500,
+                method = "goa",
+                cost = "pval",
+                filter_literature = FALSE
+              )
+            })
+          },
+          error = function(e) {
+            rlang::warn("Could not annotate iteration.")
+          }
+        )
       }
       old_iter_nm <- iter_nm
     }
 
-    cluster <- rownames(tmp_cadir@directions)[cluster_idx]
-    rownames(dir) <- cluster
+    if (isTRUE(annotate_clusters)) {
+      lgraph$annotation[i] <- rownames(tmp_cadir@directions)[
+        cluster_idx
+      ]
+    }
 
     # colour_by_group <- !highlight_cluster
+    if (isTRUE(show_apl)) {
+      cluster <- rownames(tmp_cadir@directions)[cluster_idx]
+      rownames(dir) <- cluster
+      p <- cluster_apl(
+        caobj = caobj,
+        cadir = tmp_cadir,
+        direction = as.numeric(dir),
+        group = grp_idx,
+        cluster = cluster,
+        show_cells = show_cells,
+        show_genes = show_genes,
+        highlight_cluster = highlight_cluster,
+        show_lines = FALSE,
+        point_size = 0.3
+      )
+      if (isTRUE(annotate_clusters)) {
+        cluster_title <- gsub(pattern = "_", replacement = " ", cluster)
+        p <- p +
+          ggplot2::ggtitle(paste(
+            strwrap(cluster_title, width = n_wrap),
+            collapse = "\n"
+          )) +
+          plot_theme(
+            title = ggplot2::element_text(
+              color = "black",
+              size = title_size
+            ),
+            text = ggplot2::element_text()
+          )
+      } else {
+        p <- p + plot_theme()
+      }
 
-    p <- cluster_apl(
-      caobj = caobj,
-      cadir = tmp_cadir,
-      direction = as.numeric(dir),
-      group = grp_idx,
-      cluster = cluster,
-      show_cells = show_cells,
-      show_genes = show_genes,
-      highlight_cluster = highlight_cluster,
-      show_lines = FALSE,
-      point_size = 0.3
-    )
-    if (isTRUE(annotate_clusters)) {
-      cluster_title <- gsub(pattern = "_", replacement = " ", cluster)
-      p <- p +
-        ggplot2::ggtitle(paste(
-          strwrap(cluster_title, width = n_wrap),
-          collapse = "\n"
-        )) +
-        plot_theme(
-          title = ggplot2::element_text(
-            color = "black",
-            size = title_size
-          ),
-          text = ggplot2::element_text()
+      # Ensure that we dont plot outside of the window:
+      lradj <- tbadj <- 0
+      mid_length <- inlet_side / 2
+      if (bg_coords[i, 1] < mid_length) {
+        lradj <- mid_length - bg_coords[i, 1]
+      }
+      if ((bg_coords[i, 1] + mid_length) > 1) {
+        lradj <- 1 - (mid_length + bg_coords[i, 1])
+      }
+      if (bg_coords[i, 2] < mid_length) {
+        tbadj <- mid_length - bg_coords[i, 2]
+      }
+      if ((bg_coords[i, 2] + mid_length) > 1) {
+        tbadj <- 1 - (mid_length + bg_coords[i, 2])
+      }
+
+      bg <- bg +
+        patchwork::inset_element(
+          p,
+          left = bg_coords[i, 1] - mid_length + lradj,
+          right = bg_coords[i, 1] + mid_length + lradj,
+          top = bg_coords[i, 2] + mid_length + tbadj,
+          bottom = bg_coords[i, 2] - mid_length + tbadj,
+          align_to = "panel"
+        )
+    }
+  }
+
+  # NOTE: Redo graph if we need to annotate leafs.
+  if (isTRUE(annotate_clusters) && isFALSE(show_apl)) {
+    bg <- ggraph::ggraph(lgraph, layout = layout)
+
+    if (layout == "tree") {
+      bg <- bg + ggraph::geom_edge_link()
+    } else if (layout == "dendrogram") {
+      bg <- bg + ggraph::geom_edge_elbow(check_overlap = TRUE)
+    }
+
+    if (isTRUE(annotate_leafs)) {
+      bg <- bg +
+        ggraph::geom_node_text(
+          aes(label = ifelse(leaf, annotation, NA)),
+          size = title_size,
+          repel = TRUE
         )
     } else {
-      p <- p + plot_theme()
-    }
-
-    # Ensure that we dont plot outside of the window:
-    lradj <- tbadj <- 0
-    mid_length <- inlet_side / 2
-    if (bg_coords[i, 1] < mid_length) {
-      lradj <- mid_length - bg_coords[i, 1]
-    }
-    if ((bg_coords[i, 1] + mid_length) > 1) {
-      lradj <- 1 - (mid_length + bg_coords[i, 1])
-    }
-    if (bg_coords[i, 2] < mid_length) {
-      tbadj <- mid_length - bg_coords[i, 2]
-    }
-    if ((bg_coords[i, 2] + mid_length) > 1) {
-      tbadj <- 1 - (mid_length + bg_coords[i, 2])
+      bg <- bg +
+        ggraph::geom_node_text(
+          aes(label = annotation),
+          size = title_size,
+          repel = TRUE
+        )
     }
 
     bg <- bg +
-      patchwork::inset_element(
-        p,
-        left = bg_coords[i, 1] - mid_length + lradj,
-        right = bg_coords[i, 1] + mid_length + lradj,
-        top = bg_coords[i, 2] + mid_length + tbadj,
-        bottom = bg_coords[i, 2] - mid_length + tbadj,
-        align_to = "panel"
-      )
+      ggraph::geom_node_point(alpha = 1)
+
+    if (isTRUE(rotate)) {
+      bg <- bg +
+        ggplot2::coord_flip() +
+        ggplot2::scale_y_reverse()
+    }
   }
 
   return(bg)
+  # return(lgraph)
 }
