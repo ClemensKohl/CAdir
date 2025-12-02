@@ -212,6 +212,7 @@ cluster_apl <- function(
       # ", CA-angle: ",
       # round(ang, 2)
     )) +
+    ggplot2::labs(x = "association strength", y = "cluster specificity") +
     ggplot2::theme_bw()
 
   if (isTRUE(interactive)) {
