@@ -222,19 +222,18 @@ cluster_apl <- function(
     alpha <- cadir@parameters$sa_cutoff
     if (is.null(alpha)) {
       rlang::warn("No Cutoff angle was calculated. Cannot show line.")
-      break
+    } else {
+      cot_alpha <- 1 / tan(alpha)
+
+      p <- p +
+        ggplot2::geom_abline(
+          slope = cot_alpha,
+          linetype = "twodash",
+          color = "#c4421a",
+          intercept = 0,
+          linewidth = 1
+        )
     }
-
-    cot_alpha <- 1 / tan(alpha)
-
-    p <- p +
-      ggplot2::geom_abline(
-        slope = cot_alpha,
-        linetype = "solid",
-        color = "red",
-        intercept = 0,
-        linewidth = 1
-      )
   }
 
   if (isTRUE(interactive)) {
