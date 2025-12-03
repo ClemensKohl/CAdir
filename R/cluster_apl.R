@@ -17,6 +17,7 @@
 #' `ntop` genes per cluster.
 #' @param ntop Number of genes to label if `label_genes = TRUE`.
 #' @param interactive Uses plotly to generate an interactive version of the
+#' @param show_cutoff When TRUE, shows line for cutoff angle.
 #' plot.
 #' @returns
 #' An APL plot (ggplot2 object).
@@ -35,7 +36,8 @@ cluster_apl <- function(
   point_size = 1.5,
   size_factor = 2,
   ntop = 10,
-  interactive = FALSE
+  interactive = FALSE,
+  show_cutoff = FALSE
 ) {
   stopifnot(methods::is(caobj, "cacomp"))
   stopifnot(methods::is(cadir, "cadir"))
@@ -214,6 +216,25 @@ cluster_apl <- function(
     )) +
     ggplot2::labs(x = "association strength", y = "cluster specificity") +
     ggplot2::theme_bw()
+
+  if (isTRUE(show_cutoff)) {
+    alpha <- cadir@parameters$sa_cutoff
+    if (is.null(alpha)) {
+      rlang::warn("No Cutoff angle was calculated. Cannot show line.")
+      break
+    }
+
+    cot_alpha <- 1 / tan(alpha)
+
+    p <- p +
+      ggplot2::geom_abline(
+        slope = cot_alpha,
+        linetype = "solid",
+        color = "red",
+        intercept = 0,
+        linewidth = 1
+      )
+  }
 
   if (isTRUE(interactive)) {
     suppressWarnings({
