@@ -217,6 +217,7 @@ cluster_apl <- function(
     ggplot2::labs(x = "association strength", y = "cluster specificity") +
     ggplot2::theme_bw()
 
+  # Adds Salpha line to the plot.
   if (isTRUE(show_cutoff)) {
     alpha <- cadir@parameters$sa_cutoff
     if (is.null(alpha)) {
