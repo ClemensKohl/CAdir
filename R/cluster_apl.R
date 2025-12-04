@@ -223,11 +223,11 @@ cluster_apl <- function(
     if (is.null(alpha)) {
       rlang::warn("No Cutoff angle was calculated. Cannot show line.")
     } else {
-      cot_alpha <- 1 / tan(alpha)
+      tan_alpha <- tan(alpha)
 
       p <- p +
         ggplot2::geom_abline(
-          slope = cot_alpha,
+          slope = tan_alpha,
           linetype = "twodash",
           color = "#c4421a",
           intercept = 0,
