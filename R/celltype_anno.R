@@ -429,7 +429,7 @@ goa_per_cluster <- function(
 #' @returns
 #' A data frame with the assigned cell types and adjusted p-values.
 #' @export
-run_hungarian <- function(gse_res, cost = "pval") {
+run_hungarian <- function(gse_res, cost = "logpval") {
   # Solve assignment problem with the hungarian algorithm.
   # Build cost matrix.
   gse_res <- dplyr::bind_rows(gse_res, .id = "cluster")
@@ -520,7 +520,7 @@ annotate_by_gse <- function(
   obj,
   gse_res,
   alpha = 0.05,
-  cost = c("pval", "logpval", "NES")
+  cost = c("logpval", "pval", "NES")
 ) {
   stopifnot(methods::is(obj, "cadir"))
   if (length(cost) > 1) {
@@ -669,7 +669,7 @@ setGeneric(
     verbose = TRUE,
     method = "goa", # TODO: add parameter to all function calls elsewhere.
     filter_literature = FALSE, # TODO: add parameter to all function calls elsewhere.
-    cost = c("pval", "logpval", "NES")
+    cost = c("logpval", "pval", "NES")
   ) {
     standardGeneric("annotate_biclusters")
   }
@@ -696,7 +696,7 @@ setMethod(
     verbose = TRUE,
     method = "goa",
     filter_literature = FALSE,
-    cost = c("pval", "logpval", "NES")
+    cost = c("logpval", "pval", "NES")
   ) {
     stopifnot(methods::is(obj, "cadir"))
 
