@@ -17,7 +17,7 @@ annotate_biclusters(
   verbose = TRUE,
   method = "goa",
   filter_literature = FALSE,
-  cost = c("pval", "logpval", "NES")
+  cost = c("logpval", "pval", "NES")
 )
 
 \S4method{annotate_biclusters}{cadir}(
@@ -32,7 +32,7 @@ annotate_biclusters(
   verbose = TRUE,
   method = "goa",
   filter_literature = FALSE,
-  cost = c("pval", "logpval", "NES")
+  cost = c("logpval", "pval", "NES")
 )
 }
 \arguments{
@@ -44,7 +44,8 @@ annotate_biclusters(
 
 \item{caobj}{A CA object as obtained from APL.}
 
-\item{set}{Name of the gene set. Currently only supports "CellMarker"}
+\item{set}{Name of the gene set. Currently only supports "CellMarker"
+and "PanglaoDB"}
 
 \item{alpha}{p-value cutoff for annotating clusters when using cost "pval" or "logpval"}
 

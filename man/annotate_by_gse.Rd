@@ -4,7 +4,7 @@
 \alias{annotate_by_gse}
 \title{Annotate CAdir results by gene set enrichment}
 \usage{
-annotate_by_gse(obj, gse_res, alpha = 0.05, cost = c("pval", "logpval", "NES"))
+annotate_by_gse(obj, gse_res, alpha = 0.05, cost = c("logpval", "pval", "NES"))
 }
 \arguments{
 \item{obj}{\code{cadir} object with biclustering results. Alternatively could be

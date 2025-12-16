@@ -23,7 +23,8 @@ gsea_per_cluster(
 
 \item{org}{Short name of the organism. "mm" for mouse, "hs" for human.}
 
-\item{set}{Name of the gene set. Currently only supports "CellMarker"}
+\item{set}{Name of the gene set. Currently only supports "CellMarker"
+and "PanglaoDB"}
 
 \item{min_size}{Min. number of genes in the gene set.}
 

@@ -4,7 +4,7 @@
 \alias{run_hungarian}
 \title{Assign cell types to clusters using the Hungarian algorithm.}
 \usage{
-run_hungarian(gse_res, cost = "pval")
+run_hungarian(gse_res, cost = "logpval")
 }
 \arguments{
 \item{gse_res}{List of gene set enrichment results for each bicluster.}

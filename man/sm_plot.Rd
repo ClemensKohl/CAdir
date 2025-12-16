@@ -20,7 +20,9 @@ sm_plot(
   show_axis = FALSE,
   n_wrap = Inf,
   layout = "tree",
-  rotate = TRUE
+  rotate = TRUE,
+  show_apl = TRUE,
+  annotate_leafs = FALSE
 )
 }
 \arguments{
@@ -58,6 +60,11 @@ around the cluster node.}
 Currently only supports \code{"dendrogram"} or \code{"tree"}.}
 
 \item{rotate}{TRUE/FALSE. Whether to rotate the tree by 90 degrees.}
+
+\item{show_apl}{Boolean. Whether or not to show an APL plot at each node.}
+
+\item{annotate_leafs}{Boolean. Annotates the terminal nodes in the graph.
+Only takes affect if show_apl = FALSE.}
 }
 \value{
 A ggplot object showing the split-merge graph and APL plots for each cluster.

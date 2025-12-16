@@ -7,7 +7,8 @@
 load_ct_gene_set(set = "CellMarker", org)
 }
 \arguments{
-\item{set}{Name of the gene set. Currently only supports "CellMarker"}
+\item{set}{Name of the gene set. Currently only supports "CellMarker"
+and "PanglaoDB"}
 
 \item{org}{Short name of the organism. "mm" for mouse, "hs" for human.}
 }

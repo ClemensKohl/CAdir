@@ -79,6 +79,7 @@ rad_to_ang_sim <- function(rad) {
 #' Convert degrees to radians.
 #' @param x Angle in degrees.
 #' @returns Angle in radians.
+#' @export
 deg2rad <- function(x) {
   r <- (x * pi) / 180
   return(r)
@@ -87,6 +88,7 @@ deg2rad <- function(x) {
 #' Convert radians to degrees.
 #' @param x Angle in radians.
 #' @returns Angle in degrees.
+#' @export
 rad2deg <- function(x) {
   d <- (x * 180) / pi
   return(d)

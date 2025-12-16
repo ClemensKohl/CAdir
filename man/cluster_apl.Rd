@@ -18,7 +18,8 @@ cluster_apl(
   point_size = 1.5,
   size_factor = 2,
   ntop = 10,
-  interactive = FALSE
+  interactive = FALSE,
+  show_cutoff = FALSE
 )
 }
 \arguments{
@@ -52,7 +53,9 @@ larger/smaller than \code{point_size}.}
 
 \item{ntop}{Number of genes to label if \code{label_genes = TRUE}.}
 
-\item{interactive}{Uses plotly to generate an interactive version of the
+\item{interactive}{Uses plotly to generate an interactive version of the}
+
+\item{show_cutoff}{When TRUE, shows line for cutoff angle.
 plot.}
 }
 \value{
