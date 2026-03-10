@@ -107,8 +107,10 @@ random_direction_cutoff <- function(
     )
 
     length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
+
     coord_x <- drop(ca_coords %*% avg_group_coords) / length_vector_group
     coord_y <- sqrt(pmax(length_vector_coords^2 - coord_x^2, 0))
+
     cotan <- coord_x / coord_y
     cotan[is.na(cotan)] <- 0
 
@@ -184,7 +186,12 @@ permutation_cutoff <- function(
       calc_rows = cr
     )
 
-    apl_xy <- if (axis == "cols") caobjp@apl_cols else caobjp@apl_rows
+    apl_xy <- if (axis == "cols") {
+      caobjp@apl_cols
+    } else if (axis == "rows") {
+      caobjp@apl_rows
+    }
+
     cotan <- apl_xy[, 1] / apl_xy[, 2]
     cotan[is.na(cotan)] <- 0
 
