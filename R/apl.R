@@ -64,15 +64,13 @@ apl_model <- function(
 #' Random direction association plot coordinates
 #'
 #' @description
-#' Calculates matrix of apl coordinates for random directions
+#' Calculates cotangent values for random directions
 #'
 #' @inheritParams get_apl_cutoff
 #' @param dims Number of dimensions to use for the analysis.
 #'
 #' @returns
-#' List with permuted apl coordinates ("apl_perm") and, a list of saved ca
-#' components ("saved_ca") that allow for quick recomputation of the CA results.
-#'  For random_direction_cutoff this saved_ca is empty.
+#' Numeric vector of cotangent values of length `row_num * apl_cutoff_reps`.
 random_direction_cutoff <- function(
   caobj,
   dims = caobj@dims,
@@ -98,13 +96,10 @@ random_direction_cutoff <- function(
   }
 
   cols <- caobj@prin_coords_cols
-  apl_perm <- data.frame(
-    "x" = rep(0, row_num * apl_cutoff_reps),
-    "y" = rep(0, row_num * apl_cutoff_reps)
-  )
+  length_vector_coords <- sqrt(rowSums(ca_coords^2))
+  apl_cotan <- numeric(row_num * apl_cutoff_reps)
 
   for (k in seq(apl_cutoff_reps)) {
-    # this picks random directions within the space of the original data.
     avg_group_coords <- stats::runif(
       n = dims,
       min = 0,
@@ -112,19 +107,15 @@ random_direction_cutoff <- function(
     )
 
     length_vector_group <- sqrt(drop(avg_group_coords %*% avg_group_coords))
-    length_vector_coords <- sqrt(rowSums(ca_coords^2))
-
     coord_x <- drop(ca_coords %*% avg_group_coords) / length_vector_group
-    # pythagoras, y(r)=b²=c²-a²
-    coord_y <- sqrt(length_vector_coords^2 - coord_x^2)
-
-    coord_x[is.na(coord_x)] <- 0
-    coord_y[is.na(coord_y)] <- 0
+    coord_y <- sqrt(pmax(length_vector_coords^2 - coord_x^2, 0))
+    cotan <- coord_x / coord_y
+    cotan[is.na(cotan)] <- 0
 
     idx <- ((1:row_num) + ((k - 1) * row_num))
-    apl_perm[idx, ] <- cbind("x" = coord_x, "y" = coord_y)
+    apl_cotan[idx] <- cotan
   }
-  return(apl_perm)
+  return(apl_cotan)
 }
 
 
@@ -137,7 +128,8 @@ random_direction_cutoff <- function(
 #' @param python If TRUE, use python for CA SVD.
 #' @param dims The number of dimensions to when performing SVD.
 #' Usually can be kept as `caobj@dims`.
-#' @inherit random_direction_cutoff return
+#' @returns
+#' Numeric vector of cotangent values of length `row_num * apl_cutoff_reps`.
 #'
 permutation_cutoff <- function(
   caobj,
@@ -154,10 +146,7 @@ permutation_cutoff <- function(
     row_num <- nrow(caobj@U)
   }
 
-  apl_perm <- data.frame(
-    "x" = rep(0, row_num * apl_cutoff_reps),
-    "y" = rep(0, row_num * apl_cutoff_reps)
-  )
+  apl_cotan <- numeric(row_num * apl_cutoff_reps)
 
   if (caobj@dims == 1 && !is.empty(caobj@dims)) {
     row_num <- 1
@@ -169,8 +158,6 @@ permutation_cutoff <- function(
   cr <- (axis == "rows")
 
   for (k in seq(apl_cutoff_reps)) {
-    # permute rows and rerun cacomp
-
     mat_perm <- t(apply(counts, margin, FUN = sample))
     colnames(mat_perm) <- colnames(counts)
 
@@ -197,15 +184,15 @@ permutation_cutoff <- function(
       calc_rows = cr
     )
 
+    apl_xy <- if (axis == "cols") caobjp@apl_cols else caobjp@apl_rows
+    cotan <- apl_xy[, 1] / apl_xy[, 2]
+    cotan[is.na(cotan)] <- 0
+
     idx <- ((seq_len(row_num) + ((k - 1) * row_num)))
-    if (axis == "cols") {
-      apl_perm[idx, ] <- caobjp@apl_cols
-    } else if (axis == "rows") {
-      apl_perm[idx, ] <- caobjp@apl_rows
-    }
+    apl_cotan[idx] <- cotan
   }
 
-  return(apl_perm)
+  return(apl_cotan)
 }
 
 
@@ -240,7 +227,7 @@ get_apl_cutoff <- function(
       apl_cutoff_reps <- 100
     }
 
-    apl_perm <- random_direction_cutoff(
+    apl_cotan <- random_direction_cutoff(
       caobj = caobj,
       dims = caobj@dims,
       apl_cutoff_reps = apl_cutoff_reps,
@@ -253,7 +240,7 @@ get_apl_cutoff <- function(
       rlang::inform("Large number of repetitions might take a long time.")
     }
 
-    apl_perm <- permutation_cutoff(
+    apl_cotan <- permutation_cutoff(
       caobj = caobj,
       counts = counts,
       group = group,
@@ -264,11 +251,7 @@ get_apl_cutoff <- function(
     )
   }
 
-  # cotan between row and x axis
-  apl_perm[, 3] <- apl_perm[, 1] / apl_perm[, 2]
-  apl_perm[, 3][is.na(apl_perm[, 3])] <- 0
-
-  cutoff_cotan <- stats::quantile(apl_perm[, 3], quant)
+  cutoff_cotan <- stats::quantile(apl_cotan, quant)
 
   # tan = 1/cotan
   # angle alpha is in radian.

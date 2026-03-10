@@ -51,6 +51,9 @@ Collate:
     'splitmerge.R'
     'utils.R'
     'vector_utils.R'
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
 Depends:
     R (>= 2.10)
 LazyData: true
