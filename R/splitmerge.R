@@ -325,6 +325,9 @@ merge_clusters <- function(caobj, cadir, cutoff, make_plots = FALSE) {
 #' @param qcutoff The quantile cutoff for gene selection.
 #' @param keep_log Keep log of cluster assignments.
 #' Turning FALSE breaks plotting functions but saves memory.
+#' @param convergence_thr Angle between directions from different iterations in
+#' degrees below or equal which convergence is reached.
+#' If FALSE, only reps is used!
 #' @return A `cadir` object with cell clusters.
 #' @seealso [get_apl_cutoff()]
 #' @export
@@ -438,7 +441,7 @@ dirclust_splitmerge <- function(
     ))
   }
 
-  use_conv <- is.null(reps)
+  use_conv <- !isFALSE(convergence_thr)
   if (is.null(reps)) {
     reps <- max_iter
   }
