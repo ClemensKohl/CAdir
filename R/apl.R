@@ -141,7 +141,7 @@ permutation_cutoff <- function(
   axis = "cols"
 ) {
   if (axis == "cols") {
-    row_num <- ncol(caobj@V)
+    row_num <- nrow(caobj@V)
   } else if (axis == "rows") {
     row_num <- nrow(caobj@U)
   }
