@@ -323,6 +323,8 @@ merge_clusters <- function(caobj, cadir, cutoff, make_plots = FALSE) {
 #'  If `NULL` the cutoff angle is calculated based on the cutoff angle based
 #'  on the quantile defined through `apl_quant`.
 #' @param qcutoff The quantile cutoff for gene selection.
+#' @param keep_log Keep log of cluster assignments.
+#' Turning FALSE breaks plotting functions but saves memory.
 #' @return A `cadir` object with cell clusters.
 #' @seealso [get_apl_cutoff()]
 #' @export
@@ -341,7 +343,8 @@ dirclust_splitmerge <- function(
   make_plots = FALSE,
   convergence_thr = 0.001,
   max_iter = 50,
-  init = "kmeanspp"
+  init = "kmeanspp",
+  keep_log = TRUE
 ) {
   fun_args <- match.call()
 
@@ -354,23 +357,25 @@ dirclust_splitmerge <- function(
   # Setup #
   #########
 
-  log <- list()
-  log$clusters <- as.data.frame(matrix(
-    0,
-    ncol = 1,
-    nrow = nrow(caobj@prin_coords_cols)
-  ))
+  if (isTRUE(keep_log)) {
+    log <- list()
+    log$clusters <- as.data.frame(matrix(
+      0,
+      ncol = 1,
+      nrow = nrow(caobj@prin_coords_cols)
+    ))
 
-  colnames(log$clusters) <- "root"
+    colnames(log$clusters) <- "root"
 
-  log$directions <- as.data.frame(matrix(
-    0,
-    ncol = ncol(caobj@prin_coords_cols),
-    nrow = 1
-  ))
+    log$directions <- as.data.frame(matrix(
+      0,
+      ncol = ncol(caobj@prin_coords_cols),
+      nrow = 1
+    ))
 
-  colnames(log$directions) <- colnames(caobj@prin_coords_cols)
-  log$directions <- cbind(iter = "root", dirname = "root", log$directions)
+    colnames(log$directions) <- colnames(caobj@prin_coords_cols)
+    log$directions <- cbind(iter = "root", dirname = "root", log$directions)
+  }
 
   ######################
   # Initial clustering #
@@ -388,8 +393,9 @@ dirclust_splitmerge <- function(
   )
 
   out <- rename_clusters(out)
-
-  log <- log_iter(log = log, cadir = out, name = "iter_0")
+  if (isTRUE(keep_log)) {
+    log <- log_iter(log = log, cadir = out, name = "iter_0")
+  }
 
   ##########
   # Cutoff #
@@ -458,7 +464,9 @@ dirclust_splitmerge <- function(
       make_plots = make_plots
     )
 
-    log <- log_iter(log = log, cadir = out, name = paste0("split_", iter_nm))
+    if (isTRUE(keep_log)) {
+      log <- log_iter(log = log, cadir = out, name = paste0("split_", iter_nm))
+    }
 
     out <- dirclust(
       points = caobj@prin_coords_cols,
@@ -472,7 +480,9 @@ dirclust_splitmerge <- function(
 
     out <- rename_clusters(out)
 
-    log <- log_iter(log = log, cadir = out, name = paste0("interS_", iter_nm))
+    if (isTRUE(keep_log)) {
+      log <- log_iter(log = log, cadir = out, name = paste0("interS_", iter_nm))
+    }
 
     ##################
     # Merge clusters #
@@ -485,7 +495,9 @@ dirclust_splitmerge <- function(
       make_plots = make_plots
     )
 
-    log <- log_iter(log = log, cadir = out, name = paste0("merge_", iter_nm))
+    if (isTRUE(keep_log)) {
+      log <- log_iter(log = log, cadir = out, name = paste0("merge_", iter_nm))
+    }
 
     out <- dirclust(
       points = caobj@prin_coords_cols,
@@ -498,7 +510,9 @@ dirclust_splitmerge <- function(
     )
     out <- rename_clusters(out)
 
-    log <- log_iter(log = log, cadir = out, name = paste0("interM_", iter_nm))
+    if (isTRUE(keep_log)) {
+      log <- log_iter(log = log, cadir = out, name = paste0("interM_", iter_nm))
+    }
 
     if (i > 1 && use_conv) {
       has_conv <- check_convergence(
@@ -525,14 +539,18 @@ dirclust_splitmerge <- function(
 
   out <- rename_clusters(out)
 
-  log <- log_iter(log = log, cadir = out, name = paste0("end", iter_nm))
+  if (isTRUE(keep_log)) {
+    log <- log_iter(log = log, cadir = out, name = paste0("end", iter_nm))
+  }
 
   ################
   # add log info #
   ################
 
-  to_keep <- (!names(out@log) %in% names(log))
-  out@log <- c(out@log[to_keep], log)
+  if (isTRUE(keep_log)) {
+    to_keep <- (!names(out@log) %in% names(log))
+    out@log <- c(out@log[to_keep], log)
+  }
   out@parameters$qcutoff <- qcutoff
   out@parameters$call <- fun_args
 
