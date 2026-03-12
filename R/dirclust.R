@@ -266,8 +266,8 @@ dirclust <- function(
     out@cell_clusters <- clusters
     out@directions <- lines
     out@distances <- ldist
-    to_keep <- (!names(out@log) %in% names(log))
-    out@log <- c(out@log[to_keep], out@log)
+    to_keep <- (!names(out@log) %in% names(cadir@log))
+    out@log <- c(out@log[to_keep], cadir@log)
     out@dict <- dict
   }
 
