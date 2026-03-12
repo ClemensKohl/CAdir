@@ -99,6 +99,8 @@ update_line <- function(points, clusters, lines, k) {
   return(lines)
 }
 
+# TODO: unify max iter and epochs into a single variable
+
 #' Basic clustering by directions in CA space
 #' @inheritParams check_convergence
 #' @param points Matrix of points to be clustered.
