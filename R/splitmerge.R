@@ -314,6 +314,7 @@ merge_clusters <- function(caobj, cadir, cutoff, make_plots = FALSE) {
 #' @inheritParams get_apl_cutoff
 #' @param caobj A `cacomp` object.
 #' @param reps Number of repetitions to perform the splitting and merging.
+#' If set to an integer, max_iter is ignored.
 #' @param min_cells Minimum number of cells to form a cluster.
 #' @param make_plots Logical. If `TRUE` plots are generated for each
 #' @param apl_quant The quantile to use for the APL cutoff. Only used

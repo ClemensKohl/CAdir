@@ -106,7 +106,8 @@ update_line <- function(points, clusters, lines, k) {
 #' @param points Matrix of points to be clustered.
 #'  Points are expected to be rows.
 #' @param k Number of clusters.
-#' @param epochs Number of iterations.
+#' @param epochs Number of iterations for `dirclust`. If set to something other than NULL
+#' CAdir will iterate for the number of epochs independent of convergence.
 #' @param init Initialization method for the lines. Options are 'rand' and
 #' 'kmeanspp'.
 #' @param lines Optional. Row-wise matrix of lines.
