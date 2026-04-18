@@ -22,10 +22,8 @@ Should be between 3-10 for permutation, and >=100 for random.}
 \item{axis}{The axis for which the cutoff should be calculated, either "cols" or "rows".}
 }
 \value{
-List with permuted apl coordinates ("apl_perm") and, a list of saved ca
-components ("saved_ca") that allow for quick recomputation of the CA results.
-For random_direction_cutoff this saved_ca is empty.
+Numeric vector of cotangent values of length \code{row_num * apl_cutoff_reps}.
 }
 \description{
-Calculates matrix of apl coordinates for random directions
+Calculates cotangent values for random directions
 }

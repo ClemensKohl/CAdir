@@ -19,7 +19,8 @@ dirclust_splitmerge(
   make_plots = FALSE,
   convergence_thr = 0.001,
   max_iter = 50,
-  init = "kmeanspp"
+  init = "kmeanspp",
+  keep_log = TRUE
 )
 }
 \arguments{
@@ -44,9 +45,11 @@ split and merge}
 
 \item{min_cells}{Minimum number of cells to form a cluster.}
 
-\item{epochs}{Number of iterations.}
+\item{epochs}{Number of iterations for \code{dirclust}. If set to something other than NULL
+CAdir will iterate for the number of epochs independent of convergence.}
 
-\item{reps}{Number of repetitions to perform the splitting and merging.}
+\item{reps}{Number of repetitions to perform the splitting and merging.
+If set to an integer, max_iter is ignored.}
 
 \item{apl_cutoff_reps}{The number of repetitions to use.
 Should be between 3-10 for permutation, and >=100 for random.}
@@ -54,12 +57,16 @@ Should be between 3-10 for permutation, and >=100 for random.}
 \item{make_plots}{Logical. If \code{TRUE} plots are generated for each}
 
 \item{convergence_thr}{Angle between directions from different iterations in
-degrees below or equal which convergence is reached.}
+degrees below or equal which convergence is reached.
+If FALSE, only reps is used!}
 
 \item{max_iter}{Maximum number of iterations if no convergence.}
 
 \item{init}{Initialization method for the lines. Options are 'rand' and
 'kmeanspp'.}
+
+\item{keep_log}{Keep log of cluster assignments.
+Turning FALSE breaks plotting functions but saves memory.}
 }
 \value{
 A \code{cadir} object with cell clusters.

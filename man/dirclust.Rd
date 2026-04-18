@@ -22,7 +22,8 @@ Points are expected to be rows.}
 
 \item{k}{Number of clusters.}
 
-\item{epochs}{Number of iterations.}
+\item{epochs}{Number of iterations for \code{dirclust}. If set to something other than NULL
+CAdir will iterate for the number of epochs independent of convergence.}
 
 \item{init}{Initialization method for the lines. Options are 'rand' and
 'kmeanspp'.}
