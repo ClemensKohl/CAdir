@@ -348,7 +348,8 @@ dirclust_splitmerge <- function(
   convergence_thr = 0.001,
   max_iter = 50,
   init = "kmeanspp",
-  keep_log = TRUE
+  keep_log = TRUE,
+  lines = NULL
 ) {
   fun_args <- match.call()
 
@@ -384,13 +385,16 @@ dirclust_splitmerge <- function(
   ######################
   # Initial clustering #
   ######################
+  if (!is.null(lines)) {
+    lines <- lines / row_norm(lines)
+  }
 
   out <- dirclust(
     points = caobj@prin_coords_cols,
     k = k,
     epochs = epochs,
     init = init,
-    lines = NULL,
+    lines = lines,
     log = FALSE,
     convergence_thr = convergence_thr,
     max_iter = max_iter

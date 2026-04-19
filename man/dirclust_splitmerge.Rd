@@ -20,7 +20,8 @@ dirclust_splitmerge(
   convergence_thr = 0.001,
   max_iter = 50,
   init = "kmeanspp",
-  keep_log = TRUE
+  keep_log = TRUE,
+  lines = NULL
 )
 }
 \arguments{
@@ -67,6 +68,9 @@ If FALSE, only reps is used!}
 
 \item{keep_log}{Keep log of cluster assignments.
 Turning FALSE breaks plotting functions but saves memory.}
+
+\item{lines}{Optional. Row-wise matrix of lines.
+If not NULL, then the provided lines are used for initialization.}
 }
 \value{
 A \code{cadir} object with cell clusters.
