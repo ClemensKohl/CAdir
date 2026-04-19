@@ -1,5 +1,7 @@
-# README
-
+---
+title: README
+toc-title: Table of contents
+---
 
 # Clustering by directions in CA space
 
@@ -9,9 +11,11 @@ algorithms it does not require prior knowledge of the number of clusters
 in the data, but can instead infer them during clustering. The package
 can be installed through GitHub:
 
-``` r
+::: cell
+``` {.r .cell-code}
 devtools::install_github("VingronLab/CAdir")
 ```
+:::
 
 Note that currently you have to also install CAbiNet from GitHub for the
 package to function.
@@ -20,7 +24,8 @@ package to function.
 
 Download example data and perform basic preprocessing:
 
-``` r
+::: cell
+``` {.r .cell-code}
 suppressPackageStartupMessages({
   library(CAdir)
   library(APL)
@@ -31,15 +36,7 @@ suppressPackageStartupMessages({
   library(scater)
   library(scuttle)
 })
-```
 
-    Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
-    'DelayedArray::makeNindexFromArrayViewport' when loading 'SummarizedExperiment'
-
-    Warning: replacing previous import 'S4Arrays::makeNindexFromArrayViewport' by
-    'DelayedArray::makeNindexFromArrayViewport' when loading 'HDF5Array'
-
-``` r
 set.seed(2358)
 
 sce <- scRNAseq::ZeiselBrainData()
@@ -50,10 +47,12 @@ dec <- scran::modelGeneVar(sce)
 top_genes <- scran::getTopHVGs(dec, prop = 0.8)
 sce <- sce[top_genes, ]
 ```
+:::
 
 ## Correspondence analysis
 
-``` r
+::: cell
+``` {.r .cell-code}
 cnts <- as.matrix(logcounts(sce))
 
 ca <- cacomp(
@@ -68,11 +67,15 @@ cell_types <- sce$level1class
 cat("Number of cell types:", length(unique(cell_types)), "\n")
 ```
 
+::: {.cell-output .cell-output-stdout}
     Number of cell types: 7 
+:::
+:::
 
 ## CAdir
 
-``` r
+::: cell
+``` {.r .cell-code}
 cadir <- dirclust_splitmerge(
   caobj = ca,
   k = 10,
@@ -81,18 +84,23 @@ cadir <- dirclust_splitmerge(
 )
 ```
 
+::: {.cell-output .cell-output-stderr}
 
     Inferred cutoff angle: 66.82
+:::
 
+::: {.cell-output .cell-output-stderr}
     Iteration 1
         Merging cluster_1 with cluster_9
         Merging cluster_4 with cluster_5
     Iteration 2
+:::
 
-``` r
+``` {.r .cell-code}
 cadir
 ```
 
+::: {.cell-output .cell-output-stdout}
     cadir object with 3005 cells and 1518 genes.
     8 clusters found.
     Clustering results:
@@ -106,10 +114,13 @@ cadir
      cluster_6  721    22   
      cluster_7   37   215   
      cluster_8  157   491   
+:::
+:::
 
 Annotate cell clusters:
 
-``` r
+::: cell
+``` {.r .cell-code}
 cadir <- annotate_biclusters(
   obj = cadir,
   universe = rownames(sce),
@@ -118,6 +129,7 @@ cadir <- annotate_biclusters(
 cadir
 ```
 
+::: {.cell-output .cell-output-stdout}
     cadir object with 3005 cells and 1518 genes.
     8 clusters found.
     Clustering results:
@@ -131,10 +143,13 @@ cadir
      cluster_6         721    22   
      Ciliated_cell      37   215   
      Macrophage        157   491   
+:::
+:::
 
 Rank cluster specific genes:
 
-``` r
+::: cell
+``` {.r .cell-code}
 cadir <- rank_genes(cadir = cadir, caobj = ca)
 top <- top_genes(cadir)
 
@@ -142,6 +157,7 @@ top <- top_genes(cadir)
 head(top[top$Cluster == "Macrophage", ])
 ```
 
+::: {.cell-output .cell-output-stdout}
                       Rowname    Score Row_num    Cluster
     Macrophage.Fcgr3    Fcgr3 3.360433      14 Macrophage
     Macrophage.Fcer1g  Fcer1g 3.357104      31 Macrophage
@@ -149,10 +165,13 @@ head(top[top$Cluster == "Macrophage", ])
     Macrophage.Emr1      Emr1 3.263846      52 Macrophage
     Macrophage.C1qc      C1qc 3.146628      24 Macrophage
     Macrophage.Tyrobp  Tyrobp 3.144369      10 Macrophage
+:::
+:::
 
 ## Plot results
 
-``` r
+::: cell
+``` {.r .cell-code}
 cluster_apl(
   cadir = cadir,
   caobj = ca,
@@ -164,9 +183,13 @@ cluster_apl(
 )
 ```
 
-![](README_files/figure-commonmark/macrophage_APL-1.png)
+::: cell-output-display
+![](README_files/figure-markdown/macrophage_APL-1.png)
+:::
+:::
 
-``` r
+::: cell
+``` {.r .cell-code}
 plot_clusters(
   cadir = cadir,
   caobj = ca,
@@ -176,9 +199,13 @@ plot_clusters(
 )
 ```
 
-![](README_files/figure-commonmark/APLs-1.png)
+::: cell-output-display
+![](README_files/figure-markdown/APLs-1.png)
+:::
+:::
 
-``` r
+::: cell
+``` {.r .cell-code}
 sm_plot(
   cadir = cadir,
   caobj = ca,
@@ -190,19 +217,26 @@ sm_plot(
 )
 ```
 
-![](README_files/figure-commonmark/splitmerge_plot-1.png)
+::: cell-output-display
+![](README_files/figure-markdown/splitmerge_plot-1.png)
+:::
+:::
 
 # Package settings
 
 Verbosity of the messages can be controlled with rlang. To turn all
 messages off:
 
-``` r
+::: cell
+``` {.r .cell-code}
 options(rlib_message_verbosity = "quiet")
 ```
+:::
 
 To turn them back on:
 
-``` r
+::: cell
+``` {.r .cell-code}
 options(rlib_message_verbosity = "default")
 ```
+:::
